@@ -10,6 +10,7 @@ venv/
 *.log
 *.pot
 local_settings.py
+migrations/
 
 # Database
 *.sqlite3
