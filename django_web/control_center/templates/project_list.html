@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project List</title>
+</head>
+<body>
+    <header>
+        <h1>Project List</h1>
+    </header>
+    <main>
+        {% if projects %}
+            <ul>
+                {% for project in projects %}
+                    <li>
+                        <h2>{{ project.name }}</h2>
+                        <p>{{ project.description }}</p>
+                        <p><strong>Current Measurement:</strong> {{ project.current_measurement }}</p>
+                        
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No projects found.</p>
+        {% endif %}
+    </main>
+</body>
+</html>

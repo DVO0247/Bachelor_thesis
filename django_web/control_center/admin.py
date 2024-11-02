@@ -4,6 +4,7 @@ from .models import User, Project, Measurement, SensorNode, Sensor, UserProject
 
 class CustomUserAdmin(UserAdmin):
     model = User
+    list_display = ('id',) + UserAdmin.list_display
     '''
     fieldsets = UserAdmin.fieldsets + (
         ('Custom Fields', {

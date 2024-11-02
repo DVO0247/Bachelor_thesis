@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensor Formset</title>
+</head>
+<body>
+    <h1>Manage Sensors</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ formset.management_form }}
+        {% for form in formset %}
+            <div class="formset_row">
+                <h3>Sensor {{ forloop.counter }}</h3>
+                {{ form.as_p }}
+            </div>
+        {% endfor %}
+        <button type="submit">Save Sensors</button>
+    </form>
+</body>
+</html>

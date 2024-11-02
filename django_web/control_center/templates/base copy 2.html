@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Moje Aplikace{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{% static 'css/darkmode.css' %}">
+    {% block extra_css %}{% endblock %}
+    <style>
+        body {
+            transition: background-color 0.5s, color 0.5s;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 60px; /* Výška horního panelu */
+            left: 0;
+            height: calc(100% - 60px); /* Celá výška minus výška horního panelu */
+            width: 250px;
+            background-color: #f8f9fa;
+            padding-top: 20px;
+            transition: background-color 0.5s;
+        }
+
+        .sidebar.dark-mode {
+            background-color: #343a40;
+        }
+
+        .top-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 10px;
+            background-color: #f8f9fa;
+            transition: background-color 0.5s;
+            z-index: 1000; /* Ujistěte se, že je nad obsahem */
+        }
+
+        .top-panel.dark-mode {
+            background-color: #343a40;
+        }
+
+        .content {
+            margin-left: 250px;
+            padding-top: 70px; /* Výška horního panelu */
+            padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: relative;
+                height: auto;
+                width: 100%;
+            }
+            .content {
+                margin-left: 0;
+                padding-top: 10px; /* Přizpůsobte výšku horního panelu */
+            }
+            .top-panel {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-panel" id="top-panel">
+        <button id="mode-toggle" class="btn btn-link">Přepnout na tmavý režim</button>
+        <div class="float-right">
+            <a href="{% url 'index' %}" class="btn btn-danger">Odhlásit se</a>
+        </div>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <h2 class="text-center">Navigace</h2>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'index' %}">Domů</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'index' %}">Další stránka</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'index' %}">Nastavení</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'index' %}">O nás</a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="content">
+        <div class="container mt-4">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+
+    <footer class="text-center mt-4">
+        <p>&copy; 2024 Moje aplikace. Všechna práva vyhrazena.</p>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="{% static 'js/darkmode.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleButton = document.getElementById('mode-toggle');
+            const body = document.body;
+            const sidebar = document.getElementById('sidebar');
+            const topPanel = document.getElementById('top-panel');
+
+            // Zkontrolujte, zda je v localStorage uložena volba uživatele
+            if (localStorage.getItem('mode') === 'dark') {
+                body.classList.add('dark-mode');
+                sidebar.classList.add('dark-mode');
+                topPanel.classList.add('dark-mode');
+                toggleButton.innerText = 'Přepnout na světlý režim';
+            } else {
+                body.classList.add('light-mode');
+                toggleButton.innerText = 'Přepnout na tmavý režim';
+            }
+
+            toggleButton.addEventListener('click', () => {
+                body.classList.toggle('dark-mode');
+                sidebar.classList.toggle('dark-mode');
+                topPanel.classList.toggle('dark-mode');
+
+                if (body.classList.contains('dark-mode')) {
+                    toggleButton.innerText = 'Přepnout na světlý režim';
+                    localStorage.setItem('mode', 'dark');
+                } else {
+                    toggleButton.innerText = 'Přepnout na tmavý režim';
+                    localStorage.setItem('mode', 'light');
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>

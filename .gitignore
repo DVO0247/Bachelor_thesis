@@ -19,3 +19,5 @@ migrations/
 
 #
 temp/
+tmp/
+my_notes.md
