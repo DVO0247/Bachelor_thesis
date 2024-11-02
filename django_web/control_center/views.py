@@ -34,7 +34,7 @@ def sensor_view(request):
 
     return render(request, 'sensor_formset.html', {'formset': formset})
 
-@login_required
+#@login_required
 def sensor_node_edit(request, pk=None):
     sensor_node = get_object_or_404(SensorNode, pk=pk) if pk else None
 
@@ -45,6 +45,7 @@ def sensor_node_edit(request, pk=None):
             return redirect('index')  # Změňte na URL, kam chcete uživatele přesměrovat po uložení
     else:
         context = {}
-        context['form'] = SensorNodeForm(instance=sensor_node, user=request.user)
+        user = request.user if request.user.is_authenticated else None
+        context['form'] = SensorNodeForm(instance=sensor_node, user=user)
         context['model'] = context['form'].instance.__class__.__name__
         return render(request, 'generic_form.html', context)
