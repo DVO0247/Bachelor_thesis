@@ -36,16 +36,17 @@ def sensor_view(request):
 
 #@login_required
 def sensor_node_edit(request, pk=None):
+    context = {}
     sensor_node = get_object_or_404(SensorNode, pk=pk) if pk else None
-
+    
     if request.method == 'POST':
         form = SensorNodeForm(request.POST, instance=sensor_node)
         if form.is_valid():
             form.save()
             return redirect('index')  # Změňte na URL, kam chcete uživatele přesměrovat po uložení
     else:
-        context = {}
         user = request.user if request.user.is_authenticated else None
         context['form'] = SensorNodeForm(instance=sensor_node, user=user)
         context['model'] = context['form'].instance.__class__.__name__
         return render(request, 'generic_form.html', context)
+

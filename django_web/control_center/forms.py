@@ -7,7 +7,7 @@ class BootstrapModelForm(forms.ModelForm):
         for field in self.fields.values():
             field.widget.attrs.update({'class': 'form-control'})
 
-class SensorNodeForm(BootstrapModelForm):
+class SensorNodeForm(forms.ModelForm):
     class Meta:
         model = SensorNode
         fields = '__all__'
@@ -15,8 +15,9 @@ class SensorNodeForm(BootstrapModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        self.fields['project'].queryset = Project.objects.filter(userproject__user=user)
         
+        if user:
+            self.fields['project'].queryset = Project.objects.filter(userproject__user=user)
 
         
 
