@@ -25,7 +25,7 @@ body {
 
 .sidebar {
     position: fixed;
-    top: 60px;
+    top: 50px;
     /* Odsazení, aby byl sidebar pod topbarem */
     left: 0;
     width: 200px;
@@ -74,3 +74,5 @@ body {
         margin-left: 0;
     }
 }
+
+

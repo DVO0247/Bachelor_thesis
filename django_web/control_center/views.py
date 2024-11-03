@@ -67,17 +67,17 @@ def project_edit(request, pk=None):
         return render(request, 'generic_form.html', context)
 
 
-
 @login_required
 def project_use(request, pk):
     if request.method == 'POST':
         project = get_object_or_404(Project, pk=pk)
-        # Zde můžete provést logiku, jako např. změnit hodnoty v databázi
-        #project.current_measurement += 1  # Příklad změny
-        #project.save()  # Uložení změn
-
-        # Po dokončení akce přesměrujte na nějakou stránku
-        return redirect('project_list')  # Změňte na cílovou view
+        user:User = request.user
+        user.current_project = project
+        user.save()
+        previous_url = request.POST.get('previous_url')
+        if not previous_url:
+            previous_url = 'index'
+        return redirect(previous_url)
 
 @login_required
 def sensor_node_edit(request, pk=None):
@@ -100,17 +100,14 @@ def sensor_node_edit(request, pk=None):
 
 @login_required
 def delete(request, model_name, pk):
-    # Můžete také implementovat kontrolu oprávnění zde
     if request.method == 'POST':
-        # Vyberte model na základě model_name
         Model = apps.get_model('control_center',model_name)
-        # Přidejte další modely podle potřeby
 
         obj = get_object_or_404(Model, pk=pk)
         obj.delete()
         previous_url = request.POST.get('previous_url')
         if not previous_url:
             previous_url = 'index'
-        return redirect(previous_url)  # Přesměrování po úspěšném smazání
+        return redirect(previous_url)
 
 
