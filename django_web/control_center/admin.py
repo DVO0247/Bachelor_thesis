@@ -5,14 +5,12 @@ from .models import User, Project, Measurement, SensorNode, Sensor, UserProject
 class CustomUserAdmin(UserAdmin):
     model = User
     list_display = ('id',) + UserAdmin.list_display
-    '''
     fieldsets = UserAdmin.fieldsets + (
         ('Custom Fields', {
-            'fields': ('test_field',)
+            'fields': ('current_project',)
         }),
     )
-    list_display=UserAdmin.list_display + ('test_field',)
-    '''
+    list_display=UserAdmin.list_display + ('current_project',)
 
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(Project)

@@ -8,8 +8,9 @@ from django.db import connection
 NEW_DATA_DB_PATH = '..\\data' # relative to Django root
 
 class User(AbstractUser):
-    pass
-    #test_field = models.IntegerField(default=0) # for test
+    active_project = models
+    current_project = models.ForeignKey('Project', null=True, blank=True, on_delete=models.SET_NULL, related_name='users_with_this_project')
+
 
 class Project(models.Model):
     name = models.CharField(max_length=32, null=False, blank= False)

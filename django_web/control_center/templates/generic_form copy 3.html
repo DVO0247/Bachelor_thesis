@@ -11,12 +11,11 @@
     <div class="form-group">
         {{ form.as_p }}
     </div>
-    <button type="submit" class="btn btn-primary">Save</button>
-    <a href="{% url 'index' %}" class="btn btn-secondary">Back</a>
+    <button type="submit" class="btn btn-primary">Uložit</button>
+    <a href="{% url 'index' %}" class="btn btn-secondary">Zpět</a>
     {% if form.instance.pk %}
-    <button type="submit" formaction="{% url 'delete_object' model form.instance.pk %}" class="btn btn-danger"
-        onclick="return confirm('Do you really want to delete this object?');">Delete</button>
-
+    <button type="submit" formaction="{% url 'delete_object' model form.instance.pk %}"
+        class="btn btn-danger">Smazat</button>
     {% endif %}
 </form>
 {% endblock %}

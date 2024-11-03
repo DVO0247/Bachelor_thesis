@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ form.instance.pk|yesno:"Editace, Vytváření" }} {{ model }}{% endblock %}
+
+{% block content %}
+    <h1>{{ form.instance.pk|yesno:"Editace, Vytváření" }} {{ model }}</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            {{ form.as_p }}
+        </div>
+        <button type="submit" class="btn btn-primary">Uložit</button>
+        <a href="{% url 'index' %}" class="btn btn-secondary">Zpět</a>
+    </form>
+{% endblock %}

@@ -1,29 +1,34 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project List</title>
-</head>
-<body>
-    <header>
-        <h1>Project List</h1>
-    </header>
-    <main>
-        {% if projects %}
-            <ul>
-                {% for project in projects %}
-                    <li>
-                        <h2>{{ project.name }}</h2>
-                        <p>{{ project.description }}</p>
-                        <p><strong>Current Measurement:</strong> {{ project.current_measurement }}</p>
-                        
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>No projects found.</p>
-        {% endif %}
-    </main>
-</body>
-</html>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My projects{% endblock %}
+
+{% block content %}
+<h1>My projects</h1>
+<table class="table table-striped table-hover table-bordered">
+    <thead>
+        <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Name</th>
+            <th scope="col">Current measurement</th>
+            <th scope="col">Links</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for project in projects %}
+        <tr>
+            <th scope="row">{{ project.pk }}</th>
+            <td>{{ project.name }}</td>
+            <td>{{ project.current_measurement }}</td>
+            <td><a class="btn btn-primary btn-sm" href="{% url 'project_edit' project.pk %}" role="button">Edit</a>
+                <a class="btn btn-primary btn-sm" href="{% url 'project' project.pk %}" role="button">Devices</a>
+                <form action="{% url 'project_use' project.pk %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input class="btn btn-success btn-sm" type="submit" value="Use">
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

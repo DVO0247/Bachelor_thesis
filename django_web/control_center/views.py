@@ -4,14 +4,16 @@ from django.conf import settings
 from django.forms.models import model_to_dict
 from django.forms import modelformset_factory
 from django.contrib.auth.decorators import login_required
+from django.apps import apps
 
 from .models import User, Project, Measurement, SensorNode, Sensor, UserProject
-from .forms import SensorNodeForm
+from .forms import SensorNodeForm, ProjectForm
 import sqlite3
 
 def index(request):
-    return render(request, 'base.html')
+    return redirect('project_list')
 
+@login_required
 def project_list(request):
     context = {}
     context['projects'] = Project.objects.all()
@@ -34,7 +36,50 @@ def sensor_view(request):
 
     return render(request, 'sensor_formset.html', {'formset': formset})
 
-#@login_required
+def project(request, pk):
+    context = {}
+    project = get_object_or_404(Project, pk=pk)
+    context['sensor_nodes'] = SensorNode.objects.filter(project=project)
+    context['project'] = project
+    
+    return render(request, 'project.html', context)
+
+@login_required
+def project_edit(request, pk=None):
+    context = {}
+    instance = get_object_or_404(Project, pk=pk) if pk else None
+    
+    if request.method == 'POST':
+        form = ProjectForm(request.POST, instance=instance)
+        if form.is_valid():
+            project = form.save()
+            if instance is None:
+                userproject = UserProject(user=request.user, project=project, is_owner=True)
+                userproject.save()
+            previous_url = request.POST.get('previous_url')
+            if not previous_url:
+                previous_url = 'index'
+            return redirect(previous_url)
+        
+    else:
+        context['form'] = ProjectForm(instance=instance)
+        context['model'] = context['form'].instance.__class__.__name__
+        return render(request, 'generic_form.html', context)
+
+
+
+@login_required
+def project_use(request, pk):
+    if request.method == 'POST':
+        project = get_object_or_404(Project, pk=pk)
+        # Zde můžete provést logiku, jako např. změnit hodnoty v databázi
+        #project.current_measurement += 1  # Příklad změny
+        #project.save()  # Uložení změn
+
+        # Po dokončení akce přesměrujte na nějakou stránku
+        return redirect('project_list')  # Změňte na cílovou view
+
+@login_required
 def sensor_node_edit(request, pk=None):
     context = {}
     sensor_node = get_object_or_404(SensorNode, pk=pk) if pk else None
@@ -43,10 +88,29 @@ def sensor_node_edit(request, pk=None):
         form = SensorNodeForm(request.POST, instance=sensor_node)
         if form.is_valid():
             form.save()
-            return redirect('index')  # Změňte na URL, kam chcete uživatele přesměrovat po uložení
+            previous_url = request.POST.get('previous_url')
+            if not previous_url:
+                previous_url = 'index'
+            return redirect(previous_url)
     else:
         user = request.user if request.user.is_authenticated else None
         context['form'] = SensorNodeForm(instance=sensor_node, user=user)
         context['model'] = context['form'].instance.__class__.__name__
         return render(request, 'generic_form.html', context)
+
+@login_required
+def delete(request, model_name, pk):
+    # Můžete také implementovat kontrolu oprávnění zde
+    if request.method == 'POST':
+        # Vyberte model na základě model_name
+        Model = apps.get_model('control_center',model_name)
+        # Přidejte další modely podle potřeby
+
+        obj = get_object_or_404(Model, pk=pk)
+        obj.delete()
+        previous_url = request.POST.get('previous_url')
+        if not previous_url:
+            previous_url = 'index'
+        return redirect(previous_url)  # Přesměrování po úspěšném smazání
+
 

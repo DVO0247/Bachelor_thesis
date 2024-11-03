@@ -9,11 +9,50 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <style>
+        /* Dodatečné styly pro responzivní zobrazení */
+        .sidebar {
+            display: block;
+            transition: transform 0.3s ease, opacity 0.3s ease; /* Přidána opacity pro lepší efekt */
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .sidebar.hidden {
+            transform: translateX(-100%);
+            opacity: 0; /* Skrývá sidebar s efektem */
+        }
+
+        /* Styl pro tlačítko menu */
+        .menu-toggle {
+            display: none;
+            font-size: 24px;
+            cursor: pointer;
+            margin-right: 15px;
+        }
+
+        /* Zobrazit tlačítko na menších obrazovkách */
+        @media (max-width: 768px) {
+            .menu-toggle {
+                display: inline;
+            }
+
+            .sidebar {
+                position: absolute;
+                width: 250px;
+                height: 100%;
+                background-color: #f8f9fa;
+                z-index: 1000;
+            }
+        }
+    </style>
 </head>
 
 <body>
-    <div class="topbar">
-        <h5>Control Center</h5>
+    <div class="topbar d-flex align-items-center">
+        <!-- Tlačítko pro vysunutí menu na menších obrazovkách -->
+        <span class="menu-toggle" onclick="toggleSidebar()">&#9776;</span>
+        <h5 class="ms-2">Control Center</h5>
         <img id="themeToggle" src="{% static 'images/moon.svg' %}" alt="Přepnout téma" width="40" height="40"
             class="ms-auto">
     </div>
@@ -36,21 +75,17 @@
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
         crossorigin="anonymous"></script>
 
-    <!-- Globální proměnné pro cesty k obrázkům -->
     <script>
         const lightThemeIcon = "{% static 'images/moon.svg' %}";
         const darkThemeIcon = "{% static 'images/sun.svg' %}";
 
-        // Funkce pro nastavení tématu
         function setTheme(theme) {
             document.documentElement.setAttribute('data-bs-theme', theme);
-            localStorage.setItem('theme', theme); // Uložení tématu do localStorage
+            localStorage.setItem('theme', theme);
 
-            // Změna obrázku podle aktuálního tématu
             const themeToggleImg = document.getElementById('themeToggle');
-            themeToggleImg.src = theme === 'light' ? lightThemeIcon : darkThemeIcon; // Nastavení obrázku
+            themeToggleImg.src = theme === 'light' ? lightThemeIcon : darkThemeIcon;
 
-            // Změna pozadí a barvy textu pro horní a boční lištu
             const topbar = document.querySelector('.topbar');
             const sidebar = document.querySelector('.sidebar');
 
@@ -59,36 +94,49 @@
                 topbar.style.color = 'white';
                 sidebar.style.backgroundColor = '#f8f9fa';
                 sidebar.style.color = '#333';
-                sidebar.querySelectorAll('a').forEach(link => {
-                    link.style.color = '#333'; // Barva textu odkazu
-                });
-                sidebar.classList.remove('dark'); // Odebere třídu dark
+                sidebar.querySelectorAll('a').forEach(link => link.style.color = '#333');
+                sidebar.classList.remove('dark');
             } else {
                 topbar.style.backgroundColor = '#212f3d';
                 topbar.style.color = 'white';
                 sidebar.style.backgroundColor = '#343a40';
                 sidebar.style.color = 'white';
-                sidebar.querySelectorAll('a').forEach(link => {
-                    link.style.color = 'white'; // Barva textu odkazu
-                });
-                sidebar.classList.add('dark'); // Přidá třídu dark
+                sidebar.querySelectorAll('a').forEach(link => link.style.color = 'white');
+                sidebar.classList.add('dark');
             }
         }
 
-        // Načtení uloženého tématu
-        const savedTheme = localStorage.getItem('theme') || 'light'; // Defaultně 'light', pokud není uloženo žádné téma
-        setTheme(savedTheme); // Nastavení uloženého (nebo defaultního) tématu ihned při načtení stránky
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        setTheme(savedTheme);
 
-        // Přepínání témat
         const toggleButton = document.getElementById('themeToggle');
         toggleButton.addEventListener('click', () => {
             const currentTheme = document.documentElement.getAttribute('data-bs-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            setTheme(newTheme); // Nastavení nového tématu a uložení
+            setTheme(currentTheme === 'light' ? 'dark' : 'light');
         });
+
+        // Funkce pro přepnutí viditelnosti sidebaru
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('hidden');
+        }
+
+        // Automatické skrývání a zobrazování sidebaru podle velikosti okna
+        function handleResize() {
+            const sidebar = document.getElementById('sidebar');
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('hidden'); // Zobrazit sidebar, pokud je okno širší než 768px
+            } else {
+                sidebar.classList.add('hidden'); // Skrýt sidebar, pokud je okno užší než 768px
+            }
+        }
+
+        // Přidání události pro změnu velikosti okna
+        window.addEventListener('resize', handleResize);
+
+        // Inicializace sidebaru při načtení stránky
+        handleResize();
     </script>
-    <!-- Externí JavaScriptový soubor -->
-    <script src="{% static 'js/darkmode.js' %}"></script>
 </body>
 
 </html>

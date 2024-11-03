@@ -19,5 +19,10 @@ class SensorNodeForm(forms.ModelForm):
         if user:
             self.fields['project'].queryset = Project.objects.filter(userproject__user=user)
 
+class ProjectForm(forms.ModelForm):
+    class Meta:
+        model = Project
+        exclude = ('current_measurement',)
+
         
 

@@ -25,6 +25,7 @@ DATA_END_CHAR = '|'
 COMMIT_PERIOD = 1
 
 # database
+SENSOR_DB_CACHE_SIZE = 100_000 # kB
 MASTER_DB_PATH = '.\\db.sqlite3' # Django DB for example
 SENSOR_NODE_TABLE = 'web_device'
 
@@ -57,6 +58,7 @@ def connect_db(db_path):
     conn = sqlite3.connect(db_path, autocommit=False, check_same_thread=False)
     cur = conn.cursor()
     #cur.execute("pragma synchronous=normal")
+    cur.execute(f"PRAGMA cache_size = -{SENSOR_DB_CACHE_SIZE};")
     return conn, cur
 
 class Connection:
