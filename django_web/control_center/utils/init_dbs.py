@@ -2,14 +2,9 @@ import sqlite3
 import os
 from . import sql_queries
 
-OVERWRITE = False
-
-def new_measurement_db(path:str) -> bool:
+def new_measurement_db(path:str):
     if os.path.exists(path):
-        if OVERWRITE:
-            os.remove(path)
-        else:
-            raise Exception(f'file {path} exists')
+        return
 
     conn = sqlite3.connect(f'{path}')
     cur = conn.cursor()
@@ -23,4 +18,4 @@ def new_measurement_db(path:str) -> bool:
     conn.commit()
     cur.close()
     conn.close()
-    return True
+

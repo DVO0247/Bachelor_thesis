@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, Project, Measurement, SensorNode, Sensor, UserProject
+from .models import User, Project, SensorNode, Sensor, UserProject
 
 class CustomUserAdmin(UserAdmin):
     model = User
@@ -14,7 +14,6 @@ class CustomUserAdmin(UserAdmin):
 
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(Project)
-admin.site.register(Measurement)
 admin.site.register(SensorNode)
 admin.site.register(Sensor)
 admin.site.register(UserProject)

@@ -1,5 +1,5 @@
 from django import forms
-from .models import User, Project, Measurement, SensorNode, Sensor, UserProject
+from .models import User, Project, SensorNode, Sensor, UserProject
 
 class BootstrapModelForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):

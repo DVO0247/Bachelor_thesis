@@ -6,7 +6,7 @@ from django.forms import modelformset_factory
 from django.contrib.auth.decorators import login_required
 from django.apps import apps
 
-from .models import User, Project, Measurement, SensorNode, Sensor, UserProject
+from .models import User, Project, SensorNode, Sensor, UserProject
 from .forms import SensorNodeForm, ProjectForm
 import sqlite3
 
@@ -68,11 +68,8 @@ def project_edit(request, pk=None):
 
 def start_measurement(request):
     if request.method == 'POST':
-        project = request.user.current_project
-        measurement = Measurement(project=project)
-        measurement=measurement.save()
-        project.current_measurement = measurement
-        project.running = True
+        project:Project = request.user.current_project
+        project.new_measurement()
         project.save()
         '''previous_url = request.POST.get('previous_url')
         if not previous_url:
@@ -84,6 +81,7 @@ def stop_measurement(request):
     if request.method == 'POST':
         project = request.user.current_project
         project.running = False
+        project.measurement_id+=1
         project.save()
         return render(request,'includes\\start_stop.html')
     

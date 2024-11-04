@@ -10,7 +10,7 @@
         <tr>
             <th scope="col">ID</th>
             <th scope="col">Name</th>
-            <th scope="col">Current measurement</th>
+            <th scope="col">Measurement ID</th>
             <th scope="col"></th>
         </tr>
     </thead>
@@ -19,7 +19,7 @@
         <tr>
             <th scope="row">{{ project.pk }}</th>
             <td>{{ project.name }}</td>
-            <td>{{ project.current_measurement }}</td>
+            <td>{{ project.measurement_id }}</td>
             <td>
                 <a class="btn btn-primary btn-sm" href="{% url 'project_edit' project.pk %}" role="button">Edit</a>
                 <a class="btn btn-primary btn-sm" href="{% url 'project' project.pk %}" role="button">Devices</a>
