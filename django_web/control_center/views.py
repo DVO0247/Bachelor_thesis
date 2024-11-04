@@ -66,14 +66,40 @@ def project_edit(request, pk=None):
         context['model'] = context['form'].instance.__class__.__name__
         return render(request, 'generic_form.html', context)
 
+def start_measurement(request):
+    if request.method == 'POST':
+        project = request.user.current_project
+        measurement = Measurement(project=project)
+        measurement=measurement.save()
+        project.current_measurement = measurement
+        project.running = True
+        project.save()
+        '''previous_url = request.POST.get('previous_url')
+        if not previous_url:
+            previous_url = 'index'
+            '''
+        return render(request,'includes\\start_stop.html')
+    
+def stop_measurement(request):
+    if request.method == 'POST':
+        project = request.user.current_project
+        project.running = False
+        project.save()
+        return render(request,'includes\\start_stop.html')
+    
+def reload_measurement(request):
+    return render(request, 'includes/start_stop.html')
 
 @login_required
-def project_use(request, pk):
+def project_use(request, pk=None):
     if request.method == 'POST':
-        project = get_object_or_404(Project, pk=pk)
+        project = get_object_or_404(Project, pk=pk) if pk else None
         user:User = request.user
         user.current_project = project
         user.save()
+        '''if project:
+            project.running = False
+            project.save()'''
         previous_url = request.POST.get('previous_url')
         if not previous_url:
             previous_url = 'index'

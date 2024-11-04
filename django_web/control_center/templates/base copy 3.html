@@ -58,12 +58,18 @@
         <h4 class="me-1">Control Center</h4>
         <div style="border-left: 2px solid #ccc; height: 37px; margin: 0 20px;"></div>
 
-        <!-- Tlačítka zarovnaná vlevo -->
+        <!-- Tlačítka zarovnaná vpravo -->
         {% if user.current_project %}
-        {% include 'includes/start_stop.html' %}
+        <form method="post" style="display:inline;">
+            {% csrf_token %}
+            <button formaction="{% url 'start_measurement' %}" type="submit" class="btn btn-success me-2">Start</button>
+            <button formaction="{% url 'index' %}" type="submit" class="btn btn-danger">Stop</button>
+        </form>
+        <div class="me-auto ms-3 d-flex align-items-center">
+            <h4 class="mb-0 me-3">active project: <u>{{ user.current_project.name }}</h4></u>
+        </div>
         {% endif %}
 
-        <!-- Tlačítka zarovnaná vpravo -->
         <div class="ms-auto ms-1 d-flex align-items-center">
             <img id="themeToggle" src="{% static 'images/moon.svg' %}" alt="Přepnout téma" width="30" height="30"
                 class="me-2">
@@ -74,10 +80,10 @@
         </div>
     </div>
     <div class="sidebar" id="sidebar">
-        <a href="#section1">Link 1</a>
-        <a href="#section2">Link 2</a>
-        <a href="#section3">Link 3</a>
-        <a href="#section4">Link 4</a>
+        <a href="#section1">Odkaz 1</a>
+        <a href="#section2">Odkaz 2</a>
+        <a href="#section3">Odkaz 3</a>
+        <a href="#section4">Odkaz 4</a>
     </div>
 
     <div class="content">

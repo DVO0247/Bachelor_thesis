@@ -11,7 +11,7 @@
             <th scope="col">ID</th>
             <th scope="col">Name</th>
             <th scope="col">Current measurement</th>
-            <th scope="col">Links</th>
+            <th scope="col"></th>
         </tr>
     </thead>
     <tbody>
@@ -20,16 +20,38 @@
             <th scope="row">{{ project.pk }}</th>
             <td>{{ project.name }}</td>
             <td>{{ project.current_measurement }}</td>
-            <td><a class="btn btn-primary btn-sm" href="{% url 'project_edit' project.pk %}" role="button">Edit</a>
+            <td>
+                <a class="btn btn-primary btn-sm" href="{% url 'project_edit' project.pk %}" role="button">Edit</a>
                 <a class="btn btn-primary btn-sm" href="{% url 'project' project.pk %}" role="button">Devices</a>
+                {% if project.pk != user.current_project.pk %}
                 <form action="{% url 'project_use' project.pk %}" method="post" style="display:inline;">
                     {% csrf_token %}
-                    <input class="btn btn-success btn-sm" type="submit" value="Use">
+                    <input class="btn btn-success btn-sm" type="submit" value="Activate">
                 </form>
+                {% else %}
+                <form action="{% url 'project_use' project.pk %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input class="btn btn-secondary btn-sm" type="submit" value="Activate" disabled>
+                </form>
+                {% endif %}
             </td>
         </tr>
         {% endfor %}
+
+        <!-- New row with two cells at the bottom of the table -->
+        <tr>
+            <td colspan="3">
+                <a class="btn btn-success btn-sm" href="{% url 'project_edit' %}" role="button">New project</a>
+
+            </td>
+            <td>
+                <form action="{% url 'project_use' %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input class="btn btn-danger btn-sm" type="submit" value="Deactivate">
+                </form>
+            </td>
+        </tr>
     </tbody>
 </table>
-<a class="btn btn-success btn-sm" href="{% url 'project_edit' %}" role="button">New project</a>
+
 {% endblock %}

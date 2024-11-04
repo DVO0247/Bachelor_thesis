@@ -17,8 +17,9 @@ def new_measurement_db(path:str) -> bool:
     cur.execute('pragma journal_mode = WAL')
     conn.commit()
 
-    cur.execute(sql_queries.create_data_table)
-    # TODO: create indexes
+    cur.execute(sql_queries.CREATE_DATA_TABLE)
+    cur.execute(sql_queries.CREATE_TIMESTAMP_INDEX)
+    # TODO: create index
     conn.commit()
     cur.close()
     conn.close()

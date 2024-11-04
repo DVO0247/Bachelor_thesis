@@ -16,12 +16,14 @@ class Project(models.Model):
     name = models.CharField(max_length=32, null=False, blank= False)
     description = models.TextField(max_length=400, null=True, blank=True)
     current_measurement = models.ForeignKey('Measurement', null=True, blank=True, on_delete=models.SET_NULL, related_name='projects_with_this_measurement')
+    running = models.BooleanField(default=False)
 
     '''def get_current_measurement(self):
         return Measurement.objects.filter(project=self).order_by('-id').first()'''
 
     def __str__(self) -> str:
         return f'{self.pk}, {self.name}'
+
 
 class Measurement(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='measurements')
@@ -33,18 +35,17 @@ class Measurement(models.Model):
         super().save(*args, **kwargs)
         self.project.current_measurement = self
         
-        # get all sensor dir paths in this project
-        file_paths = []   
+        # get all sensor dir paths in this project  
         for sensor in Sensor.objects.filter(sensor_node__project=self.project).select_related('sensor_node', 'sensor_node__project'):
-            file_path = f'{get_db_dir_path(sensor)}{self.pk}.sqlite3'
+            sensor_dir_path = get_db_dir_path(sensor)
+            file_path = f'{sensor_dir_path}{self.pk}.sqlite3'
+
+            os.makedirs(sensor_dir_path,exist_ok=True)
+            new_measurement_db(f'{file_path}')
             sensor.current_db_file_path = os.path.abspath(file_path)
             sensor.save()
-            file_paths.append(file_path)
         
-        print('dir_paths:\n',file_paths)
-        for file_path in file_paths:
-            new_measurement_db(f'{file_path}')
-        #os.makedirs(dir_paths)
+        # TODO: add DBs to Grafana
     
 class SensorNode(models.Model):
     name = models.CharField(max_length=32, null=True, blank=True)
@@ -64,9 +65,9 @@ class Sensor(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        dir_path = get_db_dir_path(self)
+        '''dir_path = get_db_dir_path(self)
         print(dir_path)
-        os.makedirs(dir_path,exist_ok=True)
+        os.makedirs(dir_path,exist_ok=True)'''
 
         #super().save(*args, **kwargs)
 
