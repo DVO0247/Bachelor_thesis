@@ -15,27 +15,11 @@ import sqlite3
 def index(request):
     return redirect('project_list')
 
+#region Project
 def project_list(request):
     context = {}
     context['projects'] = Project.objects.all()
     return render(request, 'project_list.html', context)
-
-# modelformset_factory test
-SensorFormSet = modelformset_factory(
-    Sensor,
-    fields='__all__',  # Přizpůsobte pole podle potřeby
-    extra=0  # Počet prázdných formulářů pro přidání nových senzorů
-)
-def sensor_view(request):
-    if request.method == 'POST':
-        formset = SensorFormSet(request.POST)
-        if formset.is_valid():
-            formset.save()
-            return redirect('index')  # Upravte na URL pro přesměrování po úspěšném uložení
-    else:
-        formset = SensorFormSet(queryset=Sensor.objects.all())
-
-    return render(request, 'sensor_formset.html', {'formset': formset})
 
 def project(request, pk):
     context = {}
@@ -66,6 +50,22 @@ def project_edit(request, pk=None):
         context['model'] = context['form'].instance.__class__.__name__
         return render(request, 'generic_form.html', context)
 
+def project_use(request, pk=None):
+    if request.method == 'POST':
+        project = get_object_or_404(Project, pk=pk) if pk else None
+        user:User = request.user
+        user.current_project = project
+        user.save()
+        '''if project:
+            project.running = False
+            project.save()'''
+        previous_url = request.POST.get('previous_url')
+        if not previous_url:
+            previous_url = 'index'
+        return redirect(previous_url)
+#endregion
+
+#region Measurement
 def start_measurement(request):
     if request.method == 'POST':
         project:Project = request.user.current_project
@@ -87,21 +87,9 @@ def stop_measurement(request):
     
 def reload_measurement(request):
     return render(request, 'includes/start_stop.html')
+#endregion
 
-def project_use(request, pk=None):
-    if request.method == 'POST':
-        project = get_object_or_404(Project, pk=pk) if pk else None
-        user:User = request.user
-        user.current_project = project
-        user.save()
-        '''if project:
-            project.running = False
-            project.save()'''
-        previous_url = request.POST.get('previous_url')
-        if not previous_url:
-            previous_url = 'index'
-        return redirect(previous_url)
-
+#region SensorNode
 def sensor_node_edit(request, pk=None):
     context = {}
     sensor_node = get_object_or_404(SensorNode, pk=pk) if pk else None
@@ -119,7 +107,9 @@ def sensor_node_edit(request, pk=None):
         context['form'] = SensorNodeForm(instance=sensor_node, user=user)
         context['model'] = context['form'].instance.__class__.__name__
         return render(request, 'generic_form.html', context)
+#endregion
 
+#region Other
 def delete(request, model_name, pk):
     if request.method == 'POST':
         Model = apps.get_model('control_center',model_name)
@@ -145,3 +135,21 @@ class CustomLoginView(LoginView):
         # Přidat chybovou zprávu, pokud je přihlášení neplatné
         messages.error(self.request, "Wrong password or username.")
         return super().form_invalid(form)
+    
+'''# modelformset_factory test
+SensorFormSet = modelformset_factory(
+    Sensor,
+    fields='__all__',  # Přizpůsobte pole podle potřeby
+    extra=0  # Počet prázdných formulářů pro přidání nových senzorů
+)
+def sensor_view(request):
+    if request.method == 'POST':
+        formset = SensorFormSet(request.POST)
+        if formset.is_valid():
+            formset.save()
+            return redirect('index')  # Upravte na URL pro přesměrování po úspěšném uložení
+    else:
+        formset = SensorFormSet(queryset=Sensor.objects.all())
+
+    return render(request, 'sensor_formset.html', {'formset': formset})'''
+#endregion

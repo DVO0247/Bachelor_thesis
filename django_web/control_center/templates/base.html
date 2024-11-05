@@ -12,7 +12,6 @@
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <style>
         /* Dodatečné styly pro responzivní zobrazení */
-        
     </style>
 </head>
 
@@ -24,9 +23,7 @@
         <div style="border-left: 2px solid #ccc; height: 37px; margin: 0 20px;"></div>
 
         <!-- Tlačítka zarovnaná vlevo -->
-        
         {% include 'includes/start_stop.html' %}
-       
 
         <!-- Tlačítka zarovnaná vpravo -->
         <div class="ms-auto ms-1 d-flex align-items-center">
@@ -94,19 +91,19 @@
 
         const toggleButton = document.getElementById('themeToggle');
         toggleButton.addEventListener('click', () => {
-                fetch('{% url "toggle_dark_mode" %}', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': '{{ csrf_token }}',
-                    },
-                })
+            fetch('{% url "toggle_dark_mode" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+            })
                 .then(response => response.json())
                 .then(data => {
                     setTheme(data.darkmode ? 'dark' : 'light');
                 });
-            });
-        </script>
-        <script>
+        });
+    </script>
+    <script>
         // Funkce pro přepnutí viditelnosti sidebaru
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
