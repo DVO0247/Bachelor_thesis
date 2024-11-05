@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, get_list_or_404, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.conf import settings
 from django.forms.models import model_to_dict
 from django.forms import modelformset_factory
@@ -130,6 +130,12 @@ def delete(request, model_name, pk):
         if not previous_url:
             previous_url = 'index'
         return redirect(previous_url)
+
+def toggle_dark_mode(request):
+    user = request.user
+    user.darkmode = not user.darkmode  # Přepínání hodnoty
+    user.save()
+    return JsonResponse({'darkmode': user.darkmode})
 
 class CustomLoginView(LoginView):
     form_class = LoginForm

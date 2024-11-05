@@ -10,6 +10,7 @@ NEW_DATA_DB_PATH = '..\\data' # relative to Django root
 class User(AbstractUser):
     active_project = models
     current_project = models.ForeignKey('Project', null=True, blank=True, on_delete=models.SET_NULL, related_name='users_with_this_project')
+    darkmode = models.BooleanField(default=True)
 
 
 class Project(models.Model):

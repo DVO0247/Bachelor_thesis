@@ -97,7 +97,6 @@
 
         function setTheme(theme) {
             document.documentElement.setAttribute('data-bs-theme', theme);
-            localStorage.setItem('theme', theme);
 
             const themeToggleImg = document.getElementById('themeToggle');
             themeToggleImg.src = theme === 'light' ? lightThemeIcon : darkThemeIcon;
@@ -122,14 +121,22 @@
             }
         }
 
-        const savedTheme = localStorage.getItem('theme') || 'light';
+        const savedTheme = '{{ user.darkmode|yesno:"dark,light" }}';
         setTheme(savedTheme);
 
         const toggleButton = document.getElementById('themeToggle');
         toggleButton.addEventListener('click', () => {
-            const currentTheme = document.documentElement.getAttribute('data-bs-theme');
-            setTheme(currentTheme === 'light' ? 'dark' : 'light');
-        });
+                fetch('{% url "toggle_dark_mode" %}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    setTheme(data.darkmode ? 'dark' : 'light');
+                });
+            });
 
         // Funkce pro přepnutí viditelnosti sidebaru
         function toggleSidebar() {

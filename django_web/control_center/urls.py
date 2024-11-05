@@ -16,5 +16,6 @@ urlpatterns = [
     path('create/<int:pk>', views.sensor_node_edit, name='sensor_node_edit'),
     path('create/', views.sensor_node_edit, name='sensor_node_edit'),
     path('delete/<str:model_name>/<int:pk>/', views.delete, name='delete_object'),
+    path('toggle_dark_mode/', views.toggle_dark_mode, name='toggle_dark_mode'),
     path('login/', views.CustomLoginView.as_view(), name='login'),
 ]

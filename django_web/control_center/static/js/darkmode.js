@@ -1,3 +1,4 @@
+/*
 // Funkce pro nastavení tématu
 function setTheme(theme) {
     document.documentElement.setAttribute('data-bs-theme', theme);
@@ -21,3 +22,4 @@ toggleButton.addEventListener('click', () => {
     const newTheme = currentTheme === 'light' ? 'dark' : 'light';
     setTheme(newTheme); // Nastavení nového tématu a uložení
 });
+*/
