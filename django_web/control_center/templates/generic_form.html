@@ -4,8 +4,8 @@
 {% block title %}{{ form.instance.pk|yesno:"Editace, Vytváření" }} {{ model }}{% endblock %}
 
 {% block content %}
-<h1>{{ form.instance.pk|yesno:"Editace, Vytváření" }} {{ model }}</h1>
-<form method="post">
+<h1>{{ form.instance.pk|yesno:"Edit, Create" }} {{ model }}</h1>
+<form method="post" style="max-width: 600px; margin: 0;">
     {% csrf_token %}
     <input type="hidden" name="previous_url" value="{{ request.META.HTTP_REFERER }}">
     <div class="form-group">
@@ -16,7 +16,6 @@
     {% if form.instance.pk %}
     <button type="submit" formaction="{% url 'delete_object' model form.instance.pk %}" class="btn btn-danger"
         onclick="return confirm('Do you really want to delete this object?');">Delete</button>
-
     {% endif %}
 </form>
 {% endblock %}

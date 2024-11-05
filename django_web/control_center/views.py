@@ -4,16 +4,17 @@ from django.conf import settings
 from django.forms.models import model_to_dict
 from django.forms import modelformset_factory
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import LoginView
+from django.contrib import messages
 from django.apps import apps
 
 from .models import User, Project, SensorNode, Sensor, UserProject
-from .forms import SensorNodeForm, ProjectForm
+from .forms import SensorNodeForm, ProjectForm, LoginForm
 import sqlite3
 
 def index(request):
     return redirect('project_list')
 
-@login_required
 def project_list(request):
     context = {}
     context['projects'] = Project.objects.all()
@@ -44,7 +45,6 @@ def project(request, pk):
     
     return render(request, 'project.html', context)
 
-@login_required
 def project_edit(request, pk=None):
     context = {}
     instance = get_object_or_404(Project, pk=pk) if pk else None
@@ -88,7 +88,6 @@ def stop_measurement(request):
 def reload_measurement(request):
     return render(request, 'includes/start_stop.html')
 
-@login_required
 def project_use(request, pk=None):
     if request.method == 'POST':
         project = get_object_or_404(Project, pk=pk) if pk else None
@@ -103,7 +102,6 @@ def project_use(request, pk=None):
             previous_url = 'index'
         return redirect(previous_url)
 
-@login_required
 def sensor_node_edit(request, pk=None):
     context = {}
     sensor_node = get_object_or_404(SensorNode, pk=pk) if pk else None
@@ -122,7 +120,6 @@ def sensor_node_edit(request, pk=None):
         context['model'] = context['form'].instance.__class__.__name__
         return render(request, 'generic_form.html', context)
 
-@login_required
 def delete(request, model_name, pk):
     if request.method == 'POST':
         Model = apps.get_model('control_center',model_name)
@@ -134,4 +131,11 @@ def delete(request, model_name, pk):
             previous_url = 'index'
         return redirect(previous_url)
 
+class CustomLoginView(LoginView):
+    form_class = LoginForm
+    template_name = 'login.html'
 
+    def form_invalid(self, form):
+        # Přidat chybovou zprávu, pokud je přihlášení neplatné
+        messages.error(self.request, "Wrong password or username.")
+        return super().form_invalid(form)

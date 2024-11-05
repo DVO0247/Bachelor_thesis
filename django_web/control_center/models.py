@@ -15,7 +15,7 @@ class User(AbstractUser):
 class Project(models.Model):
     name = models.CharField(max_length=32, null=False, blank= False)
     description = models.TextField(max_length=400, null=True, blank=True)
-    measurement_id = models.IntegerField(default=0,blank=True)
+    measurement_id = models.IntegerField(default=1,blank=True)
     running = models.BooleanField(default=False)
     
     '''def get_current_measurement(self):
@@ -35,6 +35,9 @@ class Project(models.Model):
             new_measurement_db(f'{file_path}')
             sensor.current_db_file_path = os.path.abspath(file_path)
             sensor.save()
+        print('queries:')
+        for query in connection.queries:
+            print(query['sql'])
     
 class SensorNode(models.Model):
     name = models.CharField(max_length=32, null=True, blank=True)

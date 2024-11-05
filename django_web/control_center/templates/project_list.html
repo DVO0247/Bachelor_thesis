@@ -10,7 +10,6 @@
         <tr>
             <th scope="col">ID</th>
             <th scope="col">Name</th>
-            <th scope="col">Measurement ID</th>
             <th scope="col"></th>
         </tr>
     </thead>
@@ -19,7 +18,6 @@
         <tr>
             <th scope="row">{{ project.pk }}</th>
             <td>{{ project.name }}</td>
-            <td>{{ project.measurement_id }}</td>
             <td>
                 <a class="btn btn-primary btn-sm" href="{% url 'project_edit' project.pk %}" role="button">Edit</a>
                 <a class="btn btn-primary btn-sm" href="{% url 'project' project.pk %}" role="button">Devices</a>
@@ -40,7 +38,7 @@
 
         <!-- New row with two cells at the bottom of the table -->
         <tr>
-            <td colspan="3">
+            <td colspan="2">
                 <a class="btn btn-success btn-sm" href="{% url 'project_edit' %}" role="button">New project</a>
 
             </td>

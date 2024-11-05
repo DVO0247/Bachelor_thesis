@@ -1,5 +1,3 @@
-// darkmode.js
-
 // Funkce pro nastavení tématu
 function setTheme(theme) {
     document.documentElement.setAttribute('data-bs-theme', theme);

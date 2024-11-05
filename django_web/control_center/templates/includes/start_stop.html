@@ -1,4 +1,5 @@
 <div id="start_stop" class="d-flex align-items-center" hx-get="{% url 'reload_measurement' %}" hx-trigger="every 1s" hx-swap="outerHTML">
+    {% if user.current_project %}
     <form method="post" style="display:inline;">
         {% csrf_token %}
         {% if not user.current_project.running %}
@@ -14,4 +15,5 @@
         {% endif %}
     </form>
     <h4 class="mb-0 ms-2">Active project: <a href="{% url 'project' user.current_project.pk %}" style="color: white;">{{ user.current_project.name }}</a> | {% if user.current_project.measurement_id > 0 %}{{user.current_project.measurement_id}}{% endif %}</h4>
+    {% endif %}
 </div>
