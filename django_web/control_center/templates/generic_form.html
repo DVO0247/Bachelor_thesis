@@ -12,7 +12,7 @@
         {{ form.as_p }}
     </div>
     <button type="submit" class="btn btn-primary">Save</button>
-    <a href="{% url 'index' %}" class="btn btn-secondary">Back</a>
+    <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-secondary">Back</a>
     {% if form.instance.pk %}
     <button type="submit" formaction="{% url 'delete_object' model form.instance.pk %}" class="btn btn-danger"
         onclick="return confirm('Do you really want to delete this object?');">Delete</button>

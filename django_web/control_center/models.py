@@ -75,9 +75,9 @@ class UserProject(models.Model):
     def __str__(self) -> str:
         return f'{self.pk}, {self.user.get_full_name()}, ({self.project})'
     
-class SensorNodeProject(models.Model):
-    sensor_node = models.ForeignKey(SensorNode, on_delete=models.CASCADE)
+class ProjectSensorNode(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    sensor_node = models.ForeignKey(SensorNode, on_delete=models.CASCADE)
 
     class Meta:
         unique_together = (('sensor_node', 'project'),)    

@@ -8,7 +8,7 @@ from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.apps import apps
 
-from .models import User, Project, SensorNode, Sensor, UserProject
+from .models import User, Project, SensorNode, Sensor, UserProject, ProjectSensorNode
 from .forms import SensorNodeForm, ProjectForm, LoginForm
 import sqlite3
 
@@ -26,7 +26,7 @@ def project(request, pk):
     project = get_object_or_404(Project, pk=pk)
     context['sensor_nodes'] = SensorNode.objects.filter(project=project)
     context['project'] = project
-    
+    return ...
     return render(request, 'project.html', context)
 
 def project_edit(request, pk=None):
@@ -86,10 +86,32 @@ def stop_measurement(request):
         return render(request,'includes\\start_stop.html')
     
 def reload_measurement(request):
-    return render(request, 'includes/start_stop.html')
+    return render(request, 'includes\\start_stop.html')
 #endregion
 
 #region SensorNode
+def sensor_node_list(request, project_pk):
+    context = {}
+    project = get_object_or_404(Project, pk=project_pk)
+    context['sensor_nodes'] = SensorNode.objects.all()
+    context['project_sensor_nodes'] = SensorNode.objects.filter(projectsensornode__project=project)
+    context['project'] = project
+    return render(request, 'sensor_node_list.html', context)
+
+def sensor_node_add_to_project(request, project_pk, sensor_node_pk):
+    if request.method == 'POST':
+        project = get_object_or_404(Project, pk=project_pk)
+        sensor_node = get_object_or_404(SensorNode, pk=sensor_node_pk)
+        project_sensor_node = ProjectSensorNode(project=project, sensor_node=sensor_node)
+        project_sensor_node.save()
+        return redirect('sensor_node_list', project_pk=project_pk)
+    
+def sensor_node_remove_from_project(request, project_pk, sensor_node_pk):
+    if request.method == 'POST':
+        project_sensor_node = get_object_or_404(ProjectSensorNode,project=project_pk, sensor_node=sensor_node_pk)
+        project_sensor_node.delete()
+        return redirect('sensor_node_list', project_pk=project_pk)
+
 def sensor_node_edit(request, pk=None):
     context = {}
     sensor_node = get_object_or_404(SensorNode, pk=pk) if pk else None
@@ -103,11 +125,17 @@ def sensor_node_edit(request, pk=None):
                 previous_url = 'index'
             return redirect(previous_url)
     else:
-        user = request.user if request.user.is_authenticated else None
-        context['form'] = SensorNodeForm(instance=sensor_node, user=user)
+        context['form'] = SensorNodeForm(instance=sensor_node)
         context['model'] = context['form'].instance.__class__.__name__
         return render(request, 'generic_form.html', context)
 #endregion
+
+#region Sensor
+def sensor_list(request, sensor_node_pk):
+    context = {}
+    
+    return render(request, ..., context)
+#endrefion
 
 #region Other
 def delete(request, model_name, pk):

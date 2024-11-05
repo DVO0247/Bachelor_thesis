@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Devices{% endblock %}
+
+{% block content %}
+<h1>Devices in project: {{project.name}}</h1><br>
+<table class="table table-striped table-bordered">
+    <thead>
+        <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Name</th>
+            <th scope="col"></th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td colspan="3">Devices in project</td>
+        </tr>
+        {% for sensor_node in project_sensor_nodes %}
+        <tr>
+            <th scope="row">{{ sensor_node.pk }}</th>
+            <td>{{ sensor_node.name }}</td>
+            <td>
+                <a class="btn btn-primary btn-sm" href="{% url 'sensor_node_edit' sensor_node.pk %}"
+                    role="button">Edit</a>
+                <a class="btn btn-primary btn-sm" href="{% url 'index' %}" role="button">Sensors</a>
+                <form action="{% url 'sensor_node_remove_from_project' project.pk sensor_node.pk %}" method="post"
+                    style="display:inline;">
+                {% csrf_token %}
+                <input class="btn btn-danger btn-sm" type="submit" value="Remove">
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <!-- New row with two cells at the bottom of the table -->
+    <!--
+        <tr>
+            <td colspan="2">
+                <a class="btn btn-success btn-sm" href="{% url 'index' %}" role="button">Add device</a>
+            </td>
+        </tr>
+        -->
+    <tr>
+        <td colspan="3">Devices not in project</td>
+    </tr>
+    {% for sensor_node in sensor_nodes %}
+    {% if sensor_node not in project_sensor_nodes and sensor_node.initialized %}
+    <tr>
+        <th scope="row">{{ sensor_node.pk }}</th>
+        <td>{{ sensor_node.name }}</td>
+        <td>
+            <a class="btn btn-primary btn-sm" href="{% url 'sensor_node_edit' sensor_node.pk %}" role="button">Edit</a>
+            <a class="btn btn-primary btn-sm" href="{% url 'index' %}" role="button">Sensors</a>
+            <form action="{% url 'sensor_node_add_to_project' project.pk sensor_node.pk %}" method="post"
+                style="display:inline;">
+            {% csrf_token %}
+            <input class="btn btn-success btn-sm" type="submit" value="Add">
+            </form>
+        </td>
+    </tr>
+    {% endif %}
+    {% endfor %}
+</table>
+{% endblock %}
