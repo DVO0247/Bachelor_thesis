@@ -12,7 +12,6 @@ class User(AbstractUser):
     current_project = models.ForeignKey('Project', null=True, blank=True, on_delete=models.SET_NULL, related_name='users_with_this_project')
     darkmode = models.BooleanField(default=True)
 
-
 class Project(models.Model):
     name = models.CharField(max_length=32, null=False, blank= False)
     description = models.TextField(max_length=400, null=True, blank=True)
@@ -42,7 +41,7 @@ class Project(models.Model):
     
 class SensorNode(models.Model):
     name = models.CharField(max_length=32, null=True, blank=True)
-    project = models.ForeignKey(Project, null=True, on_delete=models.SET_NULL)
+    initialized = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return f'{self.pk}, {self.name}'
@@ -75,6 +74,13 @@ class UserProject(models.Model):
 
     def __str__(self) -> str:
         return f'{self.pk}, {self.user.get_full_name()}, ({self.project})'
+    
+class SensorNodeProject(models.Model):
+    sensor_node = models.ForeignKey(SensorNode, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = (('sensor_node', 'project'),)    
 
 def get_sensor_db_dir_path(sensor:Sensor) -> str:
     return f'{NEW_DATA_DB_PATH}\\{sensor.sensor_node.project.pk}_{sensor.sensor_node.project.name}\\{sensor.sensor_node.pk}_{sensor.sensor_node.name}\\{sensor.pk}_{sensor.name}\\'
