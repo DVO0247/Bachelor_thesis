@@ -27,8 +27,8 @@ class Project(models.Model):
     def new_measurement(self)->None:
         self.running = True
         # get all sensor dir paths in this project  
-        for sensor in Sensor.objects.filter(sensor_node__project=self).select_related('sensor_node', 'sensor_node__project'):
-            sensor_dir_path = get_sensor_db_dir_path(sensor)
+        for sensor in Sensor.objects.filter(sensor_node__projectsensornode__project=self).select_related('sensor_node'):
+            sensor_dir_path = get_sensor_dir_path(sensor, self)
             file_path = f'{sensor_dir_path}{self.measurement_id}.sqlite3'
 
             os.makedirs(sensor_dir_path,exist_ok=True)
@@ -57,7 +57,7 @@ class Sensor(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        '''dir_path = get_sensor_db_dir_path(self)
+        '''dir_path = get_sensor_dir_path(self)
         print(dir_path)
         os.makedirs(dir_path,exist_ok=True)'''
 
@@ -82,5 +82,5 @@ class ProjectSensorNode(models.Model):
     class Meta:
         unique_together = (('sensor_node', 'project'),)    
 
-def get_sensor_db_dir_path(sensor:Sensor) -> str:
-    return f'{NEW_DATA_DB_PATH}\\{sensor.sensor_node.project.pk}_{sensor.sensor_node.project.name}\\{sensor.sensor_node.pk}_{sensor.sensor_node.name}\\{sensor.pk}_{sensor.name}\\'
+def get_sensor_dir_path(sensor:Sensor, project:Project) -> str:
+    return f'{NEW_DATA_DB_PATH}\\{project.pk}_{project.name}\\{sensor.sensor_node.pk}_{sensor.sensor_node.name}\\{sensor.pk}_{sensor.name}\\'

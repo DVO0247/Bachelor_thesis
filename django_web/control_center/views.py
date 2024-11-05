@@ -90,13 +90,18 @@ def reload_measurement(request):
 #endregion
 
 #region SensorNode
-def sensor_node_list(request, project_pk):
+def sensor_node_list(request):
+    context = {}
+    context['sensor_nodes'] = SensorNode.objects.all()
+    return render(request, 'project_sensor_node_list.html', context)
+
+def project_sensor_node_list(request, project_pk):
     context = {}
     project = get_object_or_404(Project, pk=project_pk)
     context['sensor_nodes'] = SensorNode.objects.all()
     context['project_sensor_nodes'] = SensorNode.objects.filter(projectsensornode__project=project)
     context['project'] = project
-    return render(request, 'sensor_node_list.html', context)
+    return render(request, 'project_sensor_node_list.html', context)
 
 def sensor_node_add_to_project(request, project_pk, sensor_node_pk):
     if request.method == 'POST':
@@ -133,7 +138,7 @@ def sensor_node_edit(request, pk=None):
 #region Sensor
 def sensor_list(request, sensor_node_pk):
     context = {}
-    
+
     return render(request, ..., context)
 #endrefion
 

@@ -1,26 +1,51 @@
-<!-- login.html -->
-
 <!DOCTYPE html>
 <html lang="cs">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <!-- Bootstrap CSS CDN -->
+    <!-- Bootstrap CSS CDN for Dark Mode -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        body {
+            background-color: #212529; /* Dark background */
+            color: white; /* Light text color */
+        }
+        .card {
+            background-color: #343a40; /* Dark card background */
+            color: white; /* Light text color */
+
+            border: none; /* Remove card border */
+        }
+        .btn-primary {
+            background-color: #007bff; /* Bootstrap primary button color */
+            border: none; /* Remove button border */
+        }
+        .btn-primary:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+        .alert {
+            background-color: #dc3545; /* Danger alert color */
+            color: white; /* Light text in alert */
+        }
+    </style>
 </head>
+
 <body>
     <div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
         <div class="card shadow p-4" style="width: 100%; max-width: 400px;">
-            <h2 class="text-center mb-4 text-primary">Control Center<br><div class="text-dark">Login</div></h2>
+            <h2 class="text-center mb-4 text-primary">Control Center<br>
+                <div class="text-light">Login</div> <!-- Change to text-light for better contrast -->
+            </h2>
             <!-- Zobrazování zpráv -->
             {% if messages %}
-                <div class="alert alert-danger">
-                    {% for message in messages %}
-                        <div>{{ message }}</div>
-                    {% endfor %}
-                </div>
+            <div class="alert">
+                {% for message in messages %}
+                <div>{{ message }}</div>
+                {% endfor %}
+            </div>
             {% endif %}
             <form method="post" action="{% url 'login' %}">
                 {% csrf_token %}
@@ -38,4 +63,5 @@
         </div>
     </div>
 </body>
+
 </html>
