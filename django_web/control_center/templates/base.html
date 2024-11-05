@@ -12,42 +12,7 @@
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <style>
         /* Dodatečné styly pro responzivní zobrazení */
-        .sidebar {
-            display: block;
-            transition: transform 0.3s ease, opacity 0.3s ease;
-            /* Přidána opacity pro lepší efekt */
-            transform: translateX(0);
-            opacity: 1;
-        }
-
-        .sidebar.hidden {
-            transform: translateX(-100%);
-            opacity: 0;
-            /* Skrývá sidebar s efektem */
-        }
-
-        /* Styl pro tlačítko menu */
-        .menu-toggle {
-            display: none;
-            font-size: 24px;
-            cursor: pointer;
-            margin-right: 15px;
-        }
-
-        /* Zobrazit tlačítko na menších obrazovkách */
-        @media (max-width: 768px) {
-            .menu-toggle {
-                display: inline;
-            }
-
-            .sidebar {
-                position: absolute;
-                width: 250px;
-                height: 100%;
-                background-color: #f8f9fa;
-                z-index: 1000;
-            }
-        }
+        
     </style>
 </head>
 
@@ -70,7 +35,10 @@
             <div style="border-left: 2px solid #ccc; height: 37px; margin: 0 2px;"></div>
 
             <h3 class="mb-0 me-3 ms-2">{{ user }}</h3>
-            <button type="button" class="btn btn-warning">Logout</button>
+            <form action="{% url 'logout' %}" method="post" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-warning">Logout</button>
+            </form>
         </div>
     </div>
     <div class="sidebar" id="sidebar">
@@ -137,7 +105,8 @@
                     setTheme(data.darkmode ? 'dark' : 'light');
                 });
             });
-
+        </script>
+        <script>
         // Funkce pro přepnutí viditelnosti sidebaru
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');

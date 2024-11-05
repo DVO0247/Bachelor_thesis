@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from django.contrib.auth.views import LogoutView
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -18,4 +19,5 @@ urlpatterns = [
     path('delete/<str:model_name>/<int:pk>/', views.delete, name='delete_object'),
     path('toggle_dark_mode/', views.toggle_dark_mode, name='toggle_dark_mode'),
     path('login/', views.CustomLoginView.as_view(), name='login'),
+    path('logout/', LogoutView.as_view(), name='logout'),
 ]

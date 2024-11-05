@@ -75,4 +75,39 @@ body {
     }
 }
 
+.sidebar {
+    display: block;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    /* Přidána opacity pro lepší efekt */
+    transform: translateX(0);
+    opacity: 1;
+}
 
+.sidebar.hidden {
+    transform: translateX(-100%);
+    opacity: 0;
+    /* Skrývá sidebar s efektem */
+}
+
+/* Styl pro tlačítko menu */
+.menu-toggle {
+    display: none;
+    font-size: 24px;
+    cursor: pointer;
+    margin-right: 15px;
+}
+
+/* Zobrazit tlačítko na menších obrazovkách */
+@media (max-width: 768px) {
+    .menu-toggle {
+        display: inline;
+    }
+
+    .sidebar {
+        position: absolute;
+        width: 250px;
+        height: 100%;
+        background-color: #f8f9fa;
+        z-index: 1000;
+    }
+}
