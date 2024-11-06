@@ -10,25 +10,58 @@
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <style>
         body {
-            background-color: #212529; /* Dark background */
-            color: white; /* Light text color */
+            background-color: #212529;
+            /* Dark background */
+            color: white;
+            /* Light text color */
         }
-        .card {
-            background-color: #343a40; /* Dark card background */
-            color: white; /* Light text color */
 
-            border: none; /* Remove card border */
+        .card {
+            background-color: #343a40;
+            /* Dark card background */
+            color: white;
+            /* Light text color */
+
+            border: none;
+            /* Remove card border */
         }
+
         .btn-primary {
-            background-color: #007bff; /* Bootstrap primary button color */
-            border: none; /* Remove button border */
+            background-color: #007bff;
+            /* Bootstrap primary button color */
+            border: none;
+            /* Remove button border */
         }
+
         .btn-primary:hover {
-            background-color: #0056b3; /* Darker blue on hover */
+            background-color: #0056b3;
+            /* Darker blue on hover */
         }
+
         .alert {
-            background-color: #dc3545; /* Danger alert color */
-            color: white; /* Light text in alert */
+            background-color: #dc3545;
+            /* Danger alert color */
+            color: white;
+            /* Light text in alert */
+        }
+
+        input.form-control {
+            background-color: #161a20;
+            /* Tmavší pozadí pro textová pole */
+            color: white;
+            /* Světlý text */
+            border: 1px solid #6c757d;
+            /* Tmavý rámeček kolem textového pole */
+        }
+
+        input.form-control:focus {
+            background-color: #161a20;
+            /* Tmavší pozadí při focusu */
+            color: white;
+            /* Světlý text */
+
+            border-color: #007bff;
+            /* Světle modrý rámeček při focusu */
         }
     </style>
 </head>
@@ -37,9 +70,8 @@
     <div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
         <div class="card shadow p-4" style="width: 100%; max-width: 400px;">
             <h2 class="text-center mb-4 text-primary">Control Center<br>
-                <div class="text-light">Login</div> <!-- Change to text-light for better contrast -->
+                <div class="text-light">Login</div>
             </h2>
-            <!-- Zobrazování zpráv -->
             {% if messages %}
             <div class="alert">
                 {% for message in messages %}
@@ -51,7 +83,7 @@
                 {% csrf_token %}
                 <div class="form-group">
                     {{ form.username.label_tag }}
-                    {{ form.username }} <!-- Bootstrap styling -->
+                    {{ form.username }}
                 </div>
                 <div class="form-group">
                     {{ form.password.label_tag }}

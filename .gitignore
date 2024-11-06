@@ -18,6 +18,7 @@ migrations/
 *.sqlite3-shm
 
 #
+data/
 temp/
 tmp/
 my_notes.md

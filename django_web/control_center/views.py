@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, get_list_or_404, redirect
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.conf import settings
 from django.forms.models import model_to_dict
 from django.forms import modelformset_factory
@@ -109,9 +109,9 @@ def sensor_node_list(request):
     context['sensor_nodes'] = SensorNode.objects.all()
     return render(request, 'project_sensor_node_list.html', context)
 
-def sensor_node_edit(request, pk=None):
+def sensor_node_edit(request, sensor_node_pk=None):
     context = {}
-    sensor_node = get_object_or_404(SensorNode, pk=pk) if pk else None
+    sensor_node = get_object_or_404(SensorNode, pk=sensor_node_pk) if sensor_node_pk else None
     
     if request.method == 'POST':
         form = SensorNodeForm(request.POST, instance=sensor_node)
@@ -172,4 +172,7 @@ class CustomLoginView(LoginView):
         # Přidat chybovou zprávu, pokud je přihlášení neplatné
         messages.error(self.request, "Wrong password or username.")
         return super().form_invalid(form)
+    
+def Grafana(request):
+    return HttpResponseRedirect('http://127.0.0.1:3000') # TODO: redirect to outside IP
 #endregion

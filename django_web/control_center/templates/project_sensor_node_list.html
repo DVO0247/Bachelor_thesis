@@ -10,21 +10,27 @@
         <tr>
             <th scope="col">ID</th>
             <th scope="col">Name</th>
+            <th scope="col">Sensors</th>
             <th scope="col"></th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <td colspan="3">Sensor nodes in project</td>
+            <td colspan="4">Sensor nodes in project</td>
         </tr>
         {% for sensor_node in project_sensor_nodes %}
         <tr>
             <th scope="row">{{ sensor_node.pk }}</th>
             <td>{{ sensor_node.name }}</td>
             <td>
+                {% for sensor in sensor_node.sensors.all %}
+                {{sensor.name}},
+                {% endfor %}
+            </td>
+            <td>
                 <a class="btn btn-primary btn-sm" href="{% url 'sensor_node_edit' sensor_node.pk %}"
                     role="button">Edit</a>
-                <a class="btn btn-primary btn-sm" href="{% url 'sensors_edit' sensor_node.pk %}" role="button">Sensors</a>
+                <a class="btn btn-primary btn-sm" href="{% url 'sensors_edit' sensor_node.pk %}" role="button">Edit sensors</a>
                 <form action="{% url 'sensor_node_remove_from_project' project.pk sensor_node.pk %}" method="post"
                     style="display:inline;">
                 {% csrf_token %}
@@ -43,13 +49,18 @@
         </tr>
         -->
     <tr>
-        <td colspan="3">Sensor nodes not in project</td>
+        <td colspan="4">Sensor nodes not in project</td>
     </tr>
     {% for sensor_node in sensor_nodes %}
     {% if sensor_node not in project_sensor_nodes and sensor_node.initialized %}
     <tr>
         <th scope="row">{{ sensor_node.pk }}</th>
         <td>{{ sensor_node.name }}</td>
+        <td>
+            {% for sensor in sensor_node.sensors.all %}
+            {{sensor.name}},
+            {% endfor %}
+        </td>
         <td>
             <a class="btn btn-primary btn-sm" href="{% url 'sensor_node_edit' sensor_node.pk %}" role="button">Edit</a>
             <a class="btn btn-primary btn-sm" href="{% url 'sensors_edit' sensor_node.pk %}" role="button">Sensors</a>

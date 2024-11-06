@@ -17,9 +17,6 @@ class Project(models.Model):
     description = models.TextField(max_length=400, null=True, blank=True)
     measurement_id = models.IntegerField(default=1,blank=True)
     running = models.BooleanField(default=False)
-    
-    '''def get_current_measurement(self):
-        return Measurement.objects.filter(project=self).order_by('-id').first()'''
 
     def __str__(self) -> str:
         return f'{self.pk}, {self.name}'
@@ -35,6 +32,8 @@ class Project(models.Model):
             new_measurement_db(f'{file_path}')
             sensor.current_db_file_path = os.path.abspath(file_path)
             sensor.save()
+
+        # DEBUG
         print('queries:')
         for query in connection.queries:
             print(query['sql'])
@@ -54,14 +53,6 @@ class Sensor(models.Model):
 
     def __str__(self) -> str:
         return f'{self.pk}, {self.sensor_node.name}, {self.name}'
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        '''dir_path = get_sensor_dir_path(self)
-        print(dir_path)
-        os.makedirs(dir_path,exist_ok=True)'''
-
-        #super().save(*args, **kwargs)
 
 class UserProject(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ form.instance.pk|yesno:"Editace, Vytváření" }} {{ model }}{% endblock %}
+{% block title %}{{ form.instance.pk|yesno:"Edit, Create" }} {{ model }}{% endblock %}
 
 {% block content %}
 <h1>{{ form.instance.pk|yesno:"Edit, Create" }} {{ model }}</h1>

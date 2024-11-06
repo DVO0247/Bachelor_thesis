@@ -46,11 +46,11 @@ body {
 }
 
 .sidebar a:hover {
-    background-color: #e9ecef;
+    background-color: white;
 }
 
 .sidebar.dark a:hover {
-    background-color: #495057;
+    background-color: #212529;
 }
 
 .content {
@@ -110,4 +110,27 @@ body {
         background-color: #f8f9fa;
         z-index: 1000;
     }
+}
+
+/* Styl pro input a textarea v světlém tématu */
+[data-bs-theme="light"] .form-control,
+[data-bs-theme="light"] .form-control:focus {
+    background-color: #f2f2f2 !important; /* Světlé pozadí */
+    color: #212529 !important; /* Tmavý text */
+    border: 1px solid #ccc !important; /* Světlejší rámeček */
+}
+
+/* Styl pro input a textarea v tmavém tématu */
+[data-bs-theme="dark"] .form-control,
+[data-bs-theme="dark"] .form-control:focus {
+    background-color: #161a20 !important; /* Tmavé pozadí */
+    color: white !important; /* Světlý text */
+    border: 1px solid #6c757d !important; /* Tmavší rámeček */
+}
+
+/* Focus styl pro input a textarea */
+[data-bs-theme="light"] .form-control:focus,
+[data-bs-theme="dark"] .form-control:focus {
+    border-color: #007bff !important; /* Modrý rámeček při focusu */
+    outline: none !important; /* Zrušení výchozího outline */
 }
