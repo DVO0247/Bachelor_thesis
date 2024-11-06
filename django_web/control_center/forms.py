@@ -12,15 +12,14 @@ class BootstrapModelForm(forms.ModelForm):
                 field.widget.attrs.update({'class': 'form-check-input'})
             else:
                 field.widget.attrs.update({'class': 'form-control'})
-
             
 class LoginForm(AuthenticationForm):
     username = forms.CharField(
-        label="Uživatelské jméno",
+        label="Username",
         widget=forms.TextInput(attrs={'class': 'form-control'})
     )
     password = forms.CharField(
-        label="Heslo",
+        label="Password",
         widget=forms.PasswordInput(attrs={'class': 'form-control'})
     )
 
@@ -33,12 +32,13 @@ class SensorNodeForm(BootstrapModelForm):
     class Meta:
         model = SensorNode
         fields = '__all__'
-
     
 class ProjectForm(BootstrapModelForm):
     class Meta:
         model = Project
         exclude = ('current_measurement','running')
 
-        
-
+class SensorForm(BootstrapModelForm):
+    class Meta:
+        model = Sensor
+        fields = ('name','fvz')

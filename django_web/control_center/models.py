@@ -75,6 +75,8 @@ class UserProject(models.Model):
     def __str__(self) -> str:
         return f'{self.pk}, {self.user.get_full_name()}, ({self.project})'
     
+
+# TODO:change to M:N field
 class ProjectSensorNode(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     sensor_node = models.ForeignKey(SensorNode, on_delete=models.CASCADE)

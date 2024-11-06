@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Devices{% endblock %}
+{% block title %}Sensor Nodes{% endblock %}
 
 {% block content %}
-<h1>{{project.name}} Devices</h1><br>
+<h1>{{project.name}} Sensor nodes</h1><br>
 <table class="table table-striped table-bordered">
     <thead>
         <tr>
@@ -15,7 +15,7 @@
     </thead>
     <tbody>
         <tr>
-            <td colspan="3">Devices in project</td>
+            <td colspan="3">Sensor nodes in project</td>
         </tr>
         {% for sensor_node in project_sensor_nodes %}
         <tr>
@@ -43,7 +43,7 @@
         </tr>
         -->
     <tr>
-        <td colspan="3">Devices not in project</td>
+        <td colspan="3">Sensor Nodes not in project</td>
     </tr>
     {% for sensor_node in sensor_nodes %}
     {% if sensor_node not in project_sensor_nodes and sensor_node.initialized %}

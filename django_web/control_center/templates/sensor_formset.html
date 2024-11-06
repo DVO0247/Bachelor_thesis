@@ -1,22 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sensor Formset</title>
-</head>
-<body>
-    <h1>Manage Sensors</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ formset.management_form }}
-        {% for form in formset %}
-            <div class="formset_row">
-                <h3>Sensor {{ forloop.counter }}</h3>
-                {{ form.as_p }}
-            </div>
-        {% endfor %}
-        <button type="submit">Save Sensors</button>
-    </form>
-</body>
-</html>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ sensor_node.name }} sensors{% endblock %}
+
+{% block content %}
+<h1>{{ sensor_node.name }} sensors</h1>
+<form method="post" style="max-width: 200px; margin: 0;">
+    {% csrf_token %}
+    <input type="hidden" name="previous_url" value="{{ request.META.HTTP_REFERER }}">
+    {{ formset.management_form }}
+    {% for form in formset %}
+    <div class="formset_row">
+        <h3>Sensor {{ forloop.counter }}</h3>
+        {{ form.as_p }}
+    </div>
+    <hr class="border-3">
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-secondary">Back</a>
+</form>
+{% endblock %}

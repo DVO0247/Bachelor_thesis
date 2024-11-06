@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.apps import apps
 
 from .models import User, Project, SensorNode, Sensor, UserProject, ProjectSensorNode
-from .forms import SensorNodeForm, ProjectForm, LoginForm
+from .forms import SensorNodeForm, ProjectForm, LoginForm, SensorForm
 import sqlite3
 
 def index(request):
@@ -20,14 +20,6 @@ def project_list(request):
     context = {}
     context['projects'] = Project.objects.all()
     return render(request, 'project_list.html', context)
-
-def project(request, pk):
-    context = {}
-    project = get_object_or_404(Project, pk=pk)
-    context['sensor_nodes'] = SensorNode.objects.filter(project=project)
-    context['project'] = project
-    return ...
-    return render(request, 'project.html', context)
 
 def project_edit(request, pk=None):
     context = {}
@@ -63,6 +55,28 @@ def project_use(request, pk=None):
         if not previous_url:
             previous_url = 'index'
         return redirect(previous_url)
+
+def project_sensor_node_list(request, project_pk):
+    context = {}
+    project = get_object_or_404(Project, pk=project_pk)
+    context['sensor_nodes'] = SensorNode.objects.all()
+    context['project_sensor_nodes'] = SensorNode.objects.filter(projectsensornode__project=project)
+    context['project'] = project
+    return render(request, 'project_sensor_node_list.html', context)
+
+def sensor_node_add_to_project(request, project_pk, sensor_node_pk):
+    if request.method == 'POST':
+        project = get_object_or_404(Project, pk=project_pk)
+        sensor_node = get_object_or_404(SensorNode, pk=sensor_node_pk)
+        project_sensor_node = ProjectSensorNode(project=project, sensor_node=sensor_node)
+        project_sensor_node.save()
+        return redirect('sensor_node_list', project_pk=project_pk)
+    
+def sensor_node_remove_from_project(request, project_pk, sensor_node_pk):
+    if request.method == 'POST':
+        project_sensor_node = get_object_or_404(ProjectSensorNode,project=project_pk, sensor_node=sensor_node_pk)
+        project_sensor_node.delete()
+        return redirect('sensor_node_list', project_pk=project_pk)
 #endregion
 
 #region Measurement
@@ -95,28 +109,6 @@ def sensor_node_list(request):
     context['sensor_nodes'] = SensorNode.objects.all()
     return render(request, 'project_sensor_node_list.html', context)
 
-def project_sensor_node_list(request, project_pk):
-    context = {}
-    project = get_object_or_404(Project, pk=project_pk)
-    context['sensor_nodes'] = SensorNode.objects.all()
-    context['project_sensor_nodes'] = SensorNode.objects.filter(projectsensornode__project=project)
-    context['project'] = project
-    return render(request, 'project_sensor_node_list.html', context)
-
-def sensor_node_add_to_project(request, project_pk, sensor_node_pk):
-    if request.method == 'POST':
-        project = get_object_or_404(Project, pk=project_pk)
-        sensor_node = get_object_or_404(SensorNode, pk=sensor_node_pk)
-        project_sensor_node = ProjectSensorNode(project=project, sensor_node=sensor_node)
-        project_sensor_node.save()
-        return redirect('sensor_node_list', project_pk=project_pk)
-    
-def sensor_node_remove_from_project(request, project_pk, sensor_node_pk):
-    if request.method == 'POST':
-        project_sensor_node = get_object_or_404(ProjectSensorNode,project=project_pk, sensor_node=sensor_node_pk)
-        project_sensor_node.delete()
-        return redirect('sensor_node_list', project_pk=project_pk)
-
 def sensor_node_edit(request, pk=None):
     context = {}
     sensor_node = get_object_or_404(SensorNode, pk=pk) if pk else None
@@ -136,10 +128,22 @@ def sensor_node_edit(request, pk=None):
 #endregion
 
 #region Sensor
-def sensor_list(request, sensor_node_pk):
-    context = {}
+SensorFormSet = modelformset_factory(Sensor, form=SensorForm, extra=0)
 
-    return render(request, ..., context)
+def sensor_list(request, sensor_node_pk):
+    if request.method == 'POST':
+        formset = SensorFormSet(request.POST)
+        if formset.is_valid():
+            formset.save()
+            previous_url = request.POST.get('previous_url')
+            if not previous_url:
+                previous_url = 'index'
+            return redirect(previous_url)
+    else:
+        context = {}
+        context['formset'] = SensorFormSet(queryset=Sensor.objects.filter(sensor_node=sensor_node_pk))
+        context['sensor_node'] = get_object_or_404(SensorNode, pk=sensor_node_pk)
+        return render(request, 'sensor_formset.html', context)
 #endrefion
 
 #region Other
@@ -168,21 +172,4 @@ class CustomLoginView(LoginView):
         # Přidat chybovou zprávu, pokud je přihlášení neplatné
         messages.error(self.request, "Wrong password or username.")
         return super().form_invalid(form)
-    
-'''# modelformset_factory test
-SensorFormSet = modelformset_factory(
-    Sensor,
-    fields='__all__',  # Přizpůsobte pole podle potřeby
-    extra=0  # Počet prázdných formulářů pro přidání nových senzorů
-)
-def sensor_view(request):
-    if request.method == 'POST':
-        formset = SensorFormSet(request.POST)
-        if formset.is_valid():
-            formset.save()
-            return redirect('index')  # Upravte na URL pro přesměrování po úspěšném uložení
-    else:
-        formset = SensorFormSet(queryset=Sensor.objects.all())
-
-    return render(request, 'sensor_formset.html', {'formset': formset})'''
 #endregion

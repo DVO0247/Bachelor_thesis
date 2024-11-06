@@ -20,7 +20,8 @@
             <td>{{ project.name }}</td>
             <td>
                 <a class="btn btn-primary btn-sm" href="{% url 'project_edit' project.pk %}" role="button">Edit</a>
-                <a class="btn btn-primary btn-sm" href="{% url 'sensor_node_list' project.pk %}" role="button">Sensor Nodes</a>
+                <a class="btn btn-primary btn-sm" href="{% url 'sensor_node_list' project.pk %}" role="button">Sensor
+                    nodes</a>
                 {% if project.pk != user.current_project.pk %}
                 <form action="{% url 'project_use' project.pk %}" method="post" style="display:inline;">
                     {% csrf_token %}
@@ -35,8 +36,6 @@
             </td>
         </tr>
         {% endfor %}
-
-        <!-- New row with two cells at the bottom of the table -->
         <tr>
             <td colspan="2">
                 <a class="btn btn-success btn-sm" href="{% url 'project_edit' %}" role="button">New project</a>
