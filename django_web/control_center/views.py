@@ -169,7 +169,6 @@ class CustomLoginView(LoginView):
     template_name = 'login.html'
 
     def form_invalid(self, form):
-        # Přidat chybovou zprávu, pokud je přihlášení neplatné
         messages.error(self.request, "Wrong password or username.")
         return super().form_invalid(form)
     

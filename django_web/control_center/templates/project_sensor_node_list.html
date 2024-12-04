@@ -6,7 +6,7 @@
 {% block content %}
 <h1>{{project.name}} Sensor nodes</h1><br>
 <table class="table table-striped table-bordered">
-    <thead>
+    <thead style="border-width: 2px;">
         <tr>
             <th scope="col">ID</th>
             <th scope="col">Name</th>
@@ -14,9 +14,11 @@
             <th scope="col"></th>
         </tr>
     </thead>
-    <tbody>
+    <tbody style="border-width: 3px;">
         <tr>
-            <td colspan="4">Sensor nodes in project</td>
+            <td colspan="4">
+                In project
+            </td>
         </tr>
         {% for sensor_node in project_sensor_nodes %}
         <tr>
@@ -40,16 +42,9 @@
         </tr>
         {% endfor %}
     </tbody>
-    <!-- New row with two cells at the bottom of the table -->
-    <!--
-        <tr>
-            <td colspan="2">
-                <a class="btn btn-success btn-sm" href="{% url 'index' %}" role="button">Add sensor node</a>
-            </td>
-        </tr>
-        -->
+    <tbody style="border-width: 3px;">
     <tr>
-        <td colspan="4">Sensor nodes not in project</td>
+        <td colspan="4">Not in project</td>
     </tr>
     {% for sensor_node in sensor_nodes %}
     {% if sensor_node not in project_sensor_nodes and sensor_node.initialized %}
@@ -73,5 +68,6 @@
     </tr>
     {% endif %}
     {% endfor %}
+</tbody>
 </table>
 {% endblock %}
