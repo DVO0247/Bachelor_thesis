@@ -41,4 +41,4 @@ class ProjectForm(BootstrapModelForm):
 class SensorForm(BootstrapModelForm):
     class Meta:
         model = Sensor
-        fields = ('name','fvz')
+        fields = ('name','sample_period','samples_per_packet')

@@ -11,7 +11,7 @@
     {{ formset.management_form }}
     {% for form in formset %}
     <div class="formset_row">
-        <h3>Sensor {{ forloop.counter }}</h3>
+        <h3>Sensor {{ forloop.counter0 }}</h3>
         {{ form.as_p }}
     </div>
     <hr class="border-3">
