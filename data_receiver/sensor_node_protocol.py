@@ -30,14 +30,14 @@ class Sample:
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}({self.__dict__})'
 
-class Samples:
+class Data:
     def __init__(self, sensor_id:int, samples:tuple[Sample, ...]) -> None:
         self.sensor_id = sensor_id
         self.samples = samples
 
     @classmethod
     def from_bytes(cls, samples_bytes:bytes):
-        if not Samples.is_complete(samples_bytes):
+        if not Data.is_complete(samples_bytes):
             ...
         start_of_samples_i = 2
         end_of_samples_i = len(samples_bytes) - 1
@@ -75,11 +75,11 @@ class Info:
 class ACK:
     pass
     
-def get_message_from_bytes(message_bytes:bytes) -> ACK|Info|Samples:
+def get_message_from_bytes(message_bytes:bytes) -> ACK|Info|Data:
     if message_bytes[0] == SPECIAL_IDENTIFIER_BYTE:
         if message_bytes[1] == ACK_BYTE and len(message_bytes) == 2:
             return ACK()
         else:
             return Info.from_bytes(message_bytes)
     else:
-        return Samples.from_bytes(message_bytes)
+        return Data.from_bytes(message_bytes)

@@ -29,9 +29,9 @@ uint8_t SensorManager::getSensorCount() {
   return sensorCount;
 }
 
-Sensor* SensorManager::addSensor(double (*callback)(), uint16_t sampleRate, uint8_t samplesPerPacket) {
+Sensor* SensorManager::addSensor(double (*callback)(), float samplePeriodMs, uint8_t samplesPerPacket) {
   if (sensorCount < MAX_SENSOR_COUNT) {
-    sensors[sensorCount] = new Sensor(callback, sampleRate, samplesPerPacket);
+    sensors[sensorCount] = new Sensor(callback, samplePeriodMs, samplesPerPacket);
     sensorCount++;
     return sensors[sensorCount];
   } else {

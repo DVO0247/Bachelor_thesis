@@ -5,19 +5,19 @@
 const char* apSSID = "ESP32_CONF";
 const char* apPassword = "Config00";
 const int resetPin = 4;
-const char* host;
-uint16_t port;
-String name;
 
 APConfig apConfig(apSSID, apPassword, resetPin);
 UDPSensorManager sensorManager;
 
 double value = PI;
-
 double writePI() {
   double _value = value;
   value += 1.0;
   return _value;
+}
+
+double readTemp(){
+  return dht.read();
 }
 
 void setup() {
@@ -28,11 +28,12 @@ void setup() {
     apConfig.apLoop();
   }
 
-  host = apConfig.getServerIP();
-  port = apConfig.getServerPort();
-  name = apConfig.getName();
+  const char* host = apConfig.getServerIP();
+  uint16_t port = apConfig.getServerPort();
+  String name = apConfig.getName();
 
   sensorManager.addSensor(writePI, 0., 121);
+  sensorManager.addSensor(readTemp, 1000, 121);
   sensorManager.begin(host, port, name);
 }
 

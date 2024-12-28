@@ -1,8 +1,9 @@
 import sqlite3
 import os
+from pathlib import Path
 from . import sql_queries
 
-def new_measurement_db(path:str):
+def new_measurement_db(path:Path|str):
     if os.path.exists(path):
         return
 

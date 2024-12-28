@@ -5,8 +5,6 @@
 #include "Sensor.h"
 
 #define MAX_SENSOR_COUNT 254
-#define DEFAULT_SAMPLE_RATE 100
-#define DEFAULT_SAMPLES_PER_PACKET 100
 
 class SensorManager {
 protected:
@@ -17,7 +15,7 @@ protected:
 public:
   SensorManager();
   ~SensorManager();
-  Sensor* addSensor(double (*callback)(), uint16_t sampleRate = DEFAULT_SAMPLE_RATE, uint8_t samplesPerPacket = DEFAULT_SAMPLES_PER_PACKET);
+  Sensor* addSensor(double (*callback)(), float samplePeriodMs, uint8_t samplesPerPacket);
   Sensor* getSensor(uint8_t sensor_id);
   uint8_t getSensorCount();
   bool isWriteReady(uint8_t sensor_id);
