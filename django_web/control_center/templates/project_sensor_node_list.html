@@ -10,6 +10,7 @@
         <tr>
             <th scope="col">ID</th>
             <th scope="col">Name</th>
+            <th scope="col">Type</th>
             <th scope="col">Sensors</th>
             <th scope="col"></th>
         </tr>
@@ -24,6 +25,7 @@
         <tr>
             <th scope="row">{{ sensor_node.pk }}</th>
             <td>{{ sensor_node.name }}</td>
+            <td>{{ sensor_node.get_type_display }}</td>
             <td>
                 {% for sensor in sensor_node.sensors.all %}
                 {{sensor.name}},
@@ -51,14 +53,19 @@
     <tr>
         <th scope="row">{{ sensor_node.pk }}</th>
         <td>{{ sensor_node.name }}</td>
+        <td>{{ sensor_node.get_type_display }}</td>
         <td>
             {% for sensor in sensor_node.sensors.all %}
             {{sensor.name}},
-            {% endfor %}
+            {% endfor %}    
         </td>
         <td>
             <a class="btn btn-primary btn-sm" href="{% url 'sensor_node_edit' sensor_node.pk %}" role="button">Edit</a>
-            <a class="btn btn-primary btn-sm" href="{% url 'sensors_edit' sensor_node.pk %}" role="button">Sensors</a>
+            {% if sensor_node.get_type_display != 'FBGuard' %}
+            <a class="btn btn-primary btn-sm" href="{% url 'sensors_edit' sensor_node.pk %}" role="button">Edit sensors</a>
+            {% else %}
+            <a class="btn btn-secondary btn-sm" href="{% url 'sensors_edit' sensor_node.pk %}" role="button" style="pointer-events: none; opacity: 0.5;">Edit sensors</a>
+            {% endif %}
             <form action="{% url 'sensor_node_add_to_project' project.pk sensor_node.pk %}" method="post"
                 style="display:inline;">
             {% csrf_token %}

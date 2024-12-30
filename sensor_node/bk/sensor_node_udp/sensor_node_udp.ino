@@ -16,10 +16,6 @@ double writePI() {
   return _value;
 }
 
-double readTemp(){
-  return dht.read();
-}
-
 void setup() {
   Serial.begin(115200);
   apConfig.begin();
@@ -32,8 +28,7 @@ void setup() {
   uint16_t port = apConfig.getServerPort();
   String name = apConfig.getName();
 
-  sensorManager.addSensor(writePI, 0., 121);
-  sensorManager.addSensor(readTemp, 1000, 121);
+  sensorManager.addSensor(writePI, 1., 121);
   sensorManager.begin(host, port, name);
 }
 

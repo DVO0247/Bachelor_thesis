@@ -31,12 +31,12 @@ class LoginForm(AuthenticationForm):
 class SensorNodeForm(BootstrapModelForm):
     class Meta:
         model = SensorNode
-        fields = '__all__'
+        fields = tuple()
     
 class ProjectForm(BootstrapModelForm):
     class Meta:
         model = Project
-        exclude = ('current_measurement','running')
+        fields = ('name','description')
 
 class SensorForm(BootstrapModelForm):
     class Meta:

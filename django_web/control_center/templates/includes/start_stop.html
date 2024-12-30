@@ -14,6 +14,6 @@
             </button>
         {% endif %}
     </form>
-    <h4 class="mb-0 ms-2">Active project: <a href="{% url 'sensor_node_list' user.current_project.pk %}" style="color: white;">{{ user.current_project.name }}</a> | {% if user.current_project.measurement_id > 0 %}{{user.current_project.measurement_id}}{% endif %}</h4>
+    <h4 class="mb-0 ms-2">Active project: <a href="{% url 'project_sensor_node_list' user.current_project.pk %}" style="color: white;">{{ user.current_project.name }}</a> | {% if user.current_project.measurement_id > 0 %}{{user.current_project.measurement_id}}{% endif %}</h4>
     {% endif %}
 </div>

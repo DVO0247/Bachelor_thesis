@@ -3,57 +3,64 @@ import django
 import sys
 from pathlib import Path
 
-django_root_path = os.path.join(os.path.dirname(__file__), '..', 'django_web')
-sys.path.append(django_root_path)
+django_root_path = Path(__file__).parent.parent/'django_web'
+sys.path.append(str(django_root_path))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
 django.setup()
 
-from control_center.models import Sensor, SensorNode, Project, convert_datetime_for_path
+from control_center.models import SensorNodeTypes, Sensor, SensorNode, Project, get_measurement_dir_path
 
-SENSOR_DATA_PATH = r'../data'
+DATA_DIR_PATH = Path(__file__).parent.parent/'data'
 
-def create_sensor_node(name:str, sensor_count:int) -> None:
-    sensor_node = SensorNode(name=name)
+def create_sensor_node(name:str, sensor_count:int) -> SensorNode|None:
+    sensor_node = SensorNode(name=name, type=SensorNodeTypes.ESP32)
     try:
         sensor_node.full_clean()
     except django.core.exceptions.ValidationError as e: # type: ignore
         print(f"Error: {e}")
-        return
+        return None
     else:
         sensor_node.save()
+        for i in range(sensor_count):
+            sensor = Sensor(sensor_node=sensor_node, internal_id=i)
+            sensor.save()
+        print(name, 'created')
+        return sensor_node
     
-    for i in range(sensor_count):
-        sensor = Sensor(sensor_node=sensor_node, internal_id=i)
-        sensor.save()
 
-def get_paths_for_sensor(sensor_node_name:str, sensor_id:int) -> tuple[Path, ...]:
-    result = Project.objects.filter(
-        running=True,
-        projectsensornode__sensor_node__name=sensor_node_name,
-        projectsensornode__sensor_node__sensors__internal_id=sensor_id
-    ).values(
-        'id', 'name', 
-        'projectsensornode__sensor_node__id', 'projectsensornode__sensor_node__name',
-        'projectsensornode__sensor_node__sensors__internal_id', 'projectsensornode__sensor_node__sensors__name',
-        'measurement_id', 'measurement_start_datetime'
-    )
-    
-    paths = tuple(Path(f'{SENSOR_DATA_PATH}/{r['id']}_{r['name']}/{r['projectsensornode__sensor_node__id']}_{r['projectsensornode__sensor_node__name']}/{r['projectsensornode__sensor_node__sensors__internal_id']}_{r['projectsensornode__sensor_node__sensors__name']}/{r['measurement_id']}_{convert_datetime_for_path(r['measurement_start_datetime'])}.sqlite3') for r in result)
-    return paths
-
-def is_initialized(sensor_node_name:str, sensor_count:int) -> bool:
-    try:
-        sensor_node = SensorNode.objects.get(name=sensor_node_name)
-    except SensorNode.DoesNotExist:
-        create_sensor_node(sensor_node_name, sensor_count)
-        return False
+def get_sensor_node_id_or_create(sensor_node_name:str, sensor_count:int) -> int|None:
+    sensor_node = SensorNode.objects.filter(name=sensor_node_name).first()
+    if sensor_node:
+        if sensor_count != Sensor.objects.filter(sensor_node=sensor_node).count():
+            raise Exception(f'DB has different number of sensors for {sensor_node}')
+        return sensor_node.pk
     else:
-        if sensor_node.initialized == 1:
-            return True
-        else:
-            return False
+        sensor_node = create_sensor_node(sensor_node_name, sensor_count)
+        return sensor_node.pk if sensor_node else None
+
+
+def get_paths_for_sensor(sensor_node_id:int, sensor_id:int) -> tuple[Path, ...]:
+    sensor = Sensor.objects.filter(sensor_node__pk=sensor_node_id, internal_id=sensor_id).first()
+    if sensor:
+        projects = Project.objects.filter(sensor_nodes=sensor.sensor_node, running=True)
+        paths = tuple(get_measurement_dir_path(DATA_DIR_PATH, sensor, project) for project in projects)
+        return paths
+    else:
+        raise Exception(f'Sensor {sensor_node_id} {sensor_id} not found')
+
+def get_init_state(sensor_node_id:int) -> bool|None:
+    sensor_node = SensorNode.objects.filter(pk=sensor_node_id).first()
+    return sensor_node.initialized if sensor_node else None
     
+def get_params_for_sensors(sensor_node_id:int) -> tuple[tuple[int, int], ...]|None:
+    sensors = Sensor.objects.filter(sensor_node__pk=sensor_node_id, sensor_node__initialized=True)
+    if sensors:
+        return tuple((sensor.sample_period, sensor.samples_per_packet) for sensor in sensors) # type: ignore
+    else:
+        return None
+        
 
 if __name__ == '__main__':
     pass
 
+# TODO: LOG file with only once warnings

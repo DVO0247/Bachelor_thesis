@@ -20,7 +20,7 @@
             <td>{{ project.name }}</td>
             <td>
                 <a class="btn btn-primary btn-sm" href="{% url 'project_edit' project.pk %}" role="button">Edit</a>
-                <a class="btn btn-primary btn-sm" href="{% url 'sensor_node_list' project.pk %}" role="button">Sensor
+                <a class="btn btn-primary btn-sm" href="{% url 'project_sensor_node_list' project.pk %}" role="button">Sensor
                     nodes</a>
                 {% if project.pk != user.current_project.pk %}
                 <form action="{% url 'project_use' project.pk %}" method="post" style="display:inline;">

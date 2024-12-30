@@ -115,7 +115,7 @@ body {
 /* Styl pro input a textarea v světlém tématu */
 [data-bs-theme="light"] .form-control,
 [data-bs-theme="light"] .form-control:focus {
-    background-color: #f2f2f2 !important; /* Světlé pozadí */
+    background-color: #fdfdfd !important; /* Světlé pozadí */
     color: #212529 !important; /* Tmavý text */
     border: 1px solid #ccc !important; /* Světlejší rámeček */
 }
