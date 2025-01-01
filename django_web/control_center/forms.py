@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
-from .models import User, Project, SensorNode, Sensor
+from .models import User, Project, SensorNode, Sensor, UserProject
+from django.contrib.auth import get_user_model
 
 class BootstrapModelForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -42,3 +43,7 @@ class SensorForm(BootstrapModelForm):
     class Meta:
         model = Sensor
         fields = ('name','sample_period','samples_per_packet')
+
+class UserProjectForm(forms.Form):
+    is_member = forms.BooleanField(required=False, label="Is member")
+    is_editor = forms.BooleanField(required=False, label="Is editor")

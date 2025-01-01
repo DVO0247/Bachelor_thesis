@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.apps import apps
 
 from .models import User, Project, SensorNode, Sensor, UserProject
-from .forms import SensorNodeForm, ProjectForm, LoginForm, SensorForm
+from .forms import SensorNodeForm, ProjectForm, LoginForm, SensorForm, UserProjectForm
 import sqlite3
 
 def index(request):
@@ -80,6 +80,52 @@ def sensor_node_remove_from_project(request, project_pk, sensor_node_pk):
         project.sensor_nodes.remove(sensor_node)
         project.save()
         return redirect('project_sensor_node_list', project_pk=project_pk)
+
+def project_users(request, project_pk):
+    project = get_object_or_404(Project, pk=project_pk)
+    users = User.objects.all()
+    user_forms = {}
+
+    if request.method == 'POST':
+        print(request.POST)  # Přidejte tento výstup pro kontrolu POST dat
+        
+        for user in users:
+            form = UserProjectForm(request.POST, prefix=str(user.pk))
+            
+            if form.is_valid():
+
+                is_member = form.cleaned_data.get('is_member', False)
+                is_editor = form.cleaned_data.get('is_editor', False)
+
+                user_project, created = UserProject.objects.get_or_create(user=user, project=project)
+
+                # Nastavení hodnot is_member a is_editor
+                user_project.is_owner = is_member
+                user_project.is_editor = is_editor
+
+                if not is_member:
+                    user_project.delete()
+                else:
+                    user_project.save()
+        previous_url = request.POST.get('previous_url')
+        if not previous_url:
+            previous_url = 'index'
+        return redirect(previous_url)
+
+    else:
+        user_projects = UserProject.objects.filter(project=project)
+        
+        for user in users:
+            user_project = user_projects.filter(user=user).first()
+            initial_data = {
+                'is_member': True if user_project else False,
+                'is_editor': user_project.is_editor if user_project else False
+            }
+
+            user_forms[user] = UserProjectForm(initial=initial_data, prefix=str(user.pk))
+    context = {'project': project,'user_forms': user_forms}
+    return render(request, 'project_users.html', context)
+
 #endregion
 
 #region Measurement

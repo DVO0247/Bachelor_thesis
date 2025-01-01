@@ -118,15 +118,15 @@ class Sensor:
                 self.measurement_dbs.append(MeasurementDB(path))
             
     def write_to_db(self, sensor_node_id:int, sensor_id:int, unix_time_at_zero:int):
-        self.update_measurements(sensor_node_id, sensor_id)
         with self.buffer_lock:
-            if self.samples_buffer:
+            do_write = True if self.samples_buffer else False
+        if do_write:
+            self.update_measurements(sensor_node_id, sensor_id)
+            with self.buffer_lock:
                 unix_samples = tuple((sample.timestamp+unix_time_at_zero, sample.value) for sample in self.samples_buffer)
                 self.samples_buffer.clear()
-            else:
-                return
-            for db in self.measurement_dbs:
-                db.write_to_db(unix_samples)
+                for db in self.measurement_dbs:
+                    db.write_to_db(unix_samples)
         
 
 class SensorNode:
@@ -266,6 +266,8 @@ class Server:
     def stop(self):
         self._running = False
         self.freq_counter.stop()
+        with self.sensor_nodes_lock:
+            self.sensor_nodes.clear()
 
     def check_inits(self, _sensor_nodes:tuple[SensorNode,...]):
         for sensor_node in _sensor_nodes:

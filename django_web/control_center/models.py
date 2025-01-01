@@ -89,14 +89,14 @@ class Sensor(models.Model):
 class UserProject(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    is_owner = models.BooleanField()
-    #is_editor = models.BooleanField(null=True, blank=True)
+    is_owner = models.BooleanField(default=False)
+    is_editor = models.BooleanField(default=False)
     
     class Meta:
         unique_together = (('user','project'),)
 
     def __str__(self) -> str:
-        return f'{self.pk}, {self.user.get_full_name()}, ({self.project})'
+        return f'{self.pk}, {self.user}, ({self.project})'
     
 '''
 # TODO:change to M:N field

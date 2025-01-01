@@ -13,6 +13,7 @@ urlpatterns = [
     path('project/<int:project_pk>/sensor_node_list', views.project_sensor_node_list, name='project_sensor_node_list'),
     path('project/<int:project_pk>/add/sensor_node/<int:sensor_node_pk>', views.sensor_node_add_to_project, name='sensor_node_add_to_project'),
     path('project/<int:project_pk>/remove/sensor_node/<int:sensor_node_pk>', views.sensor_node_remove_from_project, name='sensor_node_remove_from_project'),
+    path('project/<int:project_pk>/users', views.project_users, name='project_users'),
     #region Measurement
     path('start_measurement', views.start_measurement, name='start_measurement'),
     path('stop_measurement', views.stop_measurement, name='stop_measurement'),
