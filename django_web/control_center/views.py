@@ -81,7 +81,7 @@ def sensor_node_remove_from_project(request, project_pk, sensor_node_pk):
         project.save()
         return redirect('project_sensor_node_list', project_pk=project_pk)
 
-def project_users(request, project_pk):
+def project_users_edit(request, project_pk):
     project = get_object_or_404(Project, pk=project_pk)
     users = User.objects.all()
     user_forms = {}
@@ -93,14 +93,14 @@ def project_users(request, project_pk):
             form = UserProjectForm(request.POST, prefix=str(user.pk))
             
             if form.is_valid():
-
+                user_project, created = UserProject.objects.get_or_create(user=user, project=project)
+                if user_project.is_owner:
+                    continue
+                
                 is_member = form.cleaned_data.get('is_member', False)
                 is_editor = form.cleaned_data.get('is_editor', False)
+                print(user, is_member, is_editor)
 
-                user_project, created = UserProject.objects.get_or_create(user=user, project=project)
-
-                # Nastavení hodnot is_member a is_editor
-                user_project.is_owner = is_member
                 user_project.is_editor = is_editor
 
                 if not is_member:
@@ -114,7 +114,7 @@ def project_users(request, project_pk):
 
     else:
         user_projects = UserProject.objects.filter(project=project)
-        
+        owner = user_projects.filter(is_owner=True).first()
         for user in users:
             user_project = user_projects.filter(user=user).first()
             initial_data = {
@@ -122,16 +122,23 @@ def project_users(request, project_pk):
                 'is_editor': user_project.is_editor if user_project else False
             }
 
-            user_forms[user] = UserProjectForm(initial=initial_data, prefix=str(user.pk))
+            form = UserProjectForm(initial=initial_data, prefix=str(user.pk))
+            
+            # Pokud je uživatel aktuálně přihlášený, nastavíme atribut `disabled`
+            if owner and user == owner.user:
+                form.fields['is_member'].widget.attrs['disabled'] = 'disabled'
+                form.fields['is_editor'].widget.attrs['disabled'] = 'disabled'
+            
+            user_forms[user] = form
     context = {'project': project,'user_forms': user_forms}
-    return render(request, 'project_users.html', context)
+    return render(request, 'project_users_edit.html', context)
 
 #endregion
 
 #region Measurement
-def start_measurement(request):
+def start_measurement(request, project_pk):
     if request.method == 'POST':
-        project:Project = request.user.current_project
+        project = get_object_or_404(Project, pk=project_pk)
         project.new_measurement()
         project.save()
         '''previous_url = request.POST.get('previous_url')
@@ -140,9 +147,9 @@ def start_measurement(request):
             '''
         return render(request,'includes\\start_stop.html')
     
-def stop_measurement(request):
+def stop_measurement(request, project_pk):
     if request.method == 'POST':
-        project = request.user.current_project
+        project = get_object_or_404(Project, pk=project_pk)
         project.running = False
         project.measurement_id+=1
         project.save()

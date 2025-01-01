@@ -19,10 +19,10 @@
             </tr>
         </thead>
         <tbody>
-            {% for user, form in user_forms.items %}
+            {% for useri, form in user_forms.items %}
             <tr>
                 <td>{{ forloop.counter }}</td>
-                <td>{{ user.get_full_name|default:user.username }}</td>
+                <td>{{ useri.get_full_name|default:useri.username }}</td>
                 <td>
                     {{ form.is_member }}
                 </td>

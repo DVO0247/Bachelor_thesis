@@ -37,7 +37,8 @@ body {
     z-index: 1;
 }
 
-.sidebar a {
+
+.sidebar a.full {
     padding: 10px 15px;
     text-decoration: none;
     color: #333;
@@ -111,6 +112,17 @@ body {
         z-index: 1000;
     }
 }
+
+.btn-short {
+    height: 20px;  /* Výška tlačítka */
+    padding: 0.25rem 0.5rem;  /* Zmenšení vertikálního paddingu pro menší výšku */
+    font-size: 0.875rem;  /* Velikost písma */
+    display: flex;  /* Umožňuje použít flexbox pro zarovnání obsahu */
+    justify-content: center;  /* Horizontální centrování textu */
+    align-items: center;  /* Vertikální centrování textu */
+    text-align: center;  /* Zajištění, že text bude ve středu tlačítka */
+}
+
 
 /* Styl pro input a textarea v světlém tématu */
 [data-bs-theme="light"] .form-control,

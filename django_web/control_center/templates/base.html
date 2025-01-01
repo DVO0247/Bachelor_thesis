@@ -21,7 +21,7 @@
         <div style="border-left: 2px solid #ccc; height: 37px; margin: 0 20px;"></div>
 
         <!-- Tlačítka zarovnaná vlevo -->
-        {% include 'includes/start_stop.html' %}
+        
 
         <!-- Tlačítka zarovnaná vpravo -->
         <div class="ms-auto ms-1 d-flex align-items-center">
@@ -37,10 +37,13 @@
         </div>
     </div>
     <div class="sidebar" id="sidebar">
-        <a href="{% url 'project_list' %}">Projects</a>
-        <a href="{% url 'sensor_node_list' %}">Sensor Nodes</a>
-        <a href="{% url 'grafana' %}">Grafana</a>
-        <a href="#">Nevim</a>
+        <a class="full" href="{% url 'project_list' %}">Projects</a>
+        <a class="full" href="{% url 'sensor_node_list' %}">Sensor Nodes</a>
+        <a class="full" href="{% url 'grafana' %}">Grafana</a>
+        <a class="full" href="#">Nevim</a>
+        <hr>
+        Projects:
+        {% include 'includes/start_stop.html' %}
     </div>
 
     <div class="content">

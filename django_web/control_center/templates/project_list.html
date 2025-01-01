@@ -14,7 +14,7 @@
         </tr>
     </thead>
     <tbody>
-        {% for project in projects %}
+        {% for project in user_projects %}
         <tr>
             <th scope="row">{{ project.pk }}</th>
             <td>{{ project.name }}</td>
@@ -22,7 +22,7 @@
                 <a class="btn btn-primary btn-sm" href="{% url 'project_edit' project.pk %}" role="button">Edit</a>
                 <a class="btn btn-primary btn-sm" href="{% url 'project_sensor_node_list' project.pk %}" role="button">Sensor
                     nodes</a>
-                <a class="btn btn-primary btn-sm" href="{% url 'project_users' project.pk %}" role="button">Users</a>
+                <a class="btn btn-primary btn-sm" href="{% url 'project_users_edit' project.pk %}" role="button">Users</a>
                 {% if project.pk != user.current_project.pk %}
                 <form action="{% url 'project_use' project.pk %}" method="post" style="display:inline;">
                     {% csrf_token %}

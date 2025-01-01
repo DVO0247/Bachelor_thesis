@@ -95,6 +95,11 @@ class UserProject(models.Model):
     class Meta:
         unique_together = (('user','project'),)
 
+    def save(self, *args, **kwargs):
+        if self.is_owner:
+            self.is_editor = True
+        return super().save(*args, **kwargs)
+
     def __str__(self) -> str:
         return f'{self.pk}, {self.user}, ({self.project})'
     
