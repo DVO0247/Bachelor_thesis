@@ -14,7 +14,8 @@
         </tr>
     </thead>
     <tbody>
-        {% for project in user_projects %}
+        {% for user_project in user_projects %}
+        {% with project=user_project.project %}
         <tr>
             <th scope="row">{{ project.pk }}</th>
             <td>{{ project.name }}</td>
@@ -23,31 +24,27 @@
                 <a class="btn btn-primary btn-sm" href="{% url 'project_sensor_node_list' project.pk %}" role="button">Sensor
                     nodes</a>
                 <a class="btn btn-primary btn-sm" href="{% url 'project_users_edit' project.pk %}" role="button">Users</a>
-                {% if project.pk != user.current_project.pk %}
-                <form action="{% url 'project_use' project.pk %}" method="post" style="display:inline;">
+                {% if not user_project.is_activated %}
+                <form action="{% url 'project_activate' project.pk %}" method="post" style="display:inline;">
                     {% csrf_token %}
                     <input class="btn btn-success btn-sm" type="submit" value="Activate">
                 </form>
                 {% else %}
-                <form action="{% url 'project_use' project.pk %}" method="post" style="display:inline;">
-                    {% csrf_token %}
-                    <input class="btn btn-secondary btn-sm" type="submit" value="Activate" disabled>
-                </form>
+                    <form action="{% url 'project_deactivate' project.pk %}" method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <input class="btn btn-danger btn-sm" type="submit" value="Deactivate">
+                    </form>
                 {% endif %}
             </td>
         </tr>
+        {% endwith %}
         {% endfor %}
         <tr>
-            <td colspan="2">
+            <td colspan="3">
                 <a class="btn btn-success btn-sm" href="{% url 'project_edit' %}" role="button">New project</a>
 
             </td>
-            <td>
-                <form action="{% url 'project_use' %}" method="post" style="display:inline;">
-                    {% csrf_token %}
-                    <input class="btn btn-danger btn-sm" type="submit" value="Deactivate">
-                </form>
-            </td>
+            
         </tr>
     </tbody>
 </table>

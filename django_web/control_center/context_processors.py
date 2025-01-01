@@ -8,6 +8,6 @@ def user_projects(request):
         # Získání všech projektů, kde je uživatel členem
         projects = UserProject.objects.filter(user=request.user).select_related('project')
         return {
-            'user_projects': [user_project.project for user_project in projects],
+            'user_projects': projects,
         }
     return {'user_projects': []}

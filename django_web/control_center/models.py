@@ -22,8 +22,6 @@ class SensorNodeTypes(models.IntegerChoices):
     FBGUARD = 1, 'FBGuard'
 
 class User(AbstractUser):
-    active_project = models
-    current_project = models.ForeignKey('Project', null=True, blank=True, on_delete=models.SET_NULL, related_name='users_with_this_project')
     darkmode = models.BooleanField(default=True)
 
 class Project(models.Model):
@@ -89,8 +87,10 @@ class Sensor(models.Model):
 class UserProject(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    is_activated = models.BooleanField(default=True)
     is_owner = models.BooleanField(default=False)
     is_editor = models.BooleanField(default=False)
+    
     
     class Meta:
         unique_together = (('user','project'),)

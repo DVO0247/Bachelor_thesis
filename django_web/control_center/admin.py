@@ -7,10 +7,10 @@ class CustomUserAdmin(UserAdmin):
     list_display = ('id',) + UserAdmin.list_display # type: ignore
     fieldsets = UserAdmin.fieldsets + (
         ('Custom Fields', {
-            'fields': ('current_project',)
+            'fields': tuple() # additional fields
         }),
     ) # type: ignore
-    list_display=UserAdmin.list_display + ('current_project',) # type: ignore
+    list_display=UserAdmin.list_display + tuple() # type: ignore # tuple() = additional fields
 
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(Project)

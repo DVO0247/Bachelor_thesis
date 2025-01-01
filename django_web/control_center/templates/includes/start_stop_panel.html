@@ -1,15 +1,17 @@
-<div id="start_stop" class="d-flex flex-column align-items-start" hx-get="{% url 'reload_measurement' %}"
-    hx-trigger="every 1s" hx-swap="outerHTML">
+<div id="start_stop" class="d-flex flex-column align-items-start" hx-get="{% url 'reload_start_stop_panel' %}"
+    hx-trigger="every 3s" hx-swap="outerHTML">
     <table class="table table-striped table-bordered">
         <thead>
             <tr>
                 <th>Name</th>
-                <th>ID</th>
+                <th>M ID</th>
                 <th></th>
             </tr>
         </thead>
         <tbody>
-            {% for project in user_projects %}
+            {% for user_project in user_projects %}
+            {% if user_project.is_activated %}
+            {% with project=user_project.project %}
             <tr>
                 <td class="align-middle">
 
@@ -19,12 +21,12 @@
                     </a>
 
                 </td>
-                <td class="align-middle">
+                <td class="align-middle text-center">
                     {% if project.measurement_id > 0 %}
                     {{ project.measurement_id }}
                     {% endif %}
                 </td>
-                <td class="align-middle">
+                <td class="align-middle text-center">
                     <form method="post" style="display:inline;">
                         {% csrf_token %}
                         {% if not project.running %}
@@ -43,6 +45,8 @@
                     </form>
                 </td>
             </tr>
+            {% endwith %}
+            {% endif %}
             {% endfor %}
         </tbody>
     </table>

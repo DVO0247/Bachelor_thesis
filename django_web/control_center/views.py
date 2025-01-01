@@ -42,15 +42,27 @@ def project_edit(request, pk=None):
         context['model'] = context['form'].instance.__class__.__name__
         return render(request, 'generic_form.html', context)
 
-def project_use(request, pk=None):
+def project_activate(request, project_pk):
     if request.method == 'POST':
-        project = get_object_or_404(Project, pk=pk) if pk else None
-        user:User = request.user
-        user.current_project = project # type: ignore
-        user.save()
-        '''if project:
-            project.running = False
-            project.save()'''
+        user_project = get_object_or_404(UserProject, project=project_pk, user=request.user)
+        
+        user_project.is_activated = True
+        user_project.save()
+        previous_url = request.POST.get('previous_url')
+        if not previous_url:
+            previous_url = 'index'
+        return redirect(previous_url)
+    
+def project_deactivate(request, project_pk):
+    if request.method == 'POST':
+        user_project = get_object_or_404(UserProject, project=project_pk, user=request.user)
+        
+        user_project.is_activated = False
+        user_project.save()
+        # stop if noone has activated this project
+        if UserProject.objects.filter(project=project_pk, is_activated=True).count() == 0:
+            stop_measurement(request,project_pk)
+            
         previous_url = request.POST.get('previous_url')
         if not previous_url:
             previous_url = 'index'
@@ -145,7 +157,7 @@ def start_measurement(request, project_pk):
         if not previous_url:
             previous_url = 'index'
             '''
-        return render(request,'includes\\start_stop.html')
+        return reload_start_stop_panel(request)
     
 def stop_measurement(request, project_pk):
     if request.method == 'POST':
@@ -153,10 +165,10 @@ def stop_measurement(request, project_pk):
         project.running = False
         project.measurement_id+=1
         project.save()
-        return render(request,'includes\\start_stop.html')
+        return reload_start_stop_panel(request)
     
-def reload_measurement(request):
-    return render(request, 'includes\\start_stop.html')
+def reload_start_stop_panel(request):
+    return render(request, 'includes\\start_stop_panel.html')
 #endregion
 
 #region SensorNode

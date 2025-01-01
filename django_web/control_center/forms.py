@@ -42,7 +42,14 @@ class ProjectForm(BootstrapModelForm):
 class SensorForm(BootstrapModelForm):
     class Meta:
         model = Sensor
-        fields = ('name','sample_period','samples_per_packet')
+        fields = ('name', 'sample_period', 'samples_per_packet')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        for field in self.fields.values():
+            if isinstance(field, forms.IntegerField):
+                field.widget.attrs.update({'style': 'width: 120px;'})
 
 class UserProjectForm(forms.Form):
     is_member = forms.BooleanField(required=False, label="Is member")
