@@ -13,6 +13,8 @@ from .forms import SensorNodeForm, ProjectForm, LoginForm, SensorForm, UserProje
 import sqlite3
 from pathlib import Path
 
+TEMP_DIR_PATH = Path.cwd()/'control_center'/'temp' 
+
 def index(request):
     return redirect('project_list')
 
@@ -153,7 +155,7 @@ def measurement_list(request, project_pk):
     context = {}
     project = get_object_or_404(Project, pk=project_pk)
     context['project'] = project
-    context['measurements'] = Measurement.objects.filter(project=project)
+    context['measurements'] = Measurement.objects.filter(project=project).order_by('-pk')
     return render(request, 'measurement_list.html', context)
 
 def export_list(request, measurement_pk):
@@ -163,7 +165,7 @@ def export_list(request, measurement_pk):
     return render(request, 'export_list.html', context)
 
 def export_csv(request, measurement_pk, sensor_pk):
-    file_path = Path.cwd()/'control_center'/'temp'/'test.csv'
+    file_path = TEMP_DIR_PATH/'test.csv'
 
     return FileResponse(open(file_path, 'rb'), as_attachment=True, filename="test_data.csv")
 

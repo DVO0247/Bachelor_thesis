@@ -14,7 +14,7 @@ import re
 
 NEW_DATA_DB_PATH = Path.cwd().parent/'data' # Path.cwd() = django root
 
-FORBIDDEN_NAME_CHARS = '[\\/:"*?<>|]+'
+FORBIDDEN_NAME_CHARS = '[\\/:"*?<>|]+.'
 
 class SensorNodeTypes(models.IntegerChoices):
     ESP32 = 0, 'ESP32'
