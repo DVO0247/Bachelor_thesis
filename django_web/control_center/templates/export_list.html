@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ measurement.project.pk }} measurement {{ measurement.id_in_project }} {{ export }}{% endblock %}
+
+{% block content %}
+<h1>{{ measurement.project.pk }} measurement {{ measurement.id_in_project }} {{ export }}</h1>
+<h3>{{ measurement.start_time|date:"M. j, Y, H:i" }} - {{ measurement.end_time|date:"M. j, Y, H:i" }}</h3>
+<br>
+<table class="table table-striped table-bordered table-generic">
+    <thead style="border-width: 2px;">
+        <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Name</th>
+            <th scope="col">Export to</th>
+        </tr>
+    </thead>
+    
+        {% for sensor_node in measurement.sensor_nodes.all %}
+        <tbody style="border-width: 3px;">
+        <tr>
+            <td colspan="3">
+                {{ sensor_node.name }}
+            </td>
+        </tr>
+        {% for sensor in sensor_node.sensors.all %}
+        <tr>
+            <th scope="row">{{ sensor.id_in_sensor_node }}</th>
+            <td>{{ sensor.name }}</td>
+            <td>
+                <a class="btn btn-primary btn-sm" href="{% url 'export_csv' measurement.pk sensor.pk %}"
+                    role="button">CSV</a>
+            </td>
+            
+        </tr>
+        {% endfor %}
+    </tbody>
+    {% endfor %}
+</table>
+
+{% endblock %}

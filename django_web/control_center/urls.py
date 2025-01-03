@@ -15,6 +15,9 @@ urlpatterns = [
     path('project/<int:project_pk>/remove/sensor_node/<int:sensor_node_pk>', views.sensor_node_remove_from_project, name='sensor_node_remove_from_project'),
     path('project/<int:project_pk>/users', views.project_users_edit, name='project_users_edit'),
     #region Measurement
+    path('project/<int:project_pk>/measurements', views.measurement_list, name='measurement_list'),
+    path('measurement/<int:measurement_pk>/export_list', views.export_list, name='export_list'),
+    path('measurement/<int:measurement_pk>/export_list/<int:sensor_pk>/export/csv', views.export_csv, name='export_csv'),
     path('project/<int:project_pk>/start', views.start_measurement, name='start_measurement'),
     path('project/<int:project_pk>/stop', views.stop_measurement, name='stop_measurement'),
     path('reload_start_stop_panel', views.reload_start_stop_panel, name='reload_start_stop_panel'),

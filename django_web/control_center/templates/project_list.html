@@ -24,6 +24,7 @@
                 <a class="btn btn-primary btn-sm" href="{% url 'project_sensor_node_list' project.pk %}" role="button">Sensor
                     nodes</a>
                 <a class="btn btn-primary btn-sm" href="{% url 'project_users_edit' project.pk %}" role="button">Users</a>
+                <a class="btn btn-primary btn-sm" href="{% url 'measurement_list' project.pk %}" role="button">Measurements</a>
                 {% if not user_project.is_activated %}
                 <form action="{% url 'project_activate' project.pk %}" method="post" style="display:inline;">
                     {% csrf_token %}

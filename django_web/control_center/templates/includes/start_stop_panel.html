@@ -12,6 +12,7 @@
             {% for user_project in user_projects %}
             {% if user_project.is_activated %}
             {% with project=user_project.project %}
+            {% with last_measurement=project.get_last_measurement %}
             <tr>
                 <td class="align-middle" style="word-wrap: break-word; white-space: normal; word-break: break-word;">
                     <a href="{% url 'project_sensor_node_list' project.pk %}"
@@ -20,14 +21,16 @@
                     </a>
                 </td>
                 <td class="align-middle">
-                    {% if project.measurement_id > 0 %}
-                    {{ project.measurement_id }}
+                    {% if last_measurement %}
+                    {{ last_measurement.get_next_or_running_id }}
+                    {% else %}
+                    0
                     {% endif %}
                 </td>
                 <td class="align-middle text-center">
                     <form method="post" style="display:inline;">
                         {% csrf_token %}
-                        {% if not project.running %}
+                        {% if not project.is_running %}
                         <button class="btn btn-success btn-sm btn-short"
                             hx-post="{% url 'start_measurement' project.pk %}" hx-target="#start_stop"
                             hx-swap="outerHTML">
@@ -43,6 +46,7 @@
                     </form>
                 </td>
             </tr>
+            {% endwith %}
             {% endwith %}
             {% endif %}
             {% endfor %}

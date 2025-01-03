@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, get_list_or_404, redirect
-from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
+from django.http import HttpResponse, JsonResponse, HttpResponseRedirect, FileResponse
 from django.conf import settings
 from django.forms.models import model_to_dict
 from django.forms import modelformset_factory
@@ -8,9 +8,10 @@ from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.apps import apps
 
-from .models import User, Project, SensorNode, Sensor, UserProject
+from .models import User, Project, SensorNode, Sensor, UserProject, Measurement
 from .forms import SensorNodeForm, ProjectForm, LoginForm, SensorForm, UserProjectForm
 import sqlite3
+from pathlib import Path
 
 def index(request):
     return redirect('project_list')
@@ -79,7 +80,7 @@ def project_sensor_node_list(request, project_pk):
 def sensor_node_add_to_project(request, project_pk, sensor_node_pk):
     if request.method == 'POST':
         project = get_object_or_404(Project, pk=project_pk)
-        if not project.running:
+        if not project.is_running():
             sensor_node = get_object_or_404(SensorNode, pk=sensor_node_pk)
             project.sensor_nodes.add(sensor_node)
             project.save()
@@ -148,11 +149,28 @@ def project_users_edit(request, project_pk):
 #endregion
 
 #region Measurement
+def measurement_list(request, project_pk):
+    context = {}
+    project = get_object_or_404(Project, pk=project_pk)
+    context['project'] = project
+    context['measurements'] = Measurement.objects.filter(project=project)
+    return render(request, 'measurement_list.html', context)
+
+def export_list(request, measurement_pk):
+    context = {}
+    measurement = get_object_or_404(Measurement, pk=measurement_pk)
+    context['measurement'] = measurement
+    return render(request, 'export_list.html', context)
+
+def export_csv(request, measurement_pk, sensor_pk):
+    file_path = Path.cwd()/'control_center'/'temp'/'test.csv'
+
+    return FileResponse(open(file_path, 'rb'), as_attachment=True, filename="test_data.csv")
+
 def start_measurement(request, project_pk):
     if request.method == 'POST':
         project = get_object_or_404(Project, pk=project_pk)
-        project.new_measurement()
-        project.save()
+        project.start_measurement()
         '''previous_url = request.POST.get('previous_url')
         if not previous_url:
             previous_url = 'index'
@@ -162,9 +180,7 @@ def start_measurement(request, project_pk):
 def stop_measurement(request, project_pk):
     if request.method == 'POST':
         project = get_object_or_404(Project, pk=project_pk)
-        project.running = False
-        project.measurement_id+=1
-        project.save()
+        project.stop_measurement()
         return reload_start_stop_panel(request)
     
 def reload_start_stop_panel(request):

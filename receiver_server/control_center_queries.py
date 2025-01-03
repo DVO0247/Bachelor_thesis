@@ -8,7 +8,7 @@ sys.path.append(str(django_root_path))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
 django.setup()
 
-from control_center.models import SensorNodeTypes, Sensor, SensorNode, Project, get_measurement_dir_path
+from control_center.models import SensorNodeTypes, Sensor, SensorNode, Measurement
 
 DATA_DIR_PATH = Path(__file__).parent.parent/'data'
 
@@ -22,7 +22,7 @@ def create_sensor_node(name:str, sensor_count:int) -> SensorNode|None:
     else:
         sensor_node.save()
         for i in range(sensor_count):
-            sensor = Sensor(sensor_node=sensor_node, internal_id=i)
+            sensor = Sensor(sensor_node=sensor_node, id_in_sernsor_node=i)
             sensor.save()
         print(name, 'created')
         return sensor_node
@@ -40,13 +40,10 @@ def get_sensor_node_id_or_create(sensor_node_name:str, sensor_count:int) -> int|
 
 
 def get_paths_for_sensor(sensor_node_id:int, sensor_id:int) -> tuple[Path, ...]:
-    sensor = Sensor.objects.filter(sensor_node__pk=sensor_node_id, internal_id=sensor_id).first()
-    if sensor:
-        projects = Project.objects.filter(sensor_nodes=sensor.sensor_node, running=True)
-        paths = tuple(get_measurement_dir_path(DATA_DIR_PATH, sensor, project) for project in projects)
-        return paths
-    else:
-        raise Exception(f'Sensor {sensor_node_id} {sensor_id} not found')
+    sensor = Sensor.objects.get(sensor_node__pk=sensor_node_id, id_in_sernsor_node=sensor_id)
+    measurements = Measurement.objects.filter(end_time=None, sensor_nodes=sensor.sensor_node)
+    paths = tuple(measurement.get_dir_path(sensor) for measurement in measurements)
+    return paths
 
 def get_init_state(sensor_node_id:int) -> bool|None:
     sensor_node = SensorNode.objects.filter(pk=sensor_node_id).first()
