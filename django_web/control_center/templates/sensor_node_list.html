@@ -1,12 +1,13 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block additional_head %}<meta http-equiv="refresh" content="3">{% endblock %}
+{% block additional_head %}
+<meta http-equiv="refresh" content="3">{% endblock %}
 {% block title %}Sensor nodes{% endblock %}
 
 {% block content %}
 <h1>Sensor nodes</h1><br>
-<table class="table table-striped table-bordered">
+<table class="table table-striped table-bordered table-generic">
     <thead style="border-width: 2px;">
         <tr>
             <th scope="col">ID</th>
@@ -36,40 +37,45 @@
             <td>
                 <a class="btn btn-primary btn-sm" href="{% url 'sensor_node_edit' sensor_node.pk %}"
                     role="button">Edit</a>
-                <a class="btn btn-primary btn-sm" href="{% url 'sensors_edit' sensor_node.pk %}" role="button">Edit Sensors</a>
+                <a class="btn btn-primary btn-sm" href="{% url 'sensors_edit' sensor_node.pk %}" role="button">Edit
+                    Sensors</a>
             </td>
         </tr>
         {% endif %}
         {% endfor %}
     </tbody>
     <tbody style="border-width: 3px;">
-    <tr>
-        <td colspan="4">
-            Not Initialized
-        </td>
-    </tr>
-    {% for sensor_node in sensor_nodes %}
-    {% if not sensor_node.initialized %}
-    <tr>
-        <th scope="row">{{ sensor_node.pk }}</th>
-        <td>{{ sensor_node.name }}</td>
-        <td>{{ sensor_node.get_type_display }}</td>
-        <td>
-            {% for sensor in sensor_node.sensors.all %}
-            {{sensor.name}},
-            {% endfor %}    
-        </td>
-        <td>
-            <a class="btn btn-primary btn-sm" href="{% url 'sensor_node_edit' sensor_node.pk %}" role="button">Edit</a>
-            {% if sensor_node.get_type_display != 'FBGuard' %}
-            <a class="btn btn-primary btn-sm" href="{% url 'sensors_edit' sensor_node.pk %}" role="button">Initialize</a>
-            {% else %}
-            <a class="btn btn-secondary btn-sm" href="{% url 'sensors_edit' sensor_node.pk %}" role="button" style="pointer-events: none; opacity: 0.5;">Initialize</a>
-            {% endif %}
-        </td>
-    </tr>
-    {% endif %}
-    {% endfor %}
-</tbody>
+        <tr>
+            <td colspan="4">
+                Not Initialized
+            </td>
+        </tr>
+        {% for sensor_node in sensor_nodes %}
+        {% if not sensor_node.initialized %}
+        <tr>
+            <th scope="row">{{ sensor_node.pk }}</th>
+            <td>{{ sensor_node.name }}</td>
+            <td>{{ sensor_node.get_type_display }}</td>
+            <td>
+                {% for sensor in sensor_node.sensors.all %}
+                {{sensor.name}},
+                {% endfor %}
+            </td>
+            <td>
+                <a class="btn btn-primary btn-sm" href="{% url 'sensor_node_edit' sensor_node.pk %}"
+                    role="button">Edit</a>
+                {% if sensor_node.get_type_display != 'FBGuard' %}
+                <a class="btn btn-primary btn-sm" href="{% url 'sensors_edit' sensor_node.pk %}"
+                    role="button">Initialize</a>
+                {% else %}
+                <a class="btn btn-secondary btn-sm" href="{% url 'sensors_edit' sensor_node.pk %}" role="button"
+                    style="pointer-events: none; opacity: 0.5;">Initialize</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+    </tbody>
 </table>
+
 {% endblock %}

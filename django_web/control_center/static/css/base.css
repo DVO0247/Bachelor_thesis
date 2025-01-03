@@ -28,7 +28,7 @@ body {
     top: 50px;
     /* Odsazení, aby byl sidebar pod topbarem */
     left: 0;
-    width: 200px;
+    width: 240px;
     height: calc(100vh - 60px);
     /* Nastaví výšku sidebaru tak, aby nezasahoval do topbaru */
     background-color: #f8f9fa;
@@ -55,10 +55,10 @@ body {
 }
 
 .content {
-    margin-top: 60px;
     /* Odsazení obsahu pod topbar */
-    margin-left: 220px;
-    /* Odsazení obsahu vedle sidebaru */
+    margin-top: 60px;
+    margin-left: 250px;
+    margin-right: 10px;
     padding: 20px;
 }
 
@@ -146,3 +146,9 @@ body {
     border-color: #007bff !important; /* Modrý rámeček při focusu */
     outline: none !important; /* Zrušení výchozího outline */
 }
+
+.table-generic {
+    table-layout: auto;
+    width: auto;
+    min-width: 800px;
+  }
