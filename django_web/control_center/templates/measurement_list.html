@@ -28,7 +28,7 @@
             <td>{{ measurement.start_time|date:"M. j, Y, H:i" }}</td>
             <td>{% if measurement.end_time %}{{ measurement.end_time|date:"M. j, Y, H:i" }}{% endif %}</td>
             <td>
-                <a class="btn btn-primary btn-sm" href="{% url 'export_list' measurement.pk %}" role="button">Export</a>
+                <a class="btn btn-primary btn-sm" href="{% url 'measurement_data' project.pk measurement.id_in_project %}" role="button">Data</a>
             </td>
         </tr>
 

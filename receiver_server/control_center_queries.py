@@ -22,7 +22,7 @@ def create_sensor_node(name:str, sensor_count:int) -> SensorNode|None:
     else:
         sensor_node.save()
         for i in range(sensor_count):
-            sensor = Sensor(sensor_node=sensor_node, id_in_sernsor_node=i)
+            sensor = Sensor(sensor_node=sensor_node, id_in_sensor_node=i)
             sensor.save()
         print(name, 'created')
         return sensor_node
@@ -40,7 +40,7 @@ def get_sensor_node_id_or_create(sensor_node_name:str, sensor_count:int) -> int|
 
 
 def get_paths_for_sensor(sensor_node_id:int, sensor_id:int) -> tuple[Path, ...]:
-    sensor = Sensor.objects.get(sensor_node__pk=sensor_node_id, id_in_sernsor_node=sensor_id)
+    sensor = Sensor.objects.get(sensor_node__pk=sensor_node_id, id_in_sensor_node=sensor_id)
     measurements = Measurement.objects.filter(end_time=None, sensor_nodes=sensor.sensor_node)
     paths = tuple(measurement.get_dir_path(sensor) for measurement in measurements)
     return paths

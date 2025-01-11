@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ project.pk }} measurement {{ measurement.id_in_project }} {{ export }}{% endblock %}
+
+{% block content %}
+<h1>{{ project.name }} measurement {{ measurement.id_in_project }} {{ export }}</h1>
+<h3>{{ measurement.start_time|date:"M. j, Y, H:i" }} - {{ measurement.end_time|date:"M. j, Y, H:i" }}</h3>
+<br>
+<table class="table table-striped table-bordered" style="width: 600px;">
+    <thead style="border-width: 2px;">
+        <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Timestamp</th>
+            <th scope="col">Value</th>
+        </tr>
+    </thead>
+
+    <tbody style="border-width: 3px;">
+        {% for sample in samples %}
+        <tr>
+            <th scope="row">{{ sample.0 }}</th>
+            <td>{{ sample.1 }}</td>
+            <td>
+                {{ sample.2 }}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Pagination Controls -->
+<div style="display: flex; justify-content: space-between; width: 600px;">
+
+    <!-- First Page -->
+    <a class="btn btn-success btn-sm" href="{% url 'explore_data' project.pk measurement.id_in_project sensor.pk 1 %}" role="button" style="margin-right: 10px;">First</a>
+
+    <!-- Previous Page -->
+    <a class="btn btn-success btn-sm" href="{% url 'explore_data' project.pk measurement.id_in_project sensor.pk page|add:-1 %}" role="button" style="margin-right: 10px;">Prev</a>
+
+    <!-- Page Number Form -->
+    <form method="POST" action="{% url 'explore_data_goto' project.pk measurement.id_in_project sensor.pk %}" style="text-align: center; flex-grow: 1;">
+        {% csrf_token %}
+        <input type="number" name="page" value="{{ page }}" min="1" required 
+               style="width: {{ 36|add:add_page_field_size }}px; text-align: right;">
+        /{{ page_count }}
+        <button type="submit" class="btn btn-primary">Go to</button>
+    </form>
+
+    <!-- Next Page -->
+    <a class="btn btn-success btn-sm" href="{% url 'explore_data' project.pk measurement.id_in_project sensor.pk page|add:1 %}" role="button" style="margin-left: 10px;">Next</a>
+
+    <!-- Last Page -->
+    <a class="btn btn-success btn-sm" href="{% url 'explore_data' project.pk measurement.id_in_project sensor.pk page_count %}" role="button" style="margin-left: 10px;">Last</a>
+
+</div>
+
+{% endblock %}

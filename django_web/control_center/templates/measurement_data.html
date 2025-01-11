@@ -15,9 +15,9 @@
             <th scope="col">Export to</th>
         </tr>
     </thead>
-    
-        {% for sensor_node in measurement.sensor_nodes.all %}
-        <tbody style="border-width: 3px;">
+
+    {% for sensor_node in measurement.sensor_nodes.all %}
+    <tbody style="border-width: 3px;">
         <tr>
             <td colspan="3">
                 {{ sensor_node.name }}
@@ -28,10 +28,12 @@
             <th scope="row">{{ sensor.id_in_sensor_node }}</th>
             <td>{{ sensor.name }}</td>
             <td>
-                <a class="btn btn-primary btn-sm" href="{% url 'export_csv' measurement.pk sensor.pk %}"
-                    role="button">CSV</a>
+                <a class="btn btn-primary btn-sm" href="{% url 'explore_data' project.pk measurement.id_in_project sensor.pk %}"
+                    role="button">Explore</a>
+                <a class="btn btn-primary btn-sm" href="{% url 'export_csv' project.pk measurement.id_in_project sensor.pk %}"
+                    role="button">Export to CSV</a>
             </td>
-            
+
         </tr>
         {% endfor %}
     </tbody>

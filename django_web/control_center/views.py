@@ -10,6 +10,7 @@ from django.apps import apps
 
 from .models import User, Project, SensorNode, Sensor, UserProject, Measurement
 from .forms import SensorNodeForm, ProjectForm, LoginForm, SensorForm, UserProjectForm
+from .utils import measurement_queries
 import sqlite3
 from pathlib import Path
 
@@ -158,16 +159,44 @@ def measurement_list(request, project_pk):
     context['measurements'] = Measurement.objects.filter(project=project).order_by('-pk')
     return render(request, 'measurement_list.html', context)
 
-def export_list(request, measurement_pk):
+def measurement_data(request, project_pk, measurement_id):
     context = {}
-    measurement = get_object_or_404(Measurement, pk=measurement_pk)
+    project = get_object_or_404(Project, pk=project_pk)
+    measurement = get_object_or_404(Measurement, project=project, id_in_project=measurement_id)
     context['measurement'] = measurement
-    return render(request, 'export_list.html', context)
+    context['project'] = project
+    return render(request, 'measurement_data.html', context)
 
-def export_csv(request, measurement_pk, sensor_pk):
-    file_path = TEMP_DIR_PATH/'test.csv'
+def explore_data(request, project_pk, measurement_id, sensor_pk, page=1, count=50):
+    context = {}
+    project = get_object_or_404(Project, pk=project_pk)
+    measurement = get_object_or_404(Measurement, project=project, id_in_project=measurement_id)
+    sensor = get_object_or_404(Sensor, pk=sensor_pk)
+    path = measurement.get_dir_path(sensor)
+    page_count = measurement_queries.count(path)//count if measurement_queries.count(path) % count == 0 else measurement_queries.count(path)//count + 1
+    context['samples'] = measurement_queries.select_desc(path, count, page-1)
+    context['page'] = page
+    context['page_count'] = page_count
+    context['pages'] = range(1, page_count+1)
+    context['measurement'] = measurement
+    context['sensor'] = sensor
+    context['project'] = project
+    context['add_page_field_size'] = len(str(page_count))*10
+    return render(request, 'explore_data.html', context)
 
-    return FileResponse(open(file_path, 'rb'), as_attachment=True, filename="test_data.csv")
+def explore_data_goto(request, project_pk, measurement_id, sensor_pk, count=50):
+    page = int(request.POST.get('page', 1))
+    return redirect('explore_data', project_pk=project_pk, measurement_id=measurement_id, sensor_pk=sensor_pk, page=page)
+
+def export_csv(request, project_pk, measurement_id, sensor_pk):
+    out_path = TEMP_DIR_PATH/'export.csv'
+    measurement= get_object_or_404(Measurement, project=project_pk, id_in_project=measurement_id)
+    sensor = get_object_or_404(Sensor, pk=sensor_pk)
+    db_path = measurement.get_dir_path(sensor)
+    measurement_queries.export_to_csv(db_path,out_path, header=True, humam_time=False)
+    filename = f'{db_path.stem}_{sensor.sensor_node.name}_{sensor.name}.csv'
+
+    return FileResponse(open(out_path, 'rb'), as_attachment=True, filename=filename)
 
 def start_measurement(request, project_pk):
     if request.method == 'POST':

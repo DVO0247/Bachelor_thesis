@@ -5,7 +5,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ValidationError
 import os
 import shutil
-from control_center.utils.init_dbs import new_measurement_db
+from control_center.utils.measurement_queries import new_measurement_db
 from django.db import connection
 from datetime import datetime
 from django.utils import timezone
