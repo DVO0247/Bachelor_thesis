@@ -118,6 +118,13 @@ class SensorNode(models.Model):
     initialized = models.BooleanField(default=False)
     type = models.IntegerField(choices=SensorNodeTypes) # type: ignore
 
+    def is_running(self):
+        projects = Project.objects.filter(sensor_nodes=self)
+        for project in projects:
+            if project.is_running():
+                return True
+        return False
+
     def save(self, *args, **kwargs):
         self.name = re.sub(FORBIDDEN_NAME_CHARS, '_', self.name)
         super().save(*args, **kwargs)

@@ -1,12 +1,11 @@
 import struct
 from datetime import datetime
 from abc import ABC, abstractmethod
-from enum import Enum
 
 ENC = 'ascii'
 MAX_SAMPLES_PER_PACKET = 121
 
-class MessageTypeByte: # TODO: to enum
+class MessageTypeByte:
     class Server:
         REQUEST_INFO = 0x00
         SET_SENSOR_PARAMETERS = 0x01

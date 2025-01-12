@@ -14,9 +14,9 @@ urlpatterns = [
     path('project/<int:project_pk>/add/sensor_node/<int:sensor_node_pk>/', views.sensor_node_add_to_project, name='sensor_node_add_to_project'),
     path('project/<int:project_pk>/remove/sensor_node/<int:sensor_node_pk>/', views.sensor_node_remove_from_project, name='sensor_node_remove_from_project'),
     path('project/<int:project_pk>/users/', views.project_users_edit, name='project_users_edit'),
+    path('project/<int:project_pk>/leave/', views.project_leave, name='project_leave'),
     #region Measurement
     path('project/<int:project_pk>/measurements/', views.measurement_list, name='measurement_list'),
-
     path('project/<int:project_pk>/measurements/<int:measurement_id>/', views.measurement_data, name='measurement_data'),
     path('project/<int:project_pk>/measurements/<int:measurement_id>/<int:sensor_pk>/explore/1/', views.explore_data, name='explore_data'),
     path('project/<int:project_pk>/measurements/<int:measurement_id>/<int:sensor_pk>/explore/<int:page>/', views.explore_data, name='explore_data'),

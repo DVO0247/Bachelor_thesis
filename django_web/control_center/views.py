@@ -44,7 +44,8 @@ def project_edit(request, pk=None):
     else:
         context['form'] = ProjectForm(instance=instance)
         context['model'] = context['form'].instance.__class__.__name__
-        return render(request, 'generic_form.html', context)
+        context['user_project'] = get_object_or_404(UserProject, user=request.user, project=pk)
+        return render(request, 'project_edit.html', context)
 
 def project_activate(request, project_pk):
     if request.method == 'POST':
@@ -77,7 +78,8 @@ def project_sensor_node_list(request, project_pk):
     project = get_object_or_404(Project, pk=project_pk)
     context['sensor_nodes'] = SensorNode.objects.all()
     context['project_sensor_nodes'] = project.sensor_nodes.all()
-    context['project'] = project
+    context['user_project'] = get_object_or_404(UserProject, user=request.user, project=project)
+    #context['project'] = project
     return render(request, 'project_sensor_node_list.html', context)
 
 def sensor_node_add_to_project(request, project_pk, sensor_node_pk):
@@ -148,6 +150,11 @@ def project_users_edit(request, project_pk):
             user_forms[user] = form
     context = {'project': project,'user_forms': user_forms}
     return render(request, 'project_users_edit.html', context)
+
+def project_leave(request, project_pk):
+    user_project = get_object_or_404(UserProject, user=request.user, project=project_pk)
+    user_project.delete()
+    return redirect('project_list')
 
 #endregion
 

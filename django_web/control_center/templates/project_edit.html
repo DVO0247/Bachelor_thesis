@@ -14,8 +14,13 @@
     <button type="submit" class="btn btn-primary">Save</button>
     <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-secondary">Back</a>
     {% if form.instance.pk %}
+    {% if user_project.is_owner %}
     <button type="submit" formaction="{% url 'delete_object' model form.instance.pk %}" class="btn btn-danger"
-        onclick="return confirm('Do you really want to delete this {{model}}?');">Delete</button>
+        onclick="return confirm('Do you really want to delete this {{ model }}?');">Delete</button>
+    {% else %}
+    <button type="submit" formaction="{% url 'project_leave' form.instance.pk %}" class="btn btn-warning"
+        onclick="return confirm('Do you really want to leave this project?');">Leave</button>
+    {% endif %}
     {% endif %}
 </form>
 {% endblock %}

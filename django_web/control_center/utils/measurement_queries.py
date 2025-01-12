@@ -1,9 +1,7 @@
 import sqlite3
 import os
 from pathlib import Path
-from typing import Literal
 from datetime import datetime
-import time
 
 class SQL:
     class Create:
@@ -70,7 +68,6 @@ def export_to_csv(db_path:Path|str, out_path:Path|str, header:bool=False, value_
     cur = conn.cursor()
     #cur.execute(f"PRAGMA cache_size = -{50_000};")
     open(out_path, 'w').close()
-    start = time.perf_counter()
     with open(out_path, 'a') as file:
         if header:
             if not value_name:
@@ -79,8 +76,6 @@ def export_to_csv(db_path:Path|str, out_path:Path|str, header:bool=False, value_
         for samples in sequential_select(cur, 500_000):
             for sample in samples:
                 file.write(f'{sample[0]}{separator}{sample[1]}{separator}{sample[2]}\n')
-    end = time.perf_counter()
-    print(end-start)
 
 if __name__ == '__main__':
     export_to_csv(

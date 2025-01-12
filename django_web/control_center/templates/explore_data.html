@@ -41,10 +41,10 @@
     <!-- Page Number Form -->
     <form method="POST" action="{% url 'explore_data_goto' project.pk measurement.id_in_project sensor.pk %}" style="text-align: center; flex-grow: 1;">
         {% csrf_token %}
-        <input type="number" name="page" value="{{ page }}" min="1" required 
-               style="width: {{ 36|add:add_page_field_size }}px; text-align: right;">
+        <input name="page" value="{{ page }}" min="1" required 
+               style="width: {{ 20|add:add_page_field_size }}px; text-align: right;">
         /{{ page_count }}
-        <button type="submit" class="btn btn-primary">Go to</button>
+        <button type="submit" class="btn btn-primary btn-sm">Go to</button>
     </form>
 
     <!-- Next Page -->

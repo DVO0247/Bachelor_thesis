@@ -4,6 +4,7 @@
 {% block title %}Sensor nodes{% endblock %}
 
 {% block content %}
+{% with project=user_project.project %}
 <h1>{{project.name}} Sensor nodes</h1><br>
 <table class="table table-striped table-bordered table-generic">
     <thead style="border-width: 2px;">
@@ -28,53 +29,89 @@
             <td>{{ sensor_node.get_type_display }}</td>
             <td>
                 {% for sensor in sensor_node.sensors.all %}
-                {{sensor.name}},
+                {{ sensor.name }},
                 {% endfor %}
             </td>
             <td>
+                {% if not sensor_node.is_running %}
                 <a class="btn btn-primary btn-sm" href="{% url 'sensor_node_edit' sensor_node.pk %}"
                     role="button">Edit</a>
-                <a class="btn btn-primary btn-sm" href="{% url 'sensors_edit' sensor_node.pk %}" role="button">Edit sensors</a>
+                {% else %}
+                <div class="tooltip-wrapper">
+                    <span class="tooltip-text">Sensor Node is in running Project</span>
+                    <a class="btn btn-secondary btn-sm disabled" role="button">Edit</a>
+                </div>
+                {% endif %}
+                {% if user_project.is_editor %}
+                {% if sensor_node.get_type_display != 'FBGuard' %}
+                {% if not sensor_node.is_running %}
+                <a class="btn btn-primary btn-sm" href="{% url 'sensors_edit' sensor_node.pk %}" role="button">Edit
+                    sensors</a>
+                {% else %}
+                <div class="tooltip-wrapper">
+                    <span class="tooltip-text">Sensor Node is in running Project</span>
+                    <a class="btn btn-secondary btn-sm disabled" role="button">Edit sensors</a>
+                </div>
+                {% endif %}
+                {% endif %}
                 <form action="{% url 'sensor_node_remove_from_project' project.pk sensor_node.pk %}" method="post"
                     style="display:inline;">
-                {% csrf_token %}
-                <input class="btn btn-danger btn-sm" type="submit" value="Remove">
+                    {% csrf_token %}
+                    <input class="btn btn-danger btn-sm" type="submit" value="Remove">
                 </form>
+                {% endif %}
             </td>
         </tr>
         {% endfor %}
     </tbody>
     <tbody style="border-width: 3px;">
-    <tr>
-        <td colspan="5">Not in project</td>
-    </tr>
-    {% for sensor_node in sensor_nodes %}
-    {% if sensor_node not in project_sensor_nodes and sensor_node.initialized %}
-    <tr>
-        <th scope="row">{{ sensor_node.pk }}</th>
-        <td>{{ sensor_node.name }}</td>
-        <td>{{ sensor_node.get_type_display }}</td>
-        <td>
-            {% for sensor in sensor_node.sensors.all %}
-            {{sensor.name}},
-            {% endfor %}    
-        </td>
-        <td>
-            <a class="btn btn-primary btn-sm" href="{% url 'sensor_node_edit' sensor_node.pk %}" role="button">Edit</a>
-            {% if sensor_node.get_type_display != 'FBGuard' %}
-            <a class="btn btn-primary btn-sm" href="{% url 'sensors_edit' sensor_node.pk %}" role="button">Edit sensors</a>
-            {% else %}
-            <a class="btn btn-secondary btn-sm" href="{% url 'sensors_edit' sensor_node.pk %}" role="button" style="pointer-events: none; opacity: 0.5;">Edit sensors</a>
-            {% endif %}
-            <form action="{% url 'sensor_node_add_to_project' project.pk sensor_node.pk %}" method="post"
-                style="display:inline;">
-            {% csrf_token %}
-            <input class="btn btn-success btn-sm" type="submit" value="Add">
-            </form>
-        </td>
-    </tr>
-    {% endif %}
-    {% endfor %}
-</tbody>
+        <tr>
+            <td colspan="5">Not in project</td>
+        </tr>
+        {% for sensor_node in sensor_nodes %}
+        {% if sensor_node not in project_sensor_nodes and sensor_node.initialized %}
+        <tr>
+            <th scope="row">{{ sensor_node.pk }}</th>
+            <td>{{ sensor_node.name }}</td>
+            <td>{{ sensor_node.get_type_display }}</td>
+            <td>
+                {% for sensor in sensor_node.sensors.all %}
+                {{ sensor.name }},
+                {% endfor %}
+            </td>
+            <td>
+                {% if not sensor_node.is_running %}
+                <a class="btn btn-primary btn-sm" href="{% url 'sensor_node_edit' sensor_node.pk %}"
+                    role="button">Edit</a>
+                {% else %}
+                <div class="tooltip-wrapper">
+                    <span class="tooltip-text">Sensor Node is in running Project</span>
+                    <a class="btn btn-secondary btn-sm disabled" role="button">Edit</a>
+                </div>
+                {% endif %}
+                {% if user_project.is_editor %}
+                {% if sensor_node.get_type_display != 'FBGuard' %}
+                {% if not sensor_node.is_running %}
+                <a class="btn btn-primary btn-sm" href="{% url 'sensors_edit' sensor_node.pk %}" role="button">Edit
+                    sensors</a>
+                {% else %}
+                <div class="tooltip-wrapper">
+                    <span class="tooltip-text">Sensor Node is in running Project</span>
+                    <a class="btn btn-secondary btn-sm disabled" role="button">Edit sensors</a>
+                </div>
+                {% endif %}
+                {% endif %}
+                <form action="{% url 'sensor_node_add_to_project' project.pk sensor_node.pk %}" method="post"
+                    style="display:inline;">
+                    {% csrf_token %}
+                    <input class="btn btn-success btn-sm" type="submit" value="Add">
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+    </tbody>
 </table>
+{% endwith %}
 {% endblock %}
