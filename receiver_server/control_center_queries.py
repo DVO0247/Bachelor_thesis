@@ -8,7 +8,7 @@ sys.path.append(str(django_root_path))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
 django.setup()
 
-from control_center.models import SensorNodeTypes, Sensor, SensorNode, Measurement
+from control_center.models import SensorNodeTypes, Sensor, SensorNode, Measurement, Project
 
 DATA_DIR_PATH = Path(__file__).parent.parent/'data'
 
@@ -39,20 +39,20 @@ def get_sensor_node_id_or_create(sensor_node_name:str, sensor_count:int) -> int|
         return sensor_node.pk if sensor_node else None
 
 
-def get_paths_for_sensor(sensor_node_id:int, sensor_id:int) -> tuple[Path, ...]:
+def get_paths_for_sensor(sensor_node_id:int, sensor_id:int) -> list[Path]:
     sensor = Sensor.objects.get(sensor_node__pk=sensor_node_id, id_in_sensor_node=sensor_id)
     measurements = Measurement.objects.filter(end_time=None, sensor_nodes=sensor.sensor_node)
-    paths = tuple(measurement.get_dir_path(sensor) for measurement in measurements)
+    paths = [measurement.get_db_path(sensor) for measurement in measurements]
     return paths
 
 def get_init_state(sensor_node_id:int) -> bool|None:
     sensor_node = SensorNode.objects.filter(pk=sensor_node_id).first()
     return sensor_node.initialized if sensor_node else None
     
-def get_params_for_sensors(sensor_node_id:int) -> tuple[tuple[int, int], ...]|None:
+def get_params_for_sensors(sensor_node_id:int) -> list[tuple[int, int]]|None:
     sensors = Sensor.objects.filter(sensor_node__pk=sensor_node_id, sensor_node__initialized=True)
     if sensors:
-        return tuple((sensor.sample_period, sensor.samples_per_packet) for sensor in sensors) # type: ignore
+        return [(sensor.sample_period, sensor.samples_per_packet) for sensor in sensors] # type: ignore
     else:
         return None
         

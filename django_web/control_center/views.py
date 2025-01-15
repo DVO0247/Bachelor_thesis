@@ -1,18 +1,18 @@
-from django.shortcuts import render, get_object_or_404, get_list_or_404, redirect
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect, FileResponse
 from django.conf import settings
 from django.forms.models import model_to_dict
 from django.forms import modelformset_factory
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.apps import apps
 
+from pathlib import Path
+
 from .models import User, Project, SensorNode, Sensor, UserProject, Measurement
 from .forms import SensorNodeForm, ProjectForm, LoginForm, SensorForm, UserProjectForm
-from .utils import measurement_queries
-import sqlite3
-from pathlib import Path
+from .utils import samples_queries
+
 
 TEMP_DIR_PATH = Path.cwd()/'control_center'/'temp' 
 
@@ -44,7 +44,8 @@ def project_edit(request, pk=None):
     else:
         context['form'] = ProjectForm(instance=instance)
         context['model'] = context['form'].instance.__class__.__name__
-        context['user_project'] = get_object_or_404(UserProject, user=request.user, project=pk)
+        if pk:
+            context['user_project'] = get_object_or_404(UserProject, user=request.user, project=pk)
         return render(request, 'project_edit.html', context)
 
 def project_activate(request, project_pk):
@@ -179,9 +180,9 @@ def explore_data(request, project_pk, measurement_id, sensor_pk, page=1, count=5
     project = get_object_or_404(Project, pk=project_pk)
     measurement = get_object_or_404(Measurement, project=project, id_in_project=measurement_id)
     sensor = get_object_or_404(Sensor, pk=sensor_pk)
-    path = measurement.get_dir_path(sensor)
-    page_count = measurement_queries.count(path)//count if measurement_queries.count(path) % count == 0 else measurement_queries.count(path)//count + 1
-    context['samples'] = measurement_queries.select_desc(path, count, page-1)
+    path = measurement.get_db_path(sensor)
+    page_count = samples_queries.count(path)//count if samples_queries.count(path) % count == 0 else samples_queries.count(path)//count + 1
+    context['samples'] = samples_queries.select_desc(path, count, page-1)
     context['page'] = page
     context['page_count'] = page_count
     context['pages'] = range(1, page_count+1)
@@ -196,12 +197,14 @@ def explore_data_goto(request, project_pk, measurement_id, sensor_pk, count=50):
     return redirect('explore_data', project_pk=project_pk, measurement_id=measurement_id, sensor_pk=sensor_pk, page=page)
 
 def export_csv(request, project_pk, measurement_id, sensor_pk):
+    TEMP_DIR_PATH.mkdir(exist_ok=True)
     out_path = TEMP_DIR_PATH/'export.csv'
-    measurement= get_object_or_404(Measurement, project=project_pk, id_in_project=measurement_id)
+    project = get_object_or_404(Project, pk=project_pk)
+    measurement= get_object_or_404(Measurement, project=project, id_in_project=measurement_id)
     sensor = get_object_or_404(Sensor, pk=sensor_pk)
-    db_path = measurement.get_dir_path(sensor)
-    measurement_queries.export_to_csv(db_path,out_path, header=True, humam_time=False)
-    filename = f'{db_path.stem}_{sensor.sensor_node.name}_{sensor.name}.csv'
+    db_path = measurement.get_db_path(sensor)
+    samples_queries.export_to_csv(db_path,out_path, header=True, humam_time=False)
+    filename = f'{project.name}_{sensor.sensor_node.name}_{sensor.name}_{db_path.stem}.csv'
 
     return FileResponse(open(out_path, 'rb'), as_attachment=True, filename=filename)
 
@@ -291,7 +294,7 @@ def delete(request, model_name, pk):
 
 def toggle_dark_mode(request):
     user = request.user
-    user.darkmode = not user.darkmode  # Přepínání hodnoty
+    user.darkmode = not user.darkmode
     user.save()
     return JsonResponse({'darkmode': user.darkmode})
 

@@ -28,7 +28,7 @@ class SQL:
             limit ? offset ?
         """
 
-def new_measurement_db(path:Path|str):
+def new_db(path:Path|str):
     if os.path.exists(path):
         return
 
@@ -64,6 +64,8 @@ def sequential_select(cur:sqlite3.Cursor, size:int):
         i += 1
 
 def export_to_csv(db_path:Path|str, out_path:Path|str, header:bool=False, value_name:str|None = None, humam_time=False, separator=','):
+    if humam_time:
+        ... # TODO: human time
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
     #cur.execute(f"PRAGMA cache_size = -{50_000};")
@@ -76,9 +78,3 @@ def export_to_csv(db_path:Path|str, out_path:Path|str, header:bool=False, value_
         for samples in sequential_select(cur, 500_000):
             for sample in samples:
                 file.write(f'{sample[0]}{separator}{sample[1]}{separator}{sample[2]}\n')
-
-if __name__ == '__main__':
-    export_to_csv(
-        r"C:\VSB\Bakalářská práce\DVO0247\data\28_testnevim\44_esp1\0_pi\2_2025-01-11T16-52-57.db",
-        r'C:\VSB\Bakalářská práce\DVO0247\django_web\control_center\temp\export.csv',
-        )

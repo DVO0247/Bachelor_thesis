@@ -15,7 +15,7 @@
     <a href="{{ request.META.HTTP_REFERER }}" class="btn btn-secondary">Back</a>
     {% if form.instance.pk %}
     <button type="submit" formaction="{% url 'delete_object' model form.instance.pk %}" class="btn btn-danger"
-        onclick="return confirm('Do you really want to delete this {{model}}?');">Delete</button>
+        onclick="return confirm('Do you really want to delete this {{ model }}?');">Delete</button>
     {% endif %}
 </form>
 {% endblock %}

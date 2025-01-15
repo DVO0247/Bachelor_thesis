@@ -4,7 +4,7 @@ from colorama import Fore, Back
 import sqlite3
 import threading
 from pathlib import Path
-from typing import TypeAlias
+from typing import TypeAlias, Iterable
 import os
 
 import sensor_node_protocol as snp
@@ -59,7 +59,7 @@ class MeasurementDB:
     def __del__(self):
         self._close_db()
 
-    def write_to_db(self, unix_samples:tuple[tuple[int,float], ...]):
+    def write_to_db(self, unix_samples:Iterable[tuple[int,float]]):
         self.cur.executemany("insert into data values(null,?,?)",unix_samples)
 
     def commit(self):
@@ -99,7 +99,7 @@ class Sensor:
         self.sample_period_ms:int|None = None
         self.samples_per_packet:int|None = None
         
-    def add_to_buffer(self, samples:tuple[snp.Sample, ...]):
+    def add_to_buffer(self, samples:Iterable[snp.Sample]):
         with self.buffer_lock:
             self.samples_buffer.extend(samples)
 
@@ -112,7 +112,7 @@ class Sensor:
                 self.measurement_dbs.remove(db)
 
         # add new paths
-        current_paths = tuple(db.path for db in self.measurement_dbs)
+        current_paths = [db.path for db in self.measurement_dbs]
         for path in new_paths:
             if path not in current_paths:
                 self.measurement_dbs.append(MeasurementDB(path))
@@ -123,7 +123,7 @@ class Sensor:
         if do_write:
             self.update_measurements(sensor_node_id, sensor_id)
             with self.buffer_lock:
-                unix_samples = tuple((sample.timestamp+unix_time_at_zero, sample.value) for sample in self.samples_buffer)
+                unix_samples = [(sample.timestamp+unix_time_at_zero, sample.value) for sample in self.samples_buffer]
                 self.samples_buffer.clear()
                 for db in self.measurement_dbs:
                     db.write_to_db(unix_samples)
@@ -248,7 +248,7 @@ class Server:
                 self.check_params()
                 last_inits_and_params = time.time()
                 
-            initialized_sensor_nodes = tuple(sensor_node for sensor_node in _sensor_nodes if sensor_node.initialized)
+            initialized_sensor_nodes = [sensor_node for sensor_node in _sensor_nodes if sensor_node.initialized]
             
             self.write_to_dbs(initialized_sensor_nodes)
             
@@ -269,7 +269,7 @@ class Server:
         with self.sensor_nodes_lock:
             self.sensor_nodes.clear()
 
-    def check_inits(self, _sensor_nodes:tuple[SensorNode,...]):
+    def check_inits(self, _sensor_nodes:Iterable[SensorNode]):
         for sensor_node in _sensor_nodes:
             sensor_node.update_init_state()
             if sensor_node.initialized is None:
@@ -280,7 +280,7 @@ class Server:
                             print(f'{addr} {sensor_node.name} removed')
                             break
 
-    def write_to_dbs(self, _sensor_nodes:tuple[SensorNode,...]):
+    def write_to_dbs(self, _sensor_nodes:Iterable[SensorNode]):
         for sensor_node in _sensor_nodes:
             try:
                 for i in range(len(sensor_node.sensors)): # type: ignore
@@ -295,7 +295,7 @@ class Server:
                 print(e)
 
 
-    def do_db_commits(self, _sensor_nodes:tuple[SensorNode,...]):
+    def do_db_commits(self, _sensor_nodes:Iterable[SensorNode]):
         for sensor_node in _sensor_nodes:
             sensor_node.commit_all()
 
