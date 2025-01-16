@@ -131,6 +131,8 @@ class ClientMessage:
     @dataclass
     class ACK(Base):
         sensor_id:int
+
+        MESSAGE_TYPE_BYTE = MessageTypeByte.Client.ACK
         
         @classmethod
         def from_bytes(cls, _bytes: bytes):

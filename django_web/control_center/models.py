@@ -94,7 +94,8 @@ class Project(models.Model):
         # DEBUG
         print('queries:')
         for query in connection.queries:
-            print(query['sql'])
+            pass
+            #print(query['sql'])
 
     def stop_measurement(self):
         last_measurement = self.get_last_measurement()

@@ -100,8 +100,9 @@ class Sensor:
         self.samples_per_packet:int|None = None
         
     def add_to_buffer(self, samples:Iterable[snp.Sample]):
-        with self.buffer_lock:
-            self.samples_buffer.extend(samples)
+        if self.measurement_dbs:
+            with self.buffer_lock:
+                self.samples_buffer.extend(samples)
 
     def update_measurements(self, sensor_node_id:int, sensor_id:int):
         new_paths = ccq.get_paths_for_sensor(sensor_node_id, sensor_id)
