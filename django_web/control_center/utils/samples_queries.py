@@ -8,11 +8,11 @@ class SQL:
         DATA_TABLE = """
             create table if not exists data(
                 id INTEGER PRIMARY KEY,
-                ts INTEGER,
+                time REAL,
                 value REAL
             )
         """
-        TIMESTAMP_INDEX = "CREATE INDEX 'idx_ts' ON data (ts DESC)"
+        TIMESTAMP_INDEX = "CREATE INDEX 'idx_time' ON data (time DESC)"
 
     class Select:
         COUNT = "select count() from data"
@@ -28,7 +28,10 @@ class SQL:
             limit ? offset ?
         """
 
+    INSERT = ... # TODO
+
 def new_db(path:Path|str):
+    print('dbbbbbbbbbbbbbbbbbbbbbbb:',path)
     if os.path.exists(path):
         return
 
@@ -44,6 +47,7 @@ def new_db(path:Path|str):
     conn.commit()
     cur.close()
     conn.close()
+    
 
 def count(path:Path|str):
     conn = sqlite3.connect(path)

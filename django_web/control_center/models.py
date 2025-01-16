@@ -76,8 +76,8 @@ class Project(models.Model):
         measurement = Measurement.objects.create(project=self,
                                   id_in_project=last_measurement.id_in_project+1 if last_measurement is not None else 0,
                                   )
-        measurement.sensor_nodes.set(self.sensor_nodes.all())
-        measurement.save()
+        
+        
         
         # get all sensor dir paths in this project  
         for sensor in Sensor.objects.filter(sensor_node__in=self.sensor_nodes.all()):
@@ -90,6 +90,8 @@ class Project(models.Model):
             sensor.save()
 
             grafana_api.add_source(db_path, f'{self.name}_{sensor.sensor_node.name}_{sensor.name}_{db_path.stem}')
+        measurement.sensor_nodes.set(self.sensor_nodes.all())
+        measurement.save()
 
         # DEBUG
         print('queries:')

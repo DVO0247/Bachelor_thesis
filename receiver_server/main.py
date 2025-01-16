@@ -59,7 +59,7 @@ class MeasurementDB:
     def __del__(self):
         self._close_db()
 
-    def write_to_db(self, unix_samples:Iterable[tuple[int,float]]):
+    def write_to_db(self, unix_samples:Iterable[tuple[float,float]]):
         self.cur.executemany("insert into data values(null,?,?)",unix_samples)
 
     def commit(self):
@@ -100,9 +100,8 @@ class Sensor:
         self.samples_per_packet:int|None = None
         
     def add_to_buffer(self, samples:Iterable[snp.Sample]):
-        if self.measurement_dbs:
-            with self.buffer_lock:
-                self.samples_buffer.extend(samples)
+        with self.buffer_lock:
+            self.samples_buffer.extend(samples)
 
     def update_measurements(self, sensor_node_id:int, sensor_id:int):
         new_paths = ccq.get_paths_for_sensor(sensor_node_id, sensor_id)
@@ -124,7 +123,7 @@ class Sensor:
         if do_write:
             self.update_measurements(sensor_node_id, sensor_id)
             with self.buffer_lock:
-                unix_samples = [(sample.timestamp+unix_time_at_zero, sample.value) for sample in self.samples_buffer]
+                unix_samples = [sample.sample_to_unix_tuple(unix_time_at_zero) for sample in self.samples_buffer]
                 self.samples_buffer.clear()
                 for db in self.measurement_dbs:
                     db.write_to_db(unix_samples)
