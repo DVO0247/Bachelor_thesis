@@ -8,7 +8,7 @@ class SQL:
         DATA_TABLE = """
             create table if not exists data(
                 id INTEGER PRIMARY KEY,
-                time REAL,
+                time TEXT,
                 value REAL
             )
         """

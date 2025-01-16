@@ -59,7 +59,7 @@ class MeasurementDB:
     def __del__(self):
         self._close_db()
 
-    def write_to_db(self, unix_samples:Iterable[tuple[float,float]]):
+    def write_to_db(self, unix_samples:Iterable[tuple[str,float]]):
         self.cur.executemany("insert into data values(null,?,?)",unix_samples)
 
     def commit(self):
