@@ -4,21 +4,14 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.db import connection
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 
-import os
-import shutil
-import re
 from pathlib import Path
 from datetime import datetime
 from functools import cache
 
-
-from control_center.utils.samples_queries import new_db
-from .utils import grafana_api
-
-NEW_DATA_DB_PATH = Path.cwd().parent/'data' # Path.cwd() = django root
-
-FORBIDDEN_NAME_CHARS = '[\\/:"*?<>|]+.'
+from api_clients import influxdb, grafana
 
 class SensorNodeTypes(models.IntegerChoices):
     ESP32 = 0, 'ESP32'
@@ -32,7 +25,6 @@ class Project(models.Model):
     description = models.TextField(max_length=400, null=True, blank=True)
     sensor_nodes = models.ManyToManyField('SensorNode')
     users = models.ManyToManyField(User, through='UserProject')
-    path = models.CharField(max_length=4096, null=True)
 
     def get_last_measurement(self):
         return Measurement.objects.filter(project=self).last()
@@ -41,69 +33,40 @@ class Project(models.Model):
         last_measurement = self.get_last_measurement()
         return last_measurement.is_running() if (last_measurement is not None) else False
 
-    
-    def get_path_name(self) -> str:
-        return f'{self.pk}_{self.name}'
-
     def save(self, *args, **kwargs):
-        self.name = re.sub(FORBIDDEN_NAME_CHARS, '_', self.name)
+        self.name = clean_name(self.name)
 
         if not self.pk:
-            super().save(*args, **kwargs)
-            self.path = str(NEW_DATA_DB_PATH/self.get_path_name())
-            super().save(*args, **kwargs)
+            influxdb.create_bucket(self.name)
         else:
-            prev_obj = Project.objects.get(pk=self.pk)
-            if prev_obj.name!=self.name:
-                self.path = str(Path(prev_obj.path).parent/self.get_path_name()) # type: ignore
-                print(prev_obj.path, self.path)
-                if os.path.isdir(prev_obj.path): # type: ignore
-                    shutil.move(prev_obj.path, self.path) # type: ignore
-                for measurement in Measurement.objects.filter(project=self):
-                    measurement.get_db_path.cache_clear()
-                    super().save(*args, **kwargs)
-                    # TODO: grafana change paths
-            
-            
+            current = Project.objects.get(pk=self.pk)
+            if current.name!=self.name:
+                influxdb.rename_bucket(current.name, self.name)
 
+        # TODO: grafana change querry bucket name (?)
+        super().save(*args, **kwargs)
+        
+            
     def __str__(self) -> str:
         return f'{self.pk}, {self.name}'
 
     def start_measurement(self)->None:
         last_measurement = self.get_last_measurement()
-        if last_measurement and last_measurement.end_time is None:
+        if last_measurement and last_measurement.is_running():
             self.stop_measurement()
         measurement = Measurement.objects.create(project=self,
                                   id_in_project=last_measurement.id_in_project+1 if last_measurement is not None else 0,
                                   )
         
-        
-        
-        # get all sensor dir paths in this project  
-        for sensor in Sensor.objects.filter(sensor_node__in=self.sensor_nodes.all()):
-            db_path = measurement.get_db_path(sensor)
-            print('Path:',db_path)
-            print(measurement.start_time)
-
-            os.makedirs(db_path.parent, exist_ok=True)
-            new_db(db_path)
-            sensor.save()
-
-            grafana_api.add_source(db_path, f'{self.name}_{sensor.sensor_node.name}_{sensor.name}_{db_path.stem}')
         measurement.sensor_nodes.set(self.sensor_nodes.all())
         measurement.save()
-
-        # DEBUG
-        print('queries:')
-        for query in connection.queries:
-            pass
-            #print(query['sql'])
 
     def stop_measurement(self):
         last_measurement = self.get_last_measurement()
         if last_measurement:
             last_measurement.end_time = timezone.now()
             last_measurement.save()
+
 
 class Measurement(models.Model):
     project = models.ForeignKey(Project, related_name='projects', on_delete=models.CASCADE)
@@ -121,19 +84,6 @@ class Measurement(models.Model):
     def is_running(self):
         return self.end_time is None
 
-    @cache
-    def get_db_path(self, sensor:'Sensor') -> Path:
-        measurement_start_str = convert_datetime_for_path(self.start_time)
-        return Path(self.project.path)/f'{sensor.sensor_node.pk}_{sensor.sensor_node.name}'/f'{sensor.id_in_sensor_node}_{sensor.name}'/f'{self.id_in_project}_{measurement_start_str}.db' # type: ignore
-    
-    def get_grafana_source_name(self, project:Project, sensor:'Sensor'):
-        return f'{project.name}_{sensor.sensor_node.name}_{sensor.name}_{self.get_db_path(sensor).stem}'
-    
-    def delete(self, *args, **kwargs):
-        for sensor in Sensor.objects.filter(sensor_node__in=self.sensor_nodes.all()):
-            grafana_api.delete_source(self.get_grafana_source_name(self.project, sensor))
-        return super().delete(*args, **kwargs)
-
     def __str__(self) -> str:
         return f'{self.project.pk}, {self.id_in_project}'
 
@@ -150,7 +100,7 @@ class SensorNode(models.Model):
         return False
 
     def save(self, *args, **kwargs):
-        self.name = re.sub(FORBIDDEN_NAME_CHARS, '_', self.name)
+        self.name = clean_name(self.name)
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:
@@ -168,7 +118,7 @@ class Sensor(models.Model):
 
     def save(self, *args, **kwargs):
         if self.name:
-            self.name = re.sub(FORBIDDEN_NAME_CHARS, '_', self.name)
+            self.name = clean_name(self.name)
         samples_per_packet_range = (1,121)
         if self.samples_per_packet:
             if self.samples_per_packet < samples_per_packet_range[0]:
@@ -199,25 +149,10 @@ class UserProject(models.Model):
 
     def __str__(self) -> str:
         return f'{self.pk}, {self.user}, ({self.project})'
-    
-'''
-def get_measurement_dir_path(project:Project, sensor:Sensor, measurement:Measurement|None = None) -> Path:
-    if not measurement:
-        measurement = project.get_last_measurement()
-    measurement_start_str = convert_datetime_for_path(measurement.start_time) # type: ignore
-    return Path(project.path)/f'{sensor.sensor_node.pk}_{sensor.sensor_node.name}'/f'{sensor.id_in_sensor_node}_{sensor.name}'/f'{measurement.id_in_project}_{measurement_start_str}.db' # type: ignore
-'''
 
-class Samples:
-    @staticmethod
-    @cache
-    def get_db_path(measurement:Measurement, sensor:Sensor) -> Path:
-        measurement_start_str = convert_datetime_for_path(measurement.start_time)
-        return Path(measurement.project.path)/f'{sensor.sensor_node.pk}_{sensor.sensor_node.name}'/f'{sensor.id_in_sensor_node}_{sensor.name}'/f'{measurement.id_in_project}_{measurement_start_str}.db' # type: ignore
-    
-    @staticmethod
-    def get_grafana_source_name(measurement:Measurement, project:Project, sensor:Sensor):
-        return f'{project.name}_{sensor.sensor_node.name}_{sensor.name}_{measurement.get_db_path(sensor).stem}'
+@receiver(pre_delete, sender=Project)
+def delete_bucket(sender, instance:Project, **kwargs):
+    influxdb.delete_bucket(instance.name)
 
-def convert_datetime_for_path(_datetime:datetime)->str:
-    return _datetime.strftime("%Y-%m-%dT%H-%M-%S")
+def clean_name(name:str) -> str:
+    return name.replace('"', '')

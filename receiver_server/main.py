@@ -1,7 +1,6 @@
 import socket
 import time
 from colorama import Fore, Back
-import sqlite3
 import threading
 from pathlib import Path
 from typing import TypeAlias, Iterable
@@ -14,8 +13,6 @@ IP = '0.0.0.0'
 PORT = 666
 INFO_REQUEST_TIMEOUT = 1
 INFO_MAX_REQUESTS = 3
-
-MEASUREMENT_DB_CACHE_SIZE = 100_000 # kB
 
 Addr: TypeAlias = tuple[str, int] # (ip, port)
 
@@ -48,48 +45,6 @@ class FreqCounter:
         with self.count_lock:
             self.count += count
         return self
-
-class MeasurementDB:
-    def __init__(self, path:Path) -> None:
-        self.path = path
-        self.conn:sqlite3.Connection
-        self.cur:sqlite3.Cursor
-        self._connect_db()
-
-    def __del__(self):
-        self._close_db()
-
-    def write_to_db(self, unix_samples:Iterable[tuple[str,float]]):
-        self.cur.executemany("insert into data values(null,?,?)",unix_samples)
-
-    def commit(self):
-        self.conn.commit()
-
-    def _connect_db(self):        
-        '''
-        #cur.execute("pragma synchronous=normal")
-        _conn.execute(f"PRAGMA journal_mode = WAL")
-        sql = """
-            create table if not exists data(
-                id INTEGER PRIMARY KEY,
-                time INTEGER,
-                value REAL
-        ) 
-        """
-        _cur.execute(sql)
-        _conn.commit()
-        _conn.close()
-        '''
-
-        self.conn = sqlite3.connect(self.path.resolve(), autocommit=False, check_same_thread=False)
-        self.cur = self.conn.cursor()
-        self.cur.execute(f"PRAGMA cache_size = -{MEASUREMENT_DB_CACHE_SIZE};")
-        self.conn.commit()
-
-    def _close_db(self):
-        self.conn.commit()
-        self.conn.close()
-
 
 class Sensor:
     def __init__(self) -> None:
