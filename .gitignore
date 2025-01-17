@@ -6,21 +6,35 @@ __pycache__/
 # venv
 venv*/
 
+# temp
+temp/
+tmp/
+
 # Django
 *.log
 *.pot
 local_settings.py
 migrations/
 
-# Database
+# Databases
 *.sqlite3
 *.sqlite3-wal
 *.sqlite3-shm
+*.db
+*.db-wal
+*.db-shm
 
-#
+# Influxdb
+influxdb/storage/
+influxdb/influxd.exe
+influxdb/LICENSE
+influxdb/README.md
+
+# Grafana
+#...
+
+# Other
 data/
-temp/
-tmp/
 my_notes.md
 tree.txt
 *.ipynb
