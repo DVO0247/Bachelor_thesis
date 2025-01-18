@@ -7,18 +7,7 @@ Sensor::Sensor(double (*readCallback)(), uint32_t samplePeriodMillis, uint8_t sa
   : readCallback(readCallback),
     samplePeriodMillis(samplePeriodMillis),
     samplesPerPacket(samplesPerPacket),
-    lastWriteMillis(0) {
-  mutex = xSemaphoreCreateMutex();
-  if (mutex == NULL) {
-    Serial.println("Mutex creation failed for Sensor");
-  }
-}
-
-Sensor::~Sensor() {
-  if (mutex != NULL) {
-    vSemaphoreDelete(mutex);
-  }
-}
+    lastWriteMillis(0) {}
 
 byte* Sensor::getBuffer() {
   return data.getBuffer();

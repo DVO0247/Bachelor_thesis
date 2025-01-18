@@ -3,27 +3,11 @@
 #include <stdint.h>
 #include "SensorManager.h"
 
-
-
 void SensorManager::doReadAndWrites() {
   for (uint8_t i = 0; i < sensorCount; i++) {
     uint32_t _millis = millis();
-    if (xSemaphoreTake(sensors[i]->mutex, portMAX_DELAY)) {
-      if (sensors[i]->isWriteReady(_millis)) {
-        sensors[i]->readAndWrite(_millis);
-        xSemaphoreGive(sensors[i]->mutex);
-        if (sensors[i]->isPacketReady()) {
-          BufferData bufferData;
-          bufferData.sensorId = i;
-          bufferData.sampleCount = sensors[i]->data.getSampleCount();
-          memcpy(bufferData.buffer, sensors[i]->data.getBuffer(), sensors[i]->data.getCurrentByteSize());
-
-          xQueueSend(bufferQueue, &bufferData, portMAX_DELAY);
-          sensors[i]->data.clear();
-        }
-      } else {
-        xSemaphoreGive(sensors[i]->mutex);
-      }
+    if (sensors[i]->isWriteReady(_millis)) {
+      sensors[i]->readAndWrite(_millis);
     }
   }
 }

@@ -175,7 +175,7 @@ class Server:
                             self.freq_counter+=len(message.samples)
                         sensor_node.add_to_buffer(message)
                     else:
-                        print('Rejected, waiting for ACK')
+                        print(f'Samples from {sensor_node.name} sensor {message.sensor_id} Rejected, waiting for ACK')
 
                 with self.set_param_requests_lock:
                     _set_param_requests = frozenset(self.set_param_requests)

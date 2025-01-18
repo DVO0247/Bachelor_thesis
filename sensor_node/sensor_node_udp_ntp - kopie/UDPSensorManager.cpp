@@ -1,4 +1,3 @@
-#include "freertos/projdefs.h"
 #include "esp_timer.h"
 #include "esp32-hal.h"
 #include <iterator>
@@ -7,35 +6,20 @@
 #include "HardwareSerial.h"
 #include <sys/types.h>
 #include "UDPSensorManager.h"
-//#include "esp_task_wdt.h"
 
+TaskHandle_t serverReplyTaskHandle = NULL;
 
+void serverReplyTask(void* parameter) {
+  UDPSensorManager* udpManager = static_cast<UDPSensorManager*>(parameter);
 
-void doReadAndWritesTask(void* pvParameters) {
-  UDPSensorManager* manager = static_cast<UDPSensorManager*>(pvParameters);  // Přetypování parametru
   while (true) {
-    manager->doReadAndWrites();
-    //esp_task_wdt_reset();
-    vTaskDelay(1);  // Malá prodleva pro snížení zatížení CPU
-  }
-}
-
-// Task pro správu serverových operací
-void serverManagementTask(void* pvParameters) {
-  UDPSensorManager* manager = static_cast<UDPSensorManager*>(pvParameters);  // Přetypování parametru
-  while (true) {
-    manager->serverReply();  // Odpovědi na příchozí zprávy od serveru
-
-    if (manager->isKeepAliveReady()) {
-      manager->sendKeepAlive();  // Posílání keep-alive zpráv
+    udpManager->serverReply();
+    if (udpManager->isKeepAliveReady()) {
+      udpManager->sendKeepAlive();
     }
-
-    manager->sendAndClearSamples();  // Odeslání a vyčištění vzorků
-    //esp_task_wdt_reset();
-    vTaskDelay(1);  // Nastavte vhodný interval pro tento task
+    vTaskDelay(pdMS_TO_TICKS(500));  // 500 ms delay
   }
 }
-
 
 bool UDPSensorManager::isKeepAliveReady() {
   return keepAliveEnabled && millis() - keepAliveLastSent >= KEEP_ALIVE_PERIOD_MS;
@@ -91,11 +75,8 @@ void UDPSensorManager::serverReply() {
       Serial.printf("Sensor id: %d\n", sensorId);
       Serial.printf("Sample period: %d ms\n", samplePeriodMs);
       Serial.printf("Samples per packet: %d\n", samplesPerPacket);
-      if (xSemaphoreTake(sensors[sensorId]->mutex, portMAX_DELAY)) {
-        sensors[sensorId]->setSamplePeriodMillis(samplePeriodMs);
-        sensors[sensorId]->setSamplesPerPacket(samplesPerPacket);
-        xSemaphoreGive(sensors[sensorId]->mutex);
-      }
+      sensors[sensorId]->setSamplePeriodMillis(samplePeriodMs);
+      sensors[sensorId]->setSamplesPerPacket(samplesPerPacket);
 
       sendACK(sensorId);
       bool _keepAliveEnabled = false;
@@ -114,16 +95,24 @@ void UDPSensorManager::serverReply() {
 }
 
 void UDPSensorManager::sendAndClearSamples() {
-  BufferData data;
-  while (uxQueueMessagesWaiting(bufferQueue) > 0) {
-    if (xQueueReceive(bufferQueue, &data, portMAX_DELAY) == pdPASS) {
+  int64_t end;
+  int64_t start;
+  start = esp_timer_get_time();
+  for (uint8_t i = 0; i < sensorCount; i++) {
+    if (sensors[i]->isPacketReady()) {
       udp.beginPacket(serverIP, serverPort);
       udp.write(MessageTypeByte::Client::SENSOR_SAMPLES);
-      udp.write(data.sensorId);
-      udp.write(data.sampleCount);
-      udp.write(data.buffer, data.sampleCount*SAMPLE_SIZE);
+      udp.write(i);  // sensor ID
+      udp.write(sensors[i]->data.getSampleCount());
+      udp.write(sensors[i]->data.getBuffer(), sensors[i]->data.getCurrentByteSize());
       udp.endPacket();
+      sensors[i]->data.clear();
     }
+  }
+  end = esp_timer_get_time();
+  int64_t elapsed = end - start;
+  if (elapsed > 800) {
+    Serial.println("et: " + String(elapsed));
   }
 }
 
@@ -136,12 +125,25 @@ void UDPSensorManager::begin(const char* serverIP, uint16_t serverPort, String n
   this->name = name;
   this->unixTimeAtZero = getUnixTimeAtZero(serverIP, ntpServer2, ntpServer3);
   this->keepAliveLastSent = millis();
-  sendInfo();
-  //xTaskCreatePinnedToCore(doReadAndWritesTask, "DoReadAndWrites", 10000, this, 1, NULL, 0);
-  bufferQueue = xQueueCreate(10, sizeof(BufferData));
-  xTaskCreatePinnedToCore(serverManagementTask, "ServerManagement", 10000, this, 1, NULL, 1);
+  sendInfo(); /*
+  xTaskCreatePinnedToCore(
+    serverReplyTask,         // Task function
+    "ServerReplyTask",       // Task name
+    4096,                    // Stack size in bytes
+    this,                    // Parameter passed to task
+    1,                       // Priority (1 is low priority)
+    &serverReplyTaskHandle,  // Task handle
+    1                        // Core 1 (second core)
+  );
+  */
 }
 
 void UDPSensorManager::processData() {
+  serverReply();
+  if (isKeepAliveReady()) {
+    sendKeepAlive();
+  }
   doReadAndWrites();
+  //serverReply();
+  sendAndClearSamples();
 }

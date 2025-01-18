@@ -4,23 +4,15 @@
 
 #define MAX_SENSOR_COUNT 255
 
-struct BufferData {
-  uint8_t sensorId;   // ID senzoru
-  byte buffer[BUFFER_SIZE];       // Ukazatel na buffer
-  uint8_t sampleCount;  // Velikost dat v bufferu
-};
-
 class SensorManager {
 protected:
   Sensor* sensors[MAX_SENSOR_COUNT];
   uint8_t sensorCount = 0;
-
+  void doReadAndWrites();
   // TODO: make something private and protected
 public:
-  QueueHandle_t bufferQueue;
   SensorManager();
   ~SensorManager();
-  void doReadAndWrites();
   Sensor* addSensor(double (*callback)());
   Sensor* getSensor(uint8_t sensorId);
   uint8_t getSensorCount();

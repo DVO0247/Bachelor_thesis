@@ -36,8 +36,8 @@ private:
   WiFiUDP udp;
   void sendInfo();
   void sendACK(uint8_t sensorId);
-public:
   void sendAndClearSamples();
+public:
   bool isKeepAliveReady();
   void sendKeepAlive();
   void serverReply();

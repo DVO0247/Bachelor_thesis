@@ -10,10 +10,8 @@ private:
   uint32_t lastWriteMillis;
   double (*readCallback)();
 public:
-  SemaphoreHandle_t mutex;
   SensorData data;
   Sensor(double (*readCallback)(), uint32_t samplePeriodMillis, uint8_t samplesPerPacket);
-  ~Sensor();
   byte* getBuffer();
   uint32_t getSamplePeriodMillis();
   void setSamplePeriodMillis(uint32_t samplePeriodMillis);
