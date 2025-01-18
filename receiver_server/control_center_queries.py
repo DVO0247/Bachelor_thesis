@@ -39,20 +39,19 @@ def get_sensor_node_id_or_create(sensor_node_name:str, sensor_count:int) -> int|
         return sensor_node.pk if sensor_node else None
 
 
-def get_paths_for_sensor(sensor_node_id:int, sensor_id:int) -> list[Path]:
-    sensor = Sensor.objects.get(sensor_node__pk=sensor_node_id, id_in_sensor_node=sensor_id)
-    measurements = Measurement.objects.filter(end_time=None, sensor_nodes=sensor.sensor_node)
-    paths = [measurement.get_db_path(sensor) for measurement in measurements]
-    return paths
+def get_running_projects(sensor_node_id:int) -> dict[str, str]:
+    measurements = Measurement.objects.filter(end_time=None, sensor_nodes=sensor_node_id)
+    projects = {m.project.name: str(m.id_in_project) for m in measurements}
+    return projects
 
 def get_init_state(sensor_node_id:int) -> bool|None:
     sensor_node = SensorNode.objects.filter(pk=sensor_node_id).first()
     return sensor_node.initialized if sensor_node else None
     
-def get_params_for_sensors(sensor_node_id:int) -> list[tuple[int, int]]|None:
+def get_params_for_sensors(sensor_node_id:int) -> list[tuple[str, int, int]]|None:
     sensors = Sensor.objects.filter(sensor_node__pk=sensor_node_id, sensor_node__initialized=True)
     if sensors:
-        return [(sensor.sample_period, sensor.samples_per_packet) for sensor in sensors] # type: ignore
+        return [(sensor.name, sensor.sample_period, sensor.samples_per_packet) for sensor in sensors] # type: ignore
     else:
         return None
         

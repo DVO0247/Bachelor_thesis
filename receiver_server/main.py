@@ -5,9 +5,11 @@ import threading
 from pathlib import Path
 from typing import TypeAlias, Iterable
 import os
+from copy import copy
 
 import sensor_node_protocol as snp
 import control_center_queries as ccq
+from api_clients import influxdb
 
 IP = '0.0.0.0'
 PORT = 666
@@ -48,41 +50,15 @@ class FreqCounter:
 
 class Sensor:
     def __init__(self) -> None:
+        self.name:str|None = None
         self.samples_buffer:list[snp.Sample] = []
         self.buffer_lock = threading.Lock()
-        self.measurement_dbs:list[MeasurementDB] = []
         self.sample_period_ms:int|None = None
         self.samples_per_packet:int|None = None
         
     def add_to_buffer(self, samples:Iterable[snp.Sample]):
         with self.buffer_lock:
-            self.samples_buffer.extend(samples)
-
-    def update_measurements(self, sensor_node_id:int, sensor_id:int):
-        new_paths = ccq.get_paths_for_sensor(sensor_node_id, sensor_id)
-
-        # remove old paths
-        for db in self.measurement_dbs:
-            if db.path not in new_paths:
-                self.measurement_dbs.remove(db)
-
-        # add new paths
-        current_paths = [db.path for db in self.measurement_dbs]
-        for path in new_paths:
-            if path not in current_paths:
-                self.measurement_dbs.append(MeasurementDB(path))
-            
-    def write_to_db(self, sensor_node_id:int, sensor_id:int, unix_time_at_zero:int):
-        with self.buffer_lock:
-            do_write = True if self.samples_buffer else False
-        if do_write:
-            self.update_measurements(sensor_node_id, sensor_id)
-            with self.buffer_lock:
-                unix_samples = [sample.sample_to_unix_tuple(unix_time_at_zero) for sample in self.samples_buffer]
-                self.samples_buffer.clear()
-                for db in self.measurement_dbs:
-                    db.write_to_db(unix_samples)
-        
+            self.samples_buffer.extend(samples)        
 
 class SensorNode:
     def __init__(self) -> None:
@@ -103,8 +79,15 @@ class SensorNode:
         self.sensors = tuple(Sensor() for _ in range(self.sensor_count))
         self.unix_time_at_zero = info.unix_time_at_zero
         self.id = ccq.get_sensor_node_id_or_create(self.name, self.sensor_count)
+        
         if self.id is not None:
-            self.update_init_state()
+            initialized = ccq.get_init_state(self.id)
+            if initialized:
+                params = ccq.get_params_for_sensors(self.id)
+                if params:
+                    for sensor, param in zip(self.sensors, params):
+                        sensor.name = param[0]
+            self.initialized = initialized # type: ignore
             return True
         else:
             return False
@@ -115,10 +98,28 @@ class SensorNode:
     def update_init_state(self) -> None:
         self.initialized = ccq.get_init_state(self.id) # type: ignore
 
-    def commit_all(self) -> None:
+    def write(self):
+        running_projects:dict[str, str] = ccq.get_running_projects(self.id) # type: ignore
+        samples:dict[str, list[snp.Sample]] = dict()
         for sensor in self.sensors: # type: ignore
-            for db in sensor.measurement_dbs:
-                db.commit()
+            with sensor.buffer_lock:
+                if sensor.samples_buffer:
+                    samples[sensor.name] = sensor.samples_buffer # type: ignore
+                    sensor.samples_buffer = list() 
+
+        for project_name, measurement_id in running_projects.items():
+            # Generator for points from all sensor in sensor node
+            points = (
+                influxdb.Point(measurement_id)
+                .tag("Sensor Node", self.name)
+                .time(
+                    time = self.unix_time_at_zero + sample.timestamp, # type: ignore
+                    write_precision = influxdb.WritePrecision.MS
+                    )
+                .field(sensor_name, sample.value)
+                for sensor_name, samples_buffer in samples.items() for sample in samples_buffer
+                )
+            influxdb.write(project_name, points)            
 
 
 class Server:
@@ -192,9 +193,8 @@ class Server:
                         self.set_param_requests.remove(request)
 
     def db_operations_loop(self):
-        COMMIT_PERIOD = 1
         CHECK_PARAMS_AND_INIT_PERIOD = 2
-        last_commits = last_inits_and_params = time.time()
+        last_inits_and_params = time.time()
         while self._running:
             with self.sensor_nodes_lock:
                 _sensor_nodes = tuple(self.sensor_nodes.values())
@@ -206,10 +206,6 @@ class Server:
             initialized_sensor_nodes = [sensor_node for sensor_node in _sensor_nodes if sensor_node.initialized]
             
             self.write_to_dbs(initialized_sensor_nodes)
-            
-            if time.time() - last_commits >= COMMIT_PERIOD:
-                self.do_db_commits(initialized_sensor_nodes)
-                self.last_commits = time.time()
 
             time.sleep(0.001)
 
@@ -238,8 +234,7 @@ class Server:
     def write_to_dbs(self, _sensor_nodes:Iterable[SensorNode]):
         for sensor_node in _sensor_nodes:
             try:
-                for i in range(len(sensor_node.sensors)): # type: ignore
-                    sensor_node.sensors[i].write_to_db(sensor_node.id, i, sensor_node.unix_time_at_zero) # type: ignore
+                sensor_node.write()
             except Exception as e:
                 with self.sensor_nodes_lock:
                     for addr, dict_sensor_node in self.sensor_nodes.items():
@@ -249,24 +244,21 @@ class Server:
                             break
                 print(e)
 
-
-    def do_db_commits(self, _sensor_nodes:Iterable[SensorNode]):
-        for sensor_node in _sensor_nodes:
-            sensor_node.commit_all()
-
     def check_params(self):
         with self.sensor_nodes_lock:
-            _sensor_nodes:dict[Addr, SensorNode] = dict(self.sensor_nodes)
+            _sensor_nodes:dict[Addr, SensorNode] = copy(self.sensor_nodes)
         for addr, sensor_node in _sensor_nodes.items():
             if not (sensor_node.initialized and sensor_node.id):
                 continue
             new_params = ccq.get_params_for_sensors(sensor_node.id)
             if sensor_node.sensors and new_params and len(sensor_node.sensors) == len(new_params):
-                for i in range(len(sensor_node.sensors)):
-                    if sensor_node.sensors[i].sample_period_ms != new_params[i][0] or sensor_node.sensors[i].samples_per_packet != new_params[i][1]:
+                for i, (sensor, new_param) in enumerate(zip(sensor_node.sensors, new_params)):
+                    if sensor.name != new_param[0]:
+                        sensor.name = new_param[0]
+                    if sensor.sample_period_ms != new_param[1] or sensor.samples_per_packet != new_param[2]:
                         with self.set_param_requests_lock:
-                            sensor_node.sensors[i].sample_period_ms = new_params[i][0]
-                            sensor_node.sensors[i].samples_per_packet = new_params[i][1]
+                            sensor.sample_period_ms = new_param[1]
+                            sensor.samples_per_packet = new_param[2]
                             self.set_param_requests.add((addr,i))
             else:
                 raise Exception(f'In db for {sensor_node.id}, data: {sensor_node.sensors}, {new_params}')

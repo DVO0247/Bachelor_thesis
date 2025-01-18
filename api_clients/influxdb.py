@@ -2,7 +2,7 @@ from influxdb_client import InfluxDBClient, Point, WritePrecision, Bucket, PostB
 from influxdb_client.client.write_api import SYNCHRONOUS, ASYNCHRONOUS
 from influxdb_client.client.write_api import WriteType, WriteOptions, PointSettings
 from influxdb_client import OrganizationsApi, AddResourceMemberRequestBody
-from typing import Literal
+from typing import Iterable
 
 ORG = "main"
 URL = "http://127.0.0.1:8086"
@@ -43,20 +43,10 @@ def rename_bucket(current_name:str, new_name:str) -> Bucket|None:
         bucket.name = new_name
         return Api.bucket.update_bucket(bucket)
     
-def delete_bucket(bucket_name:str):
+def delete_bucket(bucket_name:str) -> Bucket|None:
     bucket:Bucket|None = Api.bucket.find_bucket_by_name(bucket_name)
     if bucket:
         return Api.bucket.delete_bucket(bucket)
 
-'''
-def write(bucket_name:str, sensor_node_name:str, measurement_name:str, write_precision:Literal['ms', 'ns']):
-    points = (
-    Point(measurement_name)
-    .tag("Sensor Node", sensor_node_name)
-    .time(time=..., write_precision=write_precision)
-    .field(..., ...)
-    for ..., ... in zip(..., ...)
-    )
-
-    write_api.write(bucket=bucket_name, org=ORG, record=points)
-'''
+def write(bucket_name:str, points:Iterable[Point]):
+    return Api.write.write(bucket=bucket_name, org=ORG, record=points)

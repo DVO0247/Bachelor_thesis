@@ -32,8 +32,8 @@ class Sample:
     def timestamp_to_iso(self, unix_time_at_zero:int):
         return datetime.fromtimestamp((self.timestamp + unix_time_at_zero)/1000).isoformat(' ', 'milliseconds')
     
-    def sample_to_unix_tuple(self, unix_time_at_zero:int) -> tuple[str,float]:
-        return (self.timestamp_to_iso(unix_time_at_zero)), self.value # conversion to seconds
+    def sample_to_unix_tuple(self, unix_time_at_zero:int) -> tuple[int,float]:
+        return self.timestamp + unix_time_at_zero, self.value
 
 class ServerMessage:
     @dataclass
