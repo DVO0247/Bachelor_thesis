@@ -11,7 +11,6 @@ from pathlib import Path
 
 from .models import User, Project, SensorNode, Sensor, UserProject, Measurement
 from .forms import SensorNodeForm, ProjectForm, LoginForm, SensorForm, UserProjectForm
-from .utils import samples_queries
 
 
 TEMP_DIR_PATH = Path.cwd()/'control_center'/'temp' 

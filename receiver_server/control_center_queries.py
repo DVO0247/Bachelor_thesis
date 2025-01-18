@@ -39,9 +39,9 @@ def get_sensor_node_id_or_create(sensor_node_name:str, sensor_count:int) -> int|
         return sensor_node.pk if sensor_node else None
 
 
-def get_running_projects(sensor_node_id:int) -> dict[str, str]:
+def get_running_projects(sensor_node_id:int) -> dict[str, int]:
     measurements = Measurement.objects.filter(end_time=None, sensor_nodes=sensor_node_id)
-    projects = {m.project.name: str(m.id_in_project) for m in measurements}
+    projects = {m.project.name: m.id_in_project for m in measurements}
     return projects
 
 def get_init_state(sensor_node_id:int) -> bool|None:

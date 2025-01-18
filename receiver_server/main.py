@@ -99,14 +99,14 @@ class SensorNode:
         self.initialized = ccq.get_init_state(self.id) # type: ignore
 
     def write(self):
-        running_projects:dict[str, str] = ccq.get_running_projects(self.id) # type: ignore
-        samples:dict[str, list[snp.Sample]] = dict()
+        sensor_samples:dict[str, list[snp.Sample]] = dict()
         for sensor in self.sensors: # type: ignore
             with sensor.buffer_lock:
                 if sensor.samples_buffer:
-                    samples[sensor.name] = sensor.samples_buffer # type: ignore
-                    sensor.samples_buffer = list() 
+                    sensor_samples[sensor.name] = sensor.samples_buffer # type: ignore
+                    sensor.samples_buffer = []
 
+        running_projects:dict[str, int] = ccq.get_running_projects(self.id) # type: ignore
         for project_name, measurement_id in running_projects.items():
             # Generator for points from all sensor in sensor node
             points = (
@@ -117,7 +117,7 @@ class SensorNode:
                     write_precision = influxdb.WritePrecision.MS
                     )
                 .field(sensor_name, sample.value)
-                for sensor_name, samples_buffer in samples.items() for sample in samples_buffer
+                for sensor_name, samples_buffer in sensor_samples.items() for sample in samples_buffer
                 )
             influxdb.write(project_name, points)            
 
