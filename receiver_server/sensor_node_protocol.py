@@ -29,7 +29,7 @@ class Sample:
         value:float = struct.unpack('<d', sample_bytes[4:12])[0]
         return cls(timestamp, value)
 
-    def timestamp_to_iso(self, unix_time_at_zero:int):
+    def timestamp_to_iso(self, unix_time_at_zero:int) -> str:
         return datetime.fromtimestamp((self.timestamp + unix_time_at_zero)/1000).isoformat(' ', 'milliseconds')
     
     def sample_to_unix_tuple(self, unix_time_at_zero:int) -> tuple[int,float]:

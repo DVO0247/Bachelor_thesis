@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include "Sensor.h"
 
-#define MAX_SENSOR_COUNT 255
+#define MAX_SENSOR_COUNT 256
 
 struct BufferData {
   uint8_t sensorId;   // ID senzoru

@@ -8,6 +8,7 @@
 
 #define SERVER_SET_SENSOR_PARAMETERS_SIZE 7
 #define KEEP_ALIVE_PERIOD_MS 15000
+#define QUEUE_SIZE 20
 
 #define DEFAULT_NTP_SERVER_2 "cz.pool.ntp.org"
 #define DEFAULT_NTP_SERVER_3 "tik.cesnet.cz"

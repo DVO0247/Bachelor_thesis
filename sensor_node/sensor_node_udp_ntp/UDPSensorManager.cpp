@@ -7,15 +7,12 @@
 #include "HardwareSerial.h"
 #include <sys/types.h>
 #include "UDPSensorManager.h"
-//#include "esp_task_wdt.h"
-
 
 
 void doReadAndWritesTask(void* pvParameters) {
   UDPSensorManager* manager = static_cast<UDPSensorManager*>(pvParameters);  // Přetypování parametru
   while (true) {
     manager->doReadAndWrites();
-    //esp_task_wdt_reset();
     vTaskDelay(1);  // Malá prodleva pro snížení zatížení CPU
   }
 }
@@ -24,15 +21,14 @@ void doReadAndWritesTask(void* pvParameters) {
 void serverManagementTask(void* pvParameters) {
   UDPSensorManager* manager = static_cast<UDPSensorManager*>(pvParameters);  // Přetypování parametru
   while (true) {
-    manager->serverReply();  // Odpovědi na příchozí zprávy od serveru
+    manager->serverReply();
 
     if (manager->isKeepAliveReady()) {
-      manager->sendKeepAlive();  // Posílání keep-alive zpráv
+      manager->sendKeepAlive();
     }
 
-    manager->sendAndClearSamples();  // Odeslání a vyčištění vzorků
-    //esp_task_wdt_reset();
-    vTaskDelay(1);  // Nastavte vhodný interval pro tento task
+    manager->sendAndClearSamples();
+    vTaskDelay(1);  
   }
 }
 
@@ -138,7 +134,7 @@ void UDPSensorManager::begin(const char* serverIP, uint16_t serverPort, String n
   this->keepAliveLastSent = millis();
   sendInfo();
   //xTaskCreatePinnedToCore(doReadAndWritesTask, "DoReadAndWrites", 10000, this, 1, NULL, 0);
-  bufferQueue = xQueueCreate(10, sizeof(BufferData));
+  bufferQueue = xQueueCreate(QUEUE_SIZE, sizeof(BufferData));
   xTaskCreatePinnedToCore(serverManagementTask, "ServerManagement", 10000, this, 1, NULL, 1);
 }
 

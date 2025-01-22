@@ -6,7 +6,7 @@
 class Sensor {
 private:
   uint32_t samplePeriodMillis;
-  uint8_t samplesPerPacket; // max 89
+  uint8_t samplesPerPacket; // max 89 (TCP) or 121 (UDP)
   uint32_t lastWriteMillis;
   double (*readCallback)();
 public:

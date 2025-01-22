@@ -15,6 +15,7 @@ tmp/
 *.pot
 local_settings.py
 migrations/
+static_collected/
 
 # Databases
 *.sqlite3

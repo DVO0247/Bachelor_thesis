@@ -2,13 +2,15 @@ from influxdb_client import InfluxDBClient, Point, WritePrecision, Bucket, PostB
 from influxdb_client.client.write_api import SYNCHRONOUS, ASYNCHRONOUS
 from influxdb_client.client.write_api import WriteType, WriteOptions, PointSettings
 from influxdb_client import OrganizationsApi, AddResourceMemberRequestBody
-from typing import Iterable
+from typing import Iterable, TypeAlias, Literal
 
 ORG = "main"
 URL = "http://127.0.0.1:8086"
 TOKEN = 'jyoMO_g-zvjqhxZ-ePQ1yfsmxdEQ-E3DJljyXamt_i5CWKfvhqWE18Gd3mWCSfsFbVhbKh-0OiABAMydHuwu7w=='
 
 client = InfluxDBClient(url=URL, token=TOKEN, org=ORG)
+
+WritePrecisions: TypeAlias = Literal['s','ms','us','ns']
 
 class Api:
     users = client.users_api()
@@ -50,3 +52,11 @@ def delete_bucket(bucket_name:str) -> Bucket|None:
 
 def write(bucket_name:str, points:Iterable[Point]):
     return Api.write.write(bucket=bucket_name, org=ORG, record=points)
+
+def create_point(measurement_id, sensor_node_name: str, sensor_name: str, timestamp: int, value: float, write_precision:WritePrecisions) -> Point:
+    return (
+        Point(measurement_id)
+        .tag("Sensor Node", sensor_node_name)
+        .time(time=timestamp, write_precision=write_precision)
+        .field(sensor_name, value)
+    )
