@@ -1,0 +1,24 @@
+{
+    "name": "sensor_node_tcp",
+    "version": "1.0",
+    "authors": [{"name": "Martin Dvořák"}],
+    "platforms": ["espressif32"],
+    "dependencies": [
+    {
+      "name": "DNSServer",
+      "version": "2.0.0"
+    },
+    {
+      "name": "EEPROM",
+      "version": "2.0.0"
+    },
+    {
+      "name": "WebServer",
+      "version": "2.0.0"
+    },
+    {
+      "name": "WiFi",
+      "version": "2.0.0"
+    }
+  ]
+}

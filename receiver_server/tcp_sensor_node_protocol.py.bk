@@ -1,0 +1,122 @@
+import struct
+from datetime import datetime
+from typing import Self, Iterable
+from dataclasses import dataclass
+
+STX = 0x02 # ASCII START OF TEXT
+ETX = 0x03 # ASCII END OF TEXT
+
+ENC = 'ascii'
+MAX_SAMPLES_PER_PACKET = 89
+
+def auto_repr(cls):
+    def __repr__(self):
+        return f'{self.__class__.__name__}({self.__dict__})'
+    cls.__repr__ = __repr__
+    return cls
+
+@dataclass
+class SensorParams:
+    sample_period_ms:int
+    samples_per_packet:int
+
+@auto_repr # TODO: replace with dataclass
+class SetSensorParams:
+    def __init__(self, sensor_paramss:Iterable[SensorParams]):
+        for params in sensor_paramss:
+            if params.samples_per_packet > MAX_SAMPLES_PER_PACKET:
+                raise Exception(F'Max samples per packet is {MAX_SAMPLES_PER_PACKET}')
+        else:
+            self.sensor_paramss = sensor_paramss
+
+    def to_bytes(self) -> bytes:
+        return b''.join(
+            struct.pack('<iB', param.sample_period_ms, param.samples_per_packet) 
+            for param in self.sensor_paramss
+        ) # little endian 4B 1B
+
+
+@auto_repr
+class Sample:
+    SIZE = 12
+    def __init__(self, timestamp:int, value:float) -> None:
+        self.timestamp = timestamp
+        self.value = value
+
+    @classmethod
+    def from_bytes(cls, sample_bytes:bytes):
+        timestamp:int = int.from_bytes(sample_bytes[0:4], byteorder='little')
+        value:float = struct.unpack('<d', sample_bytes[4:12])[0]
+        return cls(timestamp, value)
+    
+    def timestamp_to_iso(self, unix_time_at_zero:int) -> str:
+        return datetime.fromtimestamp((self.timestamp + unix_time_at_zero)/1000).isoformat(' ', 'milliseconds')
+
+    def timestamp_to_unix(self, unix_time_at_zero:int) -> int:
+        return unix_time_at_zero + self.timestamp
+
+
+@auto_repr
+class SensorSamples:
+    def __init__(self, sensor_id:int, samples:tuple[Sample, ...]) -> None:
+        self.sensor_id = sensor_id
+        self.samples = samples
+
+    @classmethod
+    def from_bytes(cls, samples_bytes:bytes):
+        sensor_id:int = samples_bytes[0]
+        samples = tuple(Sample.from_bytes(samples_bytes[i:i+Sample.SIZE]) for i in range(1, len(samples_bytes), Sample.SIZE))
+        return cls(sensor_id, samples)
+
+    @classmethod
+    def list_from_bytes_with_remainder(cls, _bytes:bytes, expected_sizes:tuple[int, ...]|list[int]) -> tuple[list['Self'], bytes]:
+        i = 0
+        cls_list:list[cls] = []
+        # checks if can get expected size then checks if remainder bytes has expected size
+        while len(_bytes) > i and (expected_size := expected_sizes[_bytes[i]]) <= len(_bytes) - i:
+            cls_list.append(cls.from_bytes(_bytes[i:i+expected_size]))
+            i += expected_size
+        return cls_list, _bytes[i:]
+    
+    @staticmethod
+    def get_expected_size(sample_count:int) -> int:
+        return 1 + sample_count*Sample.SIZE
+
+
+@auto_repr
+class Info:
+    UNIX_TIME_AT_ZERO_SIZE = 8
+    SIZE_WITHOUT_NAME = 3 + UNIX_TIME_AT_ZERO_SIZE
+    def __init__(self, name:str, sensor_count:int, unix_time_at_zero:int) -> None:
+        self.name = name
+        self.sensor_count = sensor_count
+        self.unix_time_at_zero = unix_time_at_zero
+
+    @classmethod
+    def from_bytes(cls, _bytes:bytes):
+        if _bytes[0] != STX:
+            raise Exception('STX not found in info message')
+        etx_index = _bytes.find(ETX)
+        if etx_index == -1:
+            raise Exception('ETX not found in info message')
+        index = 1
+        name = _bytes[index:etx_index].decode(ENC)
+        index = etx_index + 1
+        sensor_count = _bytes[index]
+        index += 1
+        unix_time_at_zero = int.from_bytes(_bytes[index:index+cls.UNIX_TIME_AT_ZERO_SIZE], byteorder='little')
+        return cls(name, sensor_count, unix_time_at_zero)
+
+    @classmethod
+    def from_bytes_with_remainder(cls, _bytes:bytes) -> tuple['Self|None', bytes]:
+        if len(_bytes) > 0 and _bytes[0] == STX:
+            etx_index = _bytes.find(ETX)
+            expected_size = cls.expected_size(etx_index)
+            if etx_index != -1 and len(_bytes) >= (expected_size):
+                return cls.from_bytes(_bytes[:expected_size]), _bytes[expected_size:]
+
+        return None, _bytes
+    
+    @classmethod
+    def expected_size(cls, etx_index):
+        return etx_index - 1 + cls.SIZE_WITHOUT_NAME

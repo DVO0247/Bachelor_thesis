@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "sensor_node_tcp_ntp"
+		},
+		{
+			"name": "example",
+			"path": "example"
+		}
+	],
+	"settings": {}
+}

@@ -7,7 +7,7 @@ from typing import TypeAlias, Iterable
 import os
 from copy import copy
 
-import sensor_node_protocol as snp
+import receiver_server.udp_sensor_node_protocol as snp
 import control_center_queries as ccq
 from api_clients import influxdb
 
@@ -86,7 +86,7 @@ class SensorNode:
                 params = ccq.get_params_for_sensors(self.id)
                 if params:
                     for sensor, param in zip(self.sensors, params):
-                        sensor.name = param[0]
+                        sensor.name = param.name
             self.initialized = initialized # type: ignore
             return True
         else:
@@ -118,7 +118,7 @@ class SensorNode:
                     )
                 .field(sensor_name, sample.value)
                 for sensor_name, samples_buffer in sensor_samples.items() for sample in samples_buffer
-                )
+            )
             influxdb.write(project_name, points)            
 
 
@@ -253,12 +253,12 @@ class Server:
             new_params = ccq.get_params_for_sensors(sensor_node.id)
             if sensor_node.sensors and new_params and len(sensor_node.sensors) == len(new_params):
                 for i, (sensor, new_param) in enumerate(zip(sensor_node.sensors, new_params)):
-                    if sensor.name != new_param[0]:
-                        sensor.name = new_param[0]
-                    if sensor.sample_period_ms != new_param[1] or sensor.samples_per_packet != new_param[2]:
+                    if sensor.name != new_param.name:
+                        sensor.name = new_param.name
+                    if sensor.sample_period_ms != new_param.sample_period_ms or sensor.samples_per_packet != new_param.samples_per_packet:
                         with self.set_param_requests_lock:
-                            sensor.sample_period_ms = new_param[1]
-                            sensor.samples_per_packet = new_param[2]
+                            sensor.sample_period_ms = new_param.sample_period_ms
+                            sensor.samples_per_packet = new_param.samples_per_packet
                             self.set_param_requests.add((addr,i))
             else:
                 raise Exception(f'In db for {sensor_node.id}, data: {sensor_node.sensors}, {new_params}')

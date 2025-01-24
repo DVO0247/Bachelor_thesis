@@ -2,6 +2,8 @@ import os
 import django
 import sys
 from pathlib import Path
+from dataclasses import dataclass
+from tcp_sensor_node_protocol import SensorParams
 
 django_root_path = Path(__file__).parent.parent/'django_web'
 sys.path.append(str(django_root_path))
@@ -11,6 +13,10 @@ django.setup()
 from control_center.models import SensorNodeTypes, Sensor, SensorNode, Measurement, Project
 
 DATA_DIR_PATH = Path(__file__).parent.parent/'data'
+
+@dataclass
+class NamedSensorParams(SensorParams):
+    name:str
 
 def create_sensor_node(name:str, sensor_count:int) -> SensorNode|None:
     sensor_node = SensorNode(name=name, type=SensorNodeTypes.ESP32)
@@ -48,12 +54,9 @@ def get_init_state(sensor_node_id:int) -> bool|None:
     sensor_node = SensorNode.objects.filter(pk=sensor_node_id).first()
     return sensor_node.initialized if sensor_node else None
     
-def get_params_for_sensors(sensor_node_id:int) -> list[tuple[str, int, int]]|None:
+def get_params_for_sensors(sensor_node_id:int) -> list[NamedSensorParams]:
     sensors = Sensor.objects.filter(sensor_node__pk=sensor_node_id, sensor_node__initialized=True)
-    if sensors:
-        return [(sensor.name, sensor.sample_period, sensor.samples_per_packet) for sensor in sensors] # type: ignore
-    else:
-        return None
+    return [NamedSensorParams(sensor.sample_period, sensor.samples_per_packet, sensor.name) for sensor in sensors] # type: ignore
         
 
 if __name__ == '__main__':
