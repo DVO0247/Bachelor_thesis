@@ -2,7 +2,10 @@ from influxdb_client import InfluxDBClient, Point, WritePrecision, Bucket, PostB
 from influxdb_client.client.write_api import SYNCHRONOUS, ASYNCHRONOUS
 from influxdb_client.client.write_api import WriteType, WriteOptions, PointSettings
 from influxdb_client import OrganizationsApi, AddResourceMemberRequestBody
-from typing import Iterable, TypeAlias, Literal
+from typing import Iterable, TypeAlias, Literal, Generator
+from datetime import datetime, tzinfo, timezone, timedelta
+import time
+from pathlib import Path
 
 ORG = "main"
 URL = "http://127.0.0.1:8086"
@@ -18,6 +21,7 @@ class Api:
     org = client.organizations_api()
     write = client.write_api()
     bucket = client.buckets_api()
+    query = client.query_api()
 
 def get_auth_by_name(name:str) -> Authorization|None:
     for auth in Api.auth.find_authorizations():
@@ -60,3 +64,49 @@ def create_point(measurement_id, sensor_node_name: str, sensor_name: str, timest
         .time(time=timestamp, write_precision=write_precision)
         .field(sensor_name, value)
     )
+
+def query_select(bucket_name:str, measurement_id, limit_n:int, page:int):
+    query = f'''
+    from(bucket: "{bucket_name}")
+    |> range(start: 0)
+    |> filter(fn: (r) => r["_measurement"] == "{measurement_id}")
+    |> limit(n:{limit_n}, offset: {page*limit_n})  
+    '''
+    result = Api.query.query(query, ORG)
+    return result[0].records if result else []
+    
+def query_count(bucket_name:str, measurement_id) -> int:
+    query = f'''
+    from(bucket: "{bucket_name}")
+    |> range(start: 0)
+    |> filter(fn: (r) => r["_measurement"] == "{measurement_id}")
+    |> count()
+    '''
+    result = Api.query.query(query, ORG)
+    return result[0].records[0].get_value() if result else 0
+
+def query_select_all(bucket_name:str, measurement_id, batch_size:int=100_000):
+    page = 0
+    while True:
+        query = f'''
+        from(bucket: "{bucket_name}")
+        |> range(start: 0)
+        |> filter(fn: (r) => r["_measurement"] == "{measurement_id}")
+        |> limit(n:{batch_size}, offset: {page*batch_size})  
+        '''
+        result = Api.query.query(query, ORG)
+        if result:
+            yield from result[0].records
+            page += 1
+        else:
+            return
+
+def export_csv(bucket_name:str, measurement_id, batch_size:int, out_path:Path|str, _timezone:tzinfo):
+    open(out_path, 'w').close() # create or clear file
+    with open(out_path, 'a') as file:
+        for record in query_select_all(bucket_name, measurement_id, batch_size):
+            file.write(f'{record.get_time().astimezone(_timezone).isoformat(' ', 'milliseconds')[:-6]},{record.get_value()}\n')
+            #print(record.get_time())
+
+if __name__ == '__main__':
+    export_csv('testus', 1, 100_000, 'test.csv', timezone(timedelta(hours=1)))

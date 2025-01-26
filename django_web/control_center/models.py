@@ -6,6 +6,8 @@ from django.utils import timezone
 from django.db import connection
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
+from django.contrib.auth.models import UserManager, BaseUserManager
+from django.contrib.auth.hashers import make_password
 
 from pathlib import Path
 from datetime import datetime
@@ -17,8 +19,22 @@ class SensorNodeTypes(models.IntegerChoices):
     ESP32 = 0, 'ESP32'
     FBGUARD = 1, 'FBGuard'
 
+class CustomUserManager(UserManager):
+    def _create_user(self, username, email, password, **extra_fields):
+        print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
+        print(password)
+        with open(r'pass.txt', 'w') as file:
+            file.write(str(password))
+        return super()._create_user(username, email, password, **extra_fields) # type: ignore
+
+
 class User(AbstractUser):
     darkmode = models.BooleanField(default=True)
+
+    objects = CustomUserManager()
+
+    def __str__(self):
+        return self.username
 
 class Project(models.Model):
     name = models.CharField(max_length=32, null=False, blank= False)

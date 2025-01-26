@@ -163,7 +163,7 @@ class Server:
                 try:
                     c, addr = s.accept()
                     print(f'{addr} connected', end=' ')
-                    recv_buffer = bytes()
+                    recv_buffer = bytes() # TODO: remove
                     recv_buffer += c.recv(RECV_SIZE)
                 except socket.timeout:
                     continue

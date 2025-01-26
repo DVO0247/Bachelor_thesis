@@ -7,11 +7,14 @@ from django.forms import modelformset_factory
 from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.apps import apps
+from django.utils import timezone
 
 from pathlib import Path
 
-from .models import User, Project, SensorNode, Sensor, UserProject, Measurement
+from .models import User, Project, SensorNode, Sensor, UserProject, Measurement, SensorNodeTypes
 from .forms import SensorNodeForm, ProjectForm, LoginForm, SensorForm, UserProjectForm
+from api_clients import influxdb
+from api_clients import grafana
 
 
 TEMP_DIR_PATH = Path.cwd()/'control_center'/'temp' 
@@ -175,14 +178,22 @@ def measurement_data(request, project_pk, measurement_id):
     context['project'] = project
     return render(request, 'measurement_data.html', context)
 
-def explore_data(request, project_pk, measurement_id, sensor_pk, page=1, count=50):
+def explore_data(request, project_pk, measurement_id, sensor_pk, page=1, limit_n=50):
     context = {}
     project = get_object_or_404(Project, pk=project_pk)
     measurement = get_object_or_404(Measurement, project=project, id_in_project=measurement_id)
     sensor = get_object_or_404(Sensor, pk=sensor_pk)
-    path = measurement.get_db_path(sensor)
-    page_count = samples_queries.count(path)//count if samples_queries.count(path) % count == 0 else samples_queries.count(path)//count + 1
-    context['samples'] = samples_queries.select_desc(path, count, page-1)
+    record_count = influxdb.query_count(project.name, measurement.id_in_project)
+    page_count = record_count//limit_n if record_count % limit_n == 0 else record_count//limit_n + 1
+    records = influxdb.query_select(project.name, measurement.id_in_project, limit_n, page-1)
+    current_timezone = timezone.get_current_timezone()
+    context['records'] = (
+        (
+            record.get_time().astimezone(current_timezone).isoformat(' ', 'milliseconds')[:-6],
+            record.get_value()
+        )
+        for record in records
+        )
     context['page'] = page
     context['page_count'] = page_count
     context['pages'] = range(1, page_count+1)
@@ -202,9 +213,8 @@ def export_csv(request, project_pk, measurement_id, sensor_pk):
     project = get_object_or_404(Project, pk=project_pk)
     measurement= get_object_or_404(Measurement, project=project, id_in_project=measurement_id)
     sensor = get_object_or_404(Sensor, pk=sensor_pk)
-    db_path = measurement.get_db_path(sensor)
-    samples_queries.export_to_csv(db_path,out_path, header=True, humam_time=False)
-    filename = f'{project.name}_{sensor.sensor_node.name}_{sensor.name}_{db_path.stem}.csv'
+    influxdb.export_csv(project.name, measurement.id_in_project, 100_000, out_path, timezone.get_current_timezone())
+    filename = f'{project.name}_{sensor.sensor_node.name}_{sensor.name}_{measurement.id_in_project}_{measurement.start_time.isoformat(timespec='milliseconds')[:-6]}.csv'
 
     return FileResponse(open(out_path, 'rb'), as_attachment=True, filename=filename)
 

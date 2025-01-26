@@ -1,0 +1,39 @@
+from grafana_client import GrafanaApi, TokenAuth, HeaderAuth
+from pathlib import Path
+
+#TOKEN = 'glsa_vKNGhZoC2d4O3nbbNa3iwyhuf24lKRbh_f5abb949'
+#HOST = '127.0.0.1:3000'
+#grafana = GrafanaApi(auth=TokenAuth(TOKEN), host=HOST)
+
+URL = 'http://127.0.0.1:3000/'
+USERNAME = 'admin'
+PASSWORD = 'wsad'
+ORG_NAME = 'Main Org.'
+
+grafana = GrafanaApi.from_url(url=URL, credential=(USERNAME, PASSWORD))
+org_id = grafana.organization.find_organization(ORG_NAME)['id']
+
+def add_source(path:Path|str, name:str):
+    _json = {
+    'name': name,
+    'type': 'frser-sqlite-datasource',
+    'access': 'proxy',
+    'isDefault': False,
+    'editable': True,
+    'jsonData': {'path': str(path), 'pathPrefix': 'file:'}
+    }
+    for k,i in _json.items():
+        print(f'{k}: {i}')
+    grafana.datasource.create_datasource(_json)
+
+def delete_source(name:str):
+    grafana.datasource.delete_datasource_by_name(name)
+
+def add_user(name:str):
+    return grafana.users.find_user('nevimidk')
+
+def remove_user(name:str):
+    ...
+
+if __name__ == '__main__':
+    print(add_user(''))
