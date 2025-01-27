@@ -16,7 +16,6 @@ from .forms import SensorNodeForm, ProjectForm, LoginForm, SensorForm, UserProje
 from api_clients import influxdb
 from api_clients import grafana
 
-
 TEMP_DIR_PATH = Path.cwd()/'control_center'/'temp' 
 
 def index(request):
@@ -115,7 +114,13 @@ def project_users_edit(request, project_pk):
             form = UserProjectForm(request.POST, prefix=str(user.pk))
             
             if form.is_valid():
-                user_project, created = UserProject.objects.get_or_create(user=user, project=project)
+                user_project = UserProject.objects.filter(user=user, project=project).first()
+                if not user_project:
+                    user_project = UserProject(user=user, project=project)
+                    new = True
+                else:
+                    new = False
+                #user_project, created = UserProject.objects.get_or_create(user=user, project=project)
                 if user_project.is_owner:
                     continue
                 
@@ -126,7 +131,8 @@ def project_users_edit(request, project_pk):
                 user_project.is_editor = is_editor
 
                 if not is_member:
-                    user_project.delete()
+                    if not new:
+                        user_project.delete()
                 else:
                     user_project.save()
         previous_url = request.POST.get('previous_url')
@@ -318,4 +324,3 @@ class CustomLoginView(LoginView):
     
 def Grafana(request):
     return HttpResponseRedirect('http://127.0.0.1:3000') # TODO: redirect to outside IP
-#endregion

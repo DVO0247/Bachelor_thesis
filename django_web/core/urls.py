@@ -18,8 +18,15 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from oauth2_provider import urls as oauth2_urls
+from oauth2_provider.views import TokenView, UserInfoView, RevokeTokenView, IntrospectTokenView, AuthorizationView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    #path('o/', include(oauth2_urls)),
+    path("o/authorize/", AuthorizationView.as_view(), name="authorize"),
+    path("o/token/", TokenView.as_view(), name="token"),
+    path("o/revoke_token/", RevokeTokenView.as_view(), name="revoke-token"),
+    path("o/introspect/", IntrospectTokenView.as_view(), name="introspect"),
     path('', include('control_center.urls')),
 ]

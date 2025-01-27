@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
@@ -12,6 +12,7 @@ from django.contrib.auth.hashers import make_password
 from pathlib import Path
 from datetime import datetime
 from functools import cache
+from collections import defaultdict
 
 from api_clients import influxdb, grafana
 
@@ -20,18 +21,23 @@ class SensorNodeTypes(models.IntegerChoices):
     FBGUARD = 1, 'FBGuard'
 
 class CustomUserManager(UserManager):
-    def _create_user(self, username, email, password, **extra_fields):
-        print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
-        print(password)
-        with open(r'pass.txt', 'w') as file:
-            file.write(str(password))
-        return super()._create_user(username, email, password, **extra_fields) # type: ignore
-
+    pass
 
 class User(AbstractUser):
     darkmode = models.BooleanField(default=True)
 
-    objects = CustomUserManager()
+    def save(self, *args, **kwargs) -> None:
+        grafana.change_user_role(self.username, 'Admin' if self.is_staff else 'Editor')
+        return super().save(*args, **kwargs)
+
+    def set_password(self, raw_password):
+        if raw_password:
+            if not self.pk:
+                grafana.create_user(self.username, raw_password, 'Editor')
+            else:
+                grafana.change_password(self.username, raw_password)
+
+        return super().set_password(raw_password)
 
     def __str__(self):
         return self.username
@@ -54,6 +60,7 @@ class Project(models.Model):
 
         if not self.pk:
             influxdb.create_bucket(self.name)
+            grafana.create_team(self.name)
         else:
             current = Project.objects.get(pk=self.pk)
             if current.name!=self.name:
@@ -161,14 +168,32 @@ class UserProject(models.Model):
     def save(self, *args, **kwargs):
         if self.is_owner:
             self.is_editor = True
-        return super().save(*args, **kwargs)
+        if not self.pk and not self.is_owner:
+            grafana.add_team_member(self.project.name, self.user.username)
+        super().save(*args, **kwargs)
+        
 
     def __str__(self) -> str:
         return f'{self.pk}, {self.user}, ({self.project})'
 
+'''
+def update_grafana_team_members(project:Project):
+    team_members:grafana.TeamMembers = defaultdict(list)
+    for user_project in UserProject.objects.filter(project=project):
+        print('user_project:', user_project.user.username)
+        team_members['admins' if user_project.is_editor else 'members'].append(user_project.user.username)
+    grafana.update_team_members(project.name, team_members)
+'''
+
+@receiver(pre_delete, sender=UserProject,)
+def delete_grafana_team_member(sender, instance:UserProject, **kwargs):
+    grafana.remove_team_member(instance.project.name, instance.user.username)
+    #update_grafana_team_members(instance.project)
+
 @receiver(pre_delete, sender=Project)
-def delete_bucket(sender, instance:Project, **kwargs):
+def project_pre_delete(sender, instance:Project, **kwargs):
     influxdb.delete_bucket(instance.name)
+    grafana.delete_team(instance.name)
 
 def clean_name(name:str) -> str:
     return name.replace('"', '')

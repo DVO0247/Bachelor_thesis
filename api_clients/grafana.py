@@ -1,14 +1,16 @@
+# Source: https://grafana.com/docs/grafana/latest/developers/http_api/
 import requests
 from requests.auth import HTTPBasicAuth
 from typing import Literal, TypeAlias
 
-URL = 'http://127.0.0.1:3000/'
+GRAFANA_URL = 'http://127.0.0.1:3000/'
 USERNAME = 'admin'
 PASSWORD = 'wsad'
 AUTH = HTTPBasicAuth(USERNAME, PASSWORD)
 ORG_NAME = 'Main Org.'
 
 Role:TypeAlias = Literal['Viewer', 'Editor', 'Admin']
+TeamPermission:TypeAlias = Literal['Member', 'Admin']
 TeamMembers:TypeAlias = dict[Literal['members', 'admins'], list[str]]
 
 def is_response_ok(response:requests.Response, raise_exception:bool = False) -> bool:
@@ -23,7 +25,7 @@ def is_response_ok(response:requests.Response, raise_exception:bool = False) -> 
         return True
 
 def get_org_id(name:str):
-    url = f'{URL}/api/orgs/name/{name}'
+    url = f'{GRAFANA_URL}/api/orgs/name/{name}'
     response = requests.get(url, auth=AUTH)
     if is_response_ok(response, True):
         return response.json()['id']
@@ -31,7 +33,7 @@ def get_org_id(name:str):
 ORG_ID = get_org_id(ORG_NAME)
 
 def create_user(name:str, password:str, role:Role = 'Viewer') -> int: # type: ignore
-    url = f"{URL}/api/admin/users"
+    url = f"{GRAFANA_URL}/api/admin/users"
 
     user = {
         "name": name,
@@ -47,7 +49,7 @@ def create_user(name:str, password:str, role:Role = 'Viewer') -> int: # type: ig
         return response.json()['id']
 
 def get_user(name:str) -> dict|None:
-    url = f"{URL}/api/users?query={name}"
+    url = f"{GRAFANA_URL}/api/users?query={name}"
 
     response = requests.get(url, auth=AUTH)
 
@@ -57,19 +59,19 @@ def get_user(name:str) -> dict|None:
 def delete_user(name:str) -> bool:
     user = get_user(name)
     if user:
-        url = f'{URL}/api/admin/users/{user['id']}'
+        url = f'{GRAFANA_URL}/api/admin/users/{user['id']}'
         response = requests.delete(url, auth=AUTH)
         return is_response_ok(response, True)
     return False
 
 def get_org_users():
-    url = f'{URL}/api/orgs/{ORG_ID}/users'
+    url = f'{GRAFANA_URL}/api/orgs/{ORG_ID}/users'
     response = requests.get(url, auth=AUTH)
     if is_response_ok(response):
         return response.json()
     
 def create_team(name:str) -> int|None:
-    url = f'{URL}/api/teams'
+    url = f'{GRAFANA_URL}/api/teams'
     team = {
         "name": name,
         "orgId": ORG_ID
@@ -80,22 +82,104 @@ def create_team(name:str) -> int|None:
     else:
         return None
     
-def get_team(name:str):
-    url = f'{URL}/api/teams/search?name={name}&perpage=1'
+def get_team(team_name:str):
+    url = f'{GRAFANA_URL}/api/teams/search?name={team_name}&perpage=1'
 
     response = requests.get(url, auth=AUTH)
     if is_response_ok(response, True):
         return response.json()['teams'][0] if response.json()['totalCount'] > 0 else None
-    
+
+def get_team_members(team_name:str):
+    team = get_team(team_name)
+    if team:
+        url = f'{GRAFANA_URL}/api/teams/{team['id']}/members'
+        response = requests.get(url, auth=AUTH)
+        return response.json()
+    return False
+
+'''
+def update_team_member(team_name:str, username:str, team_perm:TeamPermission):
+    team = get_team(team_name)
+    user = get_user(username)
+    if team and user:
+        url = f'{GRAFANA_URL}/api/teams/{team['id']}/members'
+        response = requests.get(url, auth=AUTH)
+        ...
+        if not is_response_ok(response, True):
+            return False
+        for member in response.json():
+            if member['userId'] == user['id']:
+                member['permission'] = 4 if team_perm == 'Admins' else 1
+                data = member
+                response = requests.post(url, auth=AUTH, json=data)
+                return response
+    return False
+'''
+
+def delete_team(team_name:str):
+    team = get_team(team_name)
+    if team:
+        url = f'{GRAFANA_URL}/api/teams/{team['id']}'
+        response = requests.delete(url, auth=AUTH)
+        if is_response_ok(response, True):
+            return True
+    return False
+
 def update_team_members(team_name:str, members:TeamMembers) -> bool:
     team = get_team(team_name)
     if team:
-        url = f'{URL}/api/teams/{team['id']}/members'
+        url = f'{GRAFANA_URL}/api/teams/{team['id']}/members'
         response = requests.put(url, auth=AUTH, json=members)
         if is_response_ok(response, True):
             return True
-        else:
-            return False
-    else:
-        return False
+    return False
+
+def add_team_member(team_name:str, username:str):
+    team = get_team(team_name)
+    user = get_user(username)
+    if team and user:
+        url = f'{GRAFANA_URL}/api/teams/{team['id']}/members'
+        data = {"userId": user['id']}
+        response = requests.post(url, auth=AUTH, json=data)
+        if is_response_ok(response, True):
+            return True
+    return False
+
+def remove_team_member(team_name:str, username:str):
+    team = get_team(team_name)
+    user = get_user(username)
+    if team and user:
+        url = f'{GRAFANA_URL}/api/teams/{team['id']}/members/{user['id']}'
+        response = requests.delete(url, auth=AUTH)
+        if is_response_ok(response, True):
+            return True
+    return False
     
+def change_password(username:str, new_password:str) -> bool:
+    user = get_user(username)
+    if user:
+        data = {'password': new_password}
+        url = f"{GRAFANA_URL}/api/admin/users/{user['id']}/password"
+        response = requests.put(url, auth=AUTH, json=data)
+        if is_response_ok(response, True):
+            return True
+    return False
+
+def change_user_role(username:str, role:Role):
+    user = get_user(username)
+    if user:
+        data = {'role': role}
+        url = f'{GRAFANA_URL}/api/orgs/{ORG_ID}/users/{user['id']}'
+        response = requests.patch(url, auth=AUTH, json=data)
+        if is_response_ok(response, True):
+            return True
+    return False
+
+def create_folder(folder_name:str):
+    ...
+
+def delete_folder(folder_name:str):
+    ...
+
+if __name__ == '__main__':
+    print(get_team_members('nevimyy'))
