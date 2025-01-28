@@ -2,6 +2,7 @@
 import requests
 from requests.auth import HTTPBasicAuth
 from typing import Literal, TypeAlias
+from enum import Enum
 
 GRAFANA_URL = 'http://127.0.0.1:3000/'
 USERNAME = 'admin'
@@ -12,6 +13,11 @@ ORG_NAME = 'Main Org.'
 Role:TypeAlias = Literal['Viewer', 'Editor', 'Admin']
 TeamPermission:TypeAlias = Literal['Member', 'Admin']
 TeamMembers:TypeAlias = dict[Literal['members', 'admins'], list[str]]
+#FolderPermission:TypeAlias = Literal['View', 'Edit', 'Admin']
+class FolderPermission(Enum):
+    VIEW = 1
+    EDIT = 2
+    ADMIN = 4
 
 def is_response_ok(response:requests.Response, raise_exception:bool = False) -> bool:
     try:
@@ -175,11 +181,81 @@ def change_user_role(username:str, role:Role):
             return True
     return False
 
+def get_folder(folder_name:str):
+    url = f'{GRAFANA_URL}/api/folders'
+    response = requests.get(url, auth=AUTH)
+    if is_response_ok(response, True):
+        for folder in response.json():
+            if folder['title'] ==  folder_name:
+                return folder
+    return False
+
 def create_folder(folder_name:str):
-    ...
+    url = f'{GRAFANA_URL}/api/folders'
+    folder = {'title': folder_name}
+    response = requests.post(url, auth=AUTH, json=folder)
+    if is_response_ok(response, True):
+        return True
+    return False
 
 def delete_folder(folder_name:str):
-    ...
+    folder = get_folder(folder_name)
+    if folder:
+        url = f'{GRAFANA_URL}/api/folders/{folder['uid']}'
+        response = requests.delete(url, auth=AUTH)
+        if is_response_ok(response, True):
+            return True
+    return False
 
+def update_folder_permissions(folder_name:str, members:dict[str, FolderPermission]):
+    print(members)
+    folder = get_folder(folder_name)
+    member_ids:dict[int, FolderPermission] = dict()
+    for name, perm in members.items():
+        user = get_user(name)
+        if user:
+            member_ids[user['id']] = perm
+    if folder and member_ids:
+        url = f'{GRAFANA_URL}/api/folders/{folder['uid']}/permissions'
+        permissions:dict[str, list[dict[str, str|int]]] = {
+            'items': [
+                {
+                'role': 'Admin',
+                'permission': FolderPermission.ADMIN.value
+                }
+            ]
+        }
+        for id, perm in member_ids.items():
+            permissions['items'].append({"userId": id, 'permission': perm.value})
+        
+        response = requests.post(url, auth=AUTH, json=permissions)
+        if is_response_ok(response, True):
+            return True
+    return False
+
+'''
+def update_folder_permissions(folder_name:str, permited_team_name:str):
+    folder = get_folder(folder_name)
+    team = get_team(permited_team_name)
+    if folder and team:
+        url = f'{GRAFANA_URL}/api/folders/{folder['uid']}/permissions'
+        permissions = {
+            "items": [
+                {
+                "role": "Admin",
+                "permission": 4
+                },
+                {
+                "teamId": team['id'],
+                "permission": 2
+                },
+            ]
+            }
+        response = requests.post(url, auth=AUTH, json=permissions)
+        if is_response_ok(response, True):
+            return True
+    return False
+'''
+    
 if __name__ == '__main__':
-    print(get_team_members('nevimyy'))
+    pass

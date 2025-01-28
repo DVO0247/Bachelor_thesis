@@ -27,13 +27,13 @@ class User(AbstractUser):
     darkmode = models.BooleanField(default=True)
 
     def save(self, *args, **kwargs) -> None:
-        grafana.change_user_role(self.username, 'Admin' if self.is_staff else 'Editor')
+        grafana.change_user_role(self.username, 'Admin' if self.is_staff else 'Viewer')
         return super().save(*args, **kwargs)
 
     def set_password(self, raw_password):
         if raw_password:
             if not self.pk:
-                grafana.create_user(self.username, raw_password, 'Editor')
+                grafana.create_user(self.username, raw_password, 'Viewer')
             else:
                 grafana.change_password(self.username, raw_password)
 
@@ -60,7 +60,8 @@ class Project(models.Model):
 
         if not self.pk:
             influxdb.create_bucket(self.name)
-            grafana.create_team(self.name)
+            #grafana.create_team(self.name)
+            grafana.create_folder(self.name)
         else:
             current = Project.objects.get(pk=self.pk)
             if current.name!=self.name:
@@ -168,9 +169,12 @@ class UserProject(models.Model):
     def save(self, *args, **kwargs):
         if self.is_owner:
             self.is_editor = True
+        '''
         if not self.pk and not self.is_owner:
             grafana.add_team_member(self.project.name, self.user.username)
+        '''
         super().save(*args, **kwargs)
+        update_folder_members(self.project)
         
 
     def __str__(self) -> str:
@@ -185,15 +189,30 @@ def update_grafana_team_members(project:Project):
     grafana.update_team_members(project.name, team_members)
 '''
 
+'''
 @receiver(pre_delete, sender=UserProject,)
 def delete_grafana_team_member(sender, instance:UserProject, **kwargs):
     grafana.remove_team_member(instance.project.name, instance.user.username)
     #update_grafana_team_members(instance.project)
+'''
+
+def update_folder_members(project:Project):
+    user_projects = UserProject.objects.filter(project=project)
+    members:dict[str, grafana.FolderPermission] = dict()
+    for user_project in user_projects:
+        members[user_project.user.username] = grafana.FolderPermission.EDIT if user_project.is_editor else grafana.FolderPermission.VIEW
+
+    grafana.update_folder_permissions(project.name, members)
+
+@receiver(pre_delete, sender=UserProject,)
+def user_project_pre_delete(sender, instance:UserProject, **kwargs):
+    update_folder_members(instance.project)
 
 @receiver(pre_delete, sender=Project)
 def project_pre_delete(sender, instance:Project, **kwargs):
     influxdb.delete_bucket(instance.name)
-    grafana.delete_team(instance.name)
+    #grafana.delete_team(instance.name)
+    grafana.delete_folder(instance.name)
 
 def clean_name(name:str) -> str:
     return name.replace('"', '')
