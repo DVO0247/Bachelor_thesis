@@ -125,18 +125,18 @@
         <hr>
         <p>
             {% with last_measurement=project.get_last_measurement %}
-            Measurement: {{ last_measurement.get_next_or_running_id }}
+            <b>Measurement: {{ last_measurement.get_next_or_running_id }}</b>
             {% endwith %}
         </p>
         {% if not project.is_running %}
         <form action="{% url 'start_measurement' project.pk %}" method="post" style="display:inline;">
             {% csrf_token %}
-            <input class="btn btn-success" type="submit" value="Start">
+            <input class="btn btn-success btn-lg" type="submit" value="Start">
         </form>
         {% else %}
         <form action="{% url 'stop_measurement' project.pk %}" method="post" style="display:inline;">
             {% csrf_token %}
-            <input class="btn btn-danger" type="submit" value="Stop">
+            <input class="btn btn-danger btn-lg" type="submit" value="Stop">
         </form>
         {% endif %}
         {% endif %}

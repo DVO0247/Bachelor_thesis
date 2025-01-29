@@ -29,6 +29,15 @@ class LoginForm(AuthenticationForm):
         for field in self.fields.values():
             field.widget.attrs.update({'class': 'form-control'})
 
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        user = User.objects.filter(username=username).first()
+
+        if not user:
+            raise forms.ValidationError("No user with this username")
+
+        return user.username
+
 class SensorNodeForm(BootstrapModelForm):
     class Meta:
         model = SensorNode
