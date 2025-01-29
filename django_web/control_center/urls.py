@@ -1,3 +1,4 @@
+# type: ignore
 from django.urls import path
 from . import views
 from django.contrib.auth.views import LogoutView
@@ -6,6 +7,7 @@ urlpatterns = [
     path('', views.index, name='index'),
     #region Project
     path('project_list/', views.project_list, name='project_list'),
+    path('project/<int:project_pk>/details', views.project_details, name='project_details'),
     path('project/<int:pk>/edit/', views.project_edit, name='project_edit'),
     path('project/edit/', views.project_edit, name='project_edit'),
     path('project/<int:project_pk>/activate/', views.project_activate, name='project_activate'),
@@ -13,7 +15,8 @@ urlpatterns = [
     path('project/<int:project_pk>/sensor_node_list/', views.project_sensor_node_list, name='project_sensor_node_list'),
     path('project/<int:project_pk>/add/sensor_node/<int:sensor_node_pk>/', views.sensor_node_add_to_project, name='sensor_node_add_to_project'),
     path('project/<int:project_pk>/remove/sensor_node/<int:sensor_node_pk>/', views.sensor_node_remove_from_project, name='sensor_node_remove_from_project'),
-    path('project/<int:project_pk>/users/', views.project_users_edit, name='project_users_edit'),
+    path('project/<int:project_pk>/users/show/', views.project_users_show, name='project_users_show'),
+    path('project/<int:project_pk>/users/edit/', views.project_users_edit, name='project_users_edit'),
     path('project/<int:project_pk>/leave/', views.project_leave, name='project_leave'),
     #region Measurement
     path('project/<int:project_pk>/measurements/', views.measurement_list, name='measurement_list'),

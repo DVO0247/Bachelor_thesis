@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect, FileResponse
+from django.core.exceptions import PermissionDenied
 from django.core.files.temp import NamedTemporaryFile
 from django.conf import settings
 from django.forms.models import model_to_dict
@@ -26,6 +27,17 @@ def project_list(request):
     context = {}
     context['projects'] = Project.objects.all()
     return render(request, 'project_list.html', context)
+
+def project_details(request, project_pk):
+    context = {}
+    project = get_object_or_404(Project, pk=project_pk)
+    context['sensor_nodes'] = SensorNode.objects.all()
+    context['project_sensor_nodes'] = project.sensor_nodes.all()
+    context['user_project'] = get_object_or_404(UserProject, user=request.user, project=project)
+    context['this_user_projects'] = UserProject.objects.filter(project=project)
+    #context['project'] = project
+    return render(request, 'project_details.html', context)
+
 
 def project_edit(request, pk=None):
     context = {}
@@ -59,7 +71,7 @@ def project_activate(request, project_pk):
         previous_url = request.POST.get('previous_url')
         if not previous_url:
             previous_url = 'index'
-        return redirect(previous_url)
+        return redirect(request.META['HTTP_REFERER'])
     
 def project_deactivate(request, project_pk):
     if request.method == 'POST':
@@ -74,7 +86,7 @@ def project_deactivate(request, project_pk):
         previous_url = request.POST.get('previous_url')
         if not previous_url:
             previous_url = 'index'
-        return redirect(previous_url)
+        return redirect(request.META['HTTP_REFERER'])
 
 def project_sensor_node_list(request, project_pk):
     context = {}
@@ -101,6 +113,15 @@ def sensor_node_remove_from_project(request, project_pk, sensor_node_pk):
         project.sensor_nodes.remove(sensor_node)
         project.save()
         return redirect('project_sensor_node_list', project_pk=project_pk)
+
+def project_users_show(request, project_pk):
+    user_projects = UserProject.objects.filter(project=project_pk)
+    if any(request.user == user_project.user for user_project in user_projects):
+        context = {'this_user_projects':user_projects}
+        return render(request, 'project_users_show.html', context)
+    else:
+        raise PermissionDenied
+
 
 def project_users_edit(request, project_pk):
     project = get_object_or_404(Project, pk=project_pk)
@@ -219,7 +240,7 @@ def export_csv(request, project_pk, measurement_id, sensor_pk):
     project = get_object_or_404(Project, pk=project_pk)
     measurement= get_object_or_404(Measurement, project=project, id_in_project=measurement_id)
     sensor = get_object_or_404(Sensor, pk=sensor_pk)
-    influxdb.export_csv(project.name, measurement.id_in_project, 100_000, out_path, timezone.get_current_timezone())
+    influxdb.export_csv(project.name, measurement.id_in_project, out_path, timezone.get_current_timezone(), 100_000)
     filename = f'{project.name}_{sensor.sensor_node.name}_{sensor.name}_{measurement.id_in_project}_{measurement.start_time.isoformat(timespec='milliseconds')[:-6]}.csv'
 
     return FileResponse(open(out_path, 'rb'), as_attachment=True, filename=filename)
@@ -228,17 +249,21 @@ def start_measurement(request, project_pk):
     if request.method == 'POST':
         project = get_object_or_404(Project, pk=project_pk)
         project.start_measurement()
-        '''previous_url = request.POST.get('previous_url')
-        if not previous_url:
-            previous_url = 'index'
-            '''
-        return reload_start_stop_panel(request)
+        from_panel = request.POST.get('from_panel', False)
+        if from_panel:
+            return reload_start_stop_panel(request)
+        else:
+            return HttpResponseRedirect(request.META['HTTP_REFERER'])
     
 def stop_measurement(request, project_pk):
     if request.method == 'POST':
         project = get_object_or_404(Project, pk=project_pk)
         project.stop_measurement()
-        return reload_start_stop_panel(request)
+        from_panel = request.POST.get('from_panel', False)
+        if from_panel:
+            return reload_start_stop_panel(request)
+        else:
+            return HttpResponseRedirect(request.META['HTTP_REFERER'])
     
 def reload_start_stop_panel(request):
     return render(request, 'includes\\start_stop_panel.html')

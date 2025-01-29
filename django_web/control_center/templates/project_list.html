@@ -19,28 +19,9 @@
             <th scope="row">{{ project.pk }}</th>
             <td>{{ project.name }}</td>
             <td>
-                {% if user_project.is_editor %}
-                {% if not project.is_running %}
-                <a class="btn btn-primary btn-sm" href="{% url 'project_edit' project.pk %}" role="button">Edit</a>
-                {% else %}
-                <div class="tooltip-wrapper">
-                    <span class="tooltip-text">Project is running</span>
-                    <a class="btn btn-secondary btn-sm disabled" role="button">Edit</a>
-                </div>
-                {% endif %}
-                {% else %}
-                <button type="submit" formaction="{% url 'project_leave' project.pk %}" class="btn btn-warning btn-sm"
-                    onclick="return confirm('Do you really want to leave this project?');">Leave</button>
-                {% endif %}
-                <a class="btn btn-primary btn-sm" href="{% url 'project_sensor_node_list' project.pk %}"
-                    role="button">Sensor
-                    nodes</a>
-                {% if user_project.is_owner %}
-                <a class="btn btn-primary btn-sm" href="{% url 'project_users_edit' project.pk %}"
-                    role="button">Users</a>
-                {% endif %}
-                <a class="btn btn-primary btn-sm" href="{% url 'measurement_list' project.pk %}"
-                    role="button">Measurements</a>
+                
+                <a class="btn btn-primary btn-sm" href="{% url 'project_details' project.pk %}"
+                    role="button">Details</a>
                 {% if not user_project.is_activated %}
                 <form action="{% url 'project_activate' project.pk %}" method="post" style="display:inline;">
                     {% csrf_token %}

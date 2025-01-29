@@ -18,8 +18,8 @@ DATA_DIR_PATH = Path(__file__).parent.parent/'data'
 class NamedSensorParams(SensorParams):
     name:str
 
-def create_sensor_node(name:str, sensor_count:int) -> SensorNode|None:
-    sensor_node = SensorNode(name=name, type=SensorNodeTypes.ESP32)
+def create_sensor_node(name:str, sensor_count:int, type:SensorNodeTypes = SensorNodeTypes.ESP32) -> SensorNode|None:
+    sensor_node = SensorNode(name=name, type=type)
     try:
         sensor_node.full_clean()
     except django.core.exceptions.ValidationError as e: # type: ignore

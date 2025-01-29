@@ -25,6 +25,7 @@ body {
 
 .sidebar {
     position: fixed;
+    overflow-y: auto; 
     top: 50px;
     /* Odsazení, aby byl sidebar pod topbarem */
     left: 0;

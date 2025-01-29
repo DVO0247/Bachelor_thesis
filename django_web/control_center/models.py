@@ -4,7 +4,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.db import connection
-from django.db.models.signals import pre_delete
+from django.db.models.signals import pre_delete, post_delete
 from django.dispatch import receiver
 from django.contrib.auth.models import UserManager, BaseUserManager
 from django.contrib.auth.hashers import make_password
@@ -20,7 +20,7 @@ class SensorNodeTypes(models.IntegerChoices):
     ESP32 = 0, 'ESP32'
     FBGUARD = 1, 'FBGuard'
 
-class CustomUserManager(UserManager):
+class CustomUserManager(UserManager): # TODO: delete after clean database
     pass
 
 class User(AbstractUser):
@@ -63,9 +63,10 @@ class Project(models.Model):
             #grafana.create_team(self.name)
             grafana.create_folder(self.name)
         else:
-            current = Project.objects.get(pk=self.pk)
-            if current.name!=self.name:
-                influxdb.rename_bucket(current.name, self.name)
+            old = Project.objects.get(pk=self.pk)
+            if old.name!=self.name:
+                influxdb.rename_bucket(old.name, self.name)
+                grafana.rename_folder(old.name, self.name)
 
         # TODO: grafana change querry bucket name (?)
         super().save(*args, **kwargs)
@@ -77,10 +78,11 @@ class Project(models.Model):
     def start_measurement(self)->None:
         last_measurement = self.get_last_measurement()
         if last_measurement and last_measurement.is_running():
-            self.stop_measurement()
-        measurement = Measurement.objects.create(project=self,
-                                  id_in_project=last_measurement.id_in_project+1 if last_measurement is not None else 0,
-                                  )
+            return
+        measurement = Measurement.objects.create(
+            project = self,
+            id_in_project = last_measurement.id_in_project+1 if last_measurement is not None else 0
+        )
         
         measurement.sensor_nodes.set(self.sensor_nodes.all())
         measurement.save()
@@ -204,8 +206,8 @@ def update_folder_members(project:Project):
 
     grafana.update_folder_permissions(project.name, members)
 
-@receiver(pre_delete, sender=UserProject,)
-def user_project_pre_delete(sender, instance:UserProject, **kwargs):
+@receiver(post_delete, sender=UserProject,)
+def user_project_post_delete(sender, instance:UserProject, **kwargs):
     update_folder_members(instance.project)
 
 @receiver(pre_delete, sender=Project)

@@ -13,7 +13,7 @@ ORG_NAME = 'Main Org.'
 Role:TypeAlias = Literal['Viewer', 'Editor', 'Admin']
 TeamPermission:TypeAlias = Literal['Member', 'Admin']
 TeamMembers:TypeAlias = dict[Literal['members', 'admins'], list[str]]
-#FolderPermission:TypeAlias = Literal['View', 'Edit', 'Admin']
+
 class FolderPermission(Enum):
     VIEW = 1
     EDIT = 2
@@ -229,6 +229,19 @@ def update_folder_permissions(folder_name:str, members:dict[str, FolderPermissio
             permissions['items'].append({"userId": id, 'permission': perm.value})
         
         response = requests.post(url, auth=AUTH, json=permissions)
+        if is_response_ok(response, True):
+            return True
+    return False
+
+def rename_folder(old_folder_name:str, new_folder_name:str):
+    folder = get_folder(old_folder_name)
+    if folder:
+        url = f'{GRAFANA_URL}/api/folders/{folder['uid']}'
+        data = {
+            'title': new_folder_name,
+            'overwrite': True
+        }
+        response = requests.put(url, auth=AUTH, json=data)
         if is_response_ok(response, True):
             return True
     return False

@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ user_project.project.name }} details{% endblock %}
+
+{% block content %}
+{% with project=user_project.project %}
+<h1>{{ user_project.project.name }} details</h1><br>
+
+<div class="flex-container" style="display: flex;  justify-content: space-between; gap: 30px;">
+    <!-- Tables Section -->
+    <div class="tables-container" style="flex: 1; min-width: 500px;">
+        <h2>
+            Sensor Nodes
+            {% if user_project.is_editor %}
+            <a class="btn btn-primary btn-sm" href="{% url 'project_sensor_node_list' project.pk %}"
+            role="button">Edit</a>
+            {% else %}
+            <a class="btn btn-primary btn-sm" href="{% url 'project_sensor_node_list' project.pk %}"
+            role="button">Show</a>
+            {% endif %}
+        </h2>
+        <table class="table table-striped table-bordered table-generic" style="width: 100%; min-width: 10px;">
+            <thead style="border-width: 2px;">
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Sensors</th>
+                </tr>
+            </thead>
+            <tbody style="border-width: 3px;">
+                {% for sensor_node in project_sensor_nodes %}
+                <tr>
+                    <th scope="row">{{ sensor_node.pk }}</th>
+                    <td>{{ sensor_node.name }}</td>
+                    <td>{{ sensor_node.get_type_display }}</td>
+                    <td style="word-wrap: break-word; white-space: normal; max-width: 150px; word-break: break-word;">
+                        {% for sensor in sensor_node.sensors.all %}
+                        {{ sensor.name }},
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+
+        <h2>
+            Users {% if user_project.is_owner %}
+            <a class="btn btn-primary btn-sm" href="{% url 'project_users_edit' project.pk %}"
+                role="button">Edit</a>
+            {% endif %}
+        </h2>
+        <table class="table table-striped table-bordered table-generic" style="width: 100%; min-width: 10px;">
+            <thead style="border-width: 2px;">
+                <tr>
+                    <th>#</th>
+                    <th>User</th>
+                    <th>is editor</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user_project in this_user_projects %}
+                {% with user2=user_project.user %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    {% if user_project.user == user %}
+                    <td>
+                        {{ user2.get_full_name|default:user2.username }} (you) {{ user_project.is_owner|yesno:'(owner),' }}
+                    </td>
+                    {% else %}
+                    <td>
+                        {{ user2.get_full_name|default:user2.username }} {{ user_project.is_owner|yesno:'(owner),'}}
+                    </td>
+                    {% endif %}
+                    <td>
+                        <input class="checkbox" type="checkbox" {{ user_project.is_editor|yesno:'checked,' }} disabled>
+                    </td>
+                   
+                </tr>
+                {% endwith %}
+                {% endfor %}
+            </tbody>
+        </table>
+        
+    </div>
+
+    <!-- Project Description Section -->
+    <div class="description-container" style="flex: 0.4; min-width: 300px; max-width: 400px;">
+        <h3>Description</h3>
+        <p style="word-wrap: break-word; white-space: pre-wrap;">{{ project.description|linebreaksbr }}</p>
+        <hr>
+        <div class="mt-3">
+            {% if user_project.is_editor %}
+                {% if not project.is_running %}
+                <a class="btn btn-primary btn-sm" href="{% url 'project_edit' project.pk %}" role="button">Edit project</a>
+                {% else %}
+                <div class="tooltip-wrapper">
+                    <span class="tooltip-text">Project is running</span>
+                    <a class="btn btn-secondary btn-sm disabled" role="button">Edit project</a>
+                </div>
+                {% endif %}
+                {% else %}
+                <button type="submit" formaction="{% url 'project_leave' project.pk %}" class="btn btn-warning btn-sm"
+                    onclick="return confirm('Do you really want to leave this project?');">Leave project</button>
+                {% endif %}
+                
+               
+                <a class="btn btn-primary btn-sm" href="{% url 'measurement_list' project.pk %}"
+                    role="button">Measurements</a>
+                {% if not user_project.is_activated %}
+                <form action="{% url 'project_activate' project.pk %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input class="btn btn-success btn-sm" type="submit" value="Activate">
+                </form>
+                {% else %}
+                <form action="{% url 'project_deactivate' project.pk %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <input class="btn btn-danger btn-sm" type="submit" value="Deactivate">
+                </form>
+                {% endif %}
+            
+        </div>
+        {% if user_project.is_activated %}
+        <hr>
+        <p>
+            {% with last_measurement=project.get_last_measurement %}
+            Measurement: {{ last_measurement.get_next_or_running_id }}
+            {% endwith %}
+        </p>
+        {% if not project.is_running %}
+        <form action="{% url 'start_measurement' project.pk %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <input class="btn btn-success" type="submit" value="Start">
+        </form>
+        {% else %}
+        <form action="{% url 'stop_measurement' project.pk %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <input class="btn btn-danger" type="submit" value="Stop">
+        </form>
+        {% endif %}
+        {% endif %}
+
+    </div>
+</div>
+<div class="mt-3">
+    <a href="{% url 'project_list' %}" class="btn btn-secondary">Back</a>
+</div>
+
+<!-- Add a media query for small screens -->
+<style>
+    @media (max-width: 900px) {
+        .flex-container {
+            flex-direction: column;  /* Stack description and tables vertically */
+        }
+
+        .tables-container {
+            width: 100%;  /* Make tables take up full width on smaller screens */
+        }
+
+        .description-container {
+            width: 100%;  /* Ensure description takes full width */
+            order: -1;    /* Move description above tables */
+        }
+    }
+</style>
+
+{% endwith %}
+{% endblock %}

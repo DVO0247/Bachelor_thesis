@@ -13,9 +13,12 @@
             {% if user_project.is_activated %}
             {% with project=user_project.project %}
             {% with last_measurement=project.get_last_measurement %}
+            {% if active_project and project.pk == active_project.pk %}
+            <b>
+            {% endif %}
             <tr>
                 <td class="align-middle" style="word-wrap: break-word; white-space: normal; word-break: break-word;">
-                    <a href="{% url 'project_sensor_node_list' project.pk %}"
+                    <a href="{% url 'project_details' project.pk %}"
                         style="color: {{ user.darkmode|yesno:'white,black' }};">
                         {{ project.name }}
                     </a>
@@ -30,6 +33,7 @@
                 <td class="align-middle text-center">
                     <form method="post" style="display:inline;">
                         {% csrf_token %}
+                        <input type="hidden" name="from_panel" value="true">
                         {% if not project.is_running %}
                         <button class="btn btn-success btn-sm btn-short"
                             hx-post="{% url 'start_measurement' project.pk %}" hx-target="#start_stop"
@@ -46,6 +50,9 @@
                     </form>
                 </td>
             </tr>
+            {% if active_project and project.pk == active_project.pk %}
+            </b>
+            {% endif %}
             {% endwith %}
             {% endwith %}
             {% endif %}

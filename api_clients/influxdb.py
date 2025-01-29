@@ -1,4 +1,4 @@
-from influxdb_client import InfluxDBClient, Point, WritePrecision, Bucket, PostBucketRequest, Authorization, User, Organization
+from influxdb_client import InfluxDBClient, Point, Bucket, PostBucketRequest, Authorization, User, Organization
 from influxdb_client.client.write_api import SYNCHRONOUS, ASYNCHRONOUS
 from influxdb_client.client.write_api import WriteType, WriteOptions, PointSettings
 from influxdb_client import OrganizationsApi, AddResourceMemberRequestBody
@@ -13,7 +13,7 @@ TOKEN = 'jyoMO_g-zvjqhxZ-ePQ1yfsmxdEQ-E3DJljyXamt_i5CWKfvhqWE18Gd3mWCSfsFbVhbKh-
 
 client = InfluxDBClient(url=URL, token=TOKEN, org=ORG)
 
-WritePrecisions: TypeAlias = Literal['s','ms','us','ns']
+WritePrecision: TypeAlias = Literal['s','ms','us','ns']
 
 class Api:
     users = client.users_api()
@@ -57,7 +57,7 @@ def delete_bucket(bucket_name:str) -> Bucket|None:
 def write(bucket_name:str, points:Iterable[Point]):
     return Api.write.write(bucket=bucket_name, org=ORG, record=points)
 
-def create_point(measurement_id, sensor_node_name: str, sensor_name: str, timestamp: int, value: float, write_precision:WritePrecisions) -> Point:
+def create_point(measurement_id, sensor_node_name: str, sensor_name: str, timestamp: int, value: float, write_precision:WritePrecision) -> Point:
     return (
         Point(measurement_id)
         .tag("Sensor Node", sensor_node_name)
@@ -101,12 +101,13 @@ def query_select_all(bucket_name:str, measurement_id, batch_size:int=100_000):
         else:
             return
 
-def export_csv(bucket_name:str, measurement_id, batch_size:int, out_path:Path|str, _timezone:tzinfo):
+def export_csv(bucket_name:str, measurement_id, out_path:Path|str, _timezone:tzinfo, batch_size:int = 100_000):
     open(out_path, 'w').close() # create or clear file
     with open(out_path, 'a') as file:
+        file.write('timestamp,value\n')
         for record in query_select_all(bucket_name, measurement_id, batch_size):
             file.write(f'{record.get_time().astimezone(_timezone).isoformat(' ', 'milliseconds')[:-6]},{record.get_value()}\n')
             #print(record.get_time())
 
 if __name__ == '__main__':
-    export_csv('testus', 1, 100_000, 'test.csv', timezone(timedelta(hours=1)))
+    pass

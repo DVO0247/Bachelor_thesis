@@ -38,5 +38,7 @@
     </tbody>
     {% endfor %}
 </table>
-
+<div class="mt-3">
+    <a href="{% url 'measurement_list' project.pk %}" class="btn btn-secondary">Back</a>
+</div>
 {% endblock %}

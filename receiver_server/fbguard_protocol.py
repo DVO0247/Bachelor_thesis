@@ -7,6 +7,7 @@ BYTE_ORDER = 'little'
 DOUBLE_FORMAT = '<d'
 
 class Header:
+    # TODO: make this dataclass with __post_init__
     EXPECTED_SYNC:ClassVar = b'\x55\x00\x55'
     
     def __init__(self, 
