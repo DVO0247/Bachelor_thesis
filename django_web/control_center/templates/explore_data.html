@@ -53,5 +53,8 @@
     <a class="btn btn-success btn-sm" href="{% url 'explore_data' project.pk measurement.id_in_project sensor.pk page_count %}" role="button" style="margin-left: 10px;">Last</a>
 
 </div>
+<div class="mt-3">
+    <a href="{% url 'measurement_data' project.pk measurement.id_in_project %}" class="btn btn-secondary">Back</a>
+</div>
 
 {% endblock %}
