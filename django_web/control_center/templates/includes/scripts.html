@@ -1,0 +1,71 @@
+{% load static %}
+<script>
+    const lightThemeIcon = "{% static 'control_center/images/moon.svg' %}";
+    const darkThemeIcon = "{% static 'control_center/images/sun.svg' %}";
+
+    function setTheme(theme) {
+        document.documentElement.setAttribute('data-bs-theme', theme);
+
+        const themeToggleImg = document.getElementById('themeToggle');
+        themeToggleImg.src = theme === 'light' ? lightThemeIcon : darkThemeIcon;
+
+        const topbar = document.querySelector('.topbar');
+        const sidebar = document.querySelector('.sidebar');
+
+        if (theme === 'light') {
+            topbar.style.backgroundColor = '#0b5ed7';
+            topbar.style.color = 'white';
+            sidebar.style.backgroundColor = '#f2f2f2';
+            sidebar.style.color = '#333';
+            sidebar.querySelectorAll('a').forEach(link => link.style.color = '#333');
+            sidebar.classList.remove('dark');
+        } else {
+            topbar.style.backgroundColor = '#212f3d';
+            topbar.style.color = 'white';
+            sidebar.style.backgroundColor = '#343a40';
+            sidebar.style.color = 'white';
+            sidebar.querySelectorAll('a').forEach(link => link.style.color = 'white');
+            sidebar.classList.add('dark');
+        }
+    }
+
+    const savedTheme = '{{ user.darkmode|yesno:"dark,light" }}';
+    setTheme(savedTheme);
+
+    const toggleButton = document.getElementById('themeToggle');
+    toggleButton.addEventListener('click', () => {
+        fetch('{% url "toggle_dark_mode" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+        })
+            .then(response => response.json())
+            .then(data => {
+                setTheme(data.darkmode ? 'dark' : 'light');
+            });
+    });
+</script>
+<script>
+    // Funkce pro přepnutí viditelnosti sidebaru
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('hidden');
+    }
+
+    // Automatické skrývání a zobrazování sidebaru podle velikosti okna
+    function handleResize() {
+        const sidebar = document.getElementById('sidebar');
+        if (window.innerWidth > 768) {
+            sidebar.classList.remove('hidden'); // Zobrazit sidebar, pokud je okno širší než 768px
+        } else {
+            sidebar.classList.add('hidden'); // Skrýt sidebar, pokud je okno užší než 768px
+        }
+    }
+
+    // Přidání události pro změnu velikosti okna
+    window.addEventListener('resize', handleResize);
+
+    // Inicializace sidebaru při načtení stránky
+    handleResize();
+</script>

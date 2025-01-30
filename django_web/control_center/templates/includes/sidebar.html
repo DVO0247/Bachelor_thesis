@@ -1,0 +1,11 @@
+<div class="sidebar" id="sidebar">
+    <a class="full" href="{% url 'project_list' %}">Projects</a>
+    <a class="full" href="{% url 'sensor_node_list' %}">Sensor Nodes</a>
+    <a class="full" href="{% url 'grafana' %}">Grafana</a>
+    {% if user.is_staff %}
+    <a class="full" href="{% url 'admin:index' %}">Administration</a>
+    {% endif %}
+    <hr>
+    <h5>Active projects:</h5>
+    {% include 'includes/start_stop_panel.html' %}
+</div>
