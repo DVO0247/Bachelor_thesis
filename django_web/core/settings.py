@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-import os
 import sys
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -147,3 +146,5 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'  
 LOGIN_URL = '/login/'
 
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True

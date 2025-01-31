@@ -1,6 +1,5 @@
 #include "APConfig.h"
 
-// Metoda pro spuštění konfigurace
 void APConfig::begin(const char* apSSID, const char* apPassword, int resetPin, int statusLED) {
   this->apSSID = apSSID;
   this->apPassword = apPassword;
@@ -19,19 +18,16 @@ void APConfig::begin(const char* apSSID, const char* apPassword, int resetPin, i
   //serverIP = readStringFromEEPROM(64, 15);
   readStringFromEEPROM(SERVER_IP_ADDR, SERVER_IP_SIZE).toCharArray(serverIP, sizeof(serverIP));
 
-  // Načtení portu z EEPROM a výpis pro kontrolu
   serverPort = readUint16FromEEPROM(PORT_ADDR);
 
   name = readStringFromEEPROM(NAME_ADDR, NAME_SIZE);
 
-  // Pokus o připojení k uložené WiFi
+  // Attempt to connect to saved WiFi, if that fails, hotspot will start.
   if (!connectToSavedWiFi()) {
-    // Pokud se připojení nezdaří, vytvoří se hotspot a spustí se server
-    Serial.println("Připojení selhalo, spouští se hotspot.");
+    Serial.println("Connection failed, starting hotspot.");
     WiFi.mode(WIFI_OFF);
     startAccessPoint();
 
-    // Spustíme server pro konfiguraci pouze v režimu hotspotu
     server.on("/", [this]() {
       handleRoot();
     });
@@ -45,17 +41,16 @@ void APConfig::begin(const char* apSSID, const char* apPassword, int resetPin, i
     });
 
     server.begin();
-    Serial.println("Web server spuštěn");
+    Serial.println("Web server started");
     apMode = true;
     apLoop();
   } else {
-    Serial.println("Připojeno k WiFi!");
-    Serial.print("IP Adresa: ");
+    Serial.println("Connected to wifi");
+    Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
   }
 }
 
-// Hlavní smyčka pro obsluhu serveru
 void APConfig::apLoop() {
   while (true) {
     dnsServer.processNextRequest();
@@ -67,10 +62,11 @@ void APConfig::checkReset() {
   if (digitalRead(resetPin) == LOW) {
     delay(1000);
     if (digitalRead(resetPin) == LOW) {
-      Serial.println("Resetovací tlačítko stisknuto. Vymazání EEPROM a restart.");
+      Serial.print("Reset pin was grounded. ");
       clearEEPROM();
       delay(1000);
       digitalWrite(statusLED, HIGH);
+      Serial.println("EEPROM erased, waiting for reset pin to be released.");
       while (digitalRead(resetPin) == LOW) {
         delay(10);
       }
@@ -84,7 +80,6 @@ bool APConfig::isInAPMode() {
   return apMode;
 }
 
-// Metoda pro inicializaci hotspotu
 void APConfig::startAccessPoint() {
   WiFi.softAP(apSSID, apPassword);
   Serial.println("Access Point spuštěn");
@@ -94,7 +89,6 @@ void APConfig::startAccessPoint() {
   dnsServer.setTTL(0);
 }
 
-// Metoda pro obsluhu hlavní stránky konfigurace
 void APConfig::handleRoot() {
   server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   server.sendHeader("Pragma", "no-cache");
@@ -111,7 +105,6 @@ void APConfig::handleRoot() {
   server.send(200, "text/html", html);
 }
 
-// Metoda pro uložení konfigurace z formuláře do EEPROM
 void APConfig::handleSave() {
   String inputSSID = server.arg("ssid");
   String inputPassword = server.arg("password");
@@ -119,10 +112,10 @@ void APConfig::handleSave() {
   int inputServerPort = server.arg("port").toInt();
   String inputname = server.arg("name");
 
-  writeStringToEEPROM(SSID_ADDR, inputSSID);           // SSID na pozici 0
-  writeStringToEEPROM(PASS_ADDR, inputPassword);       // Heslo na pozici 32
-  writeStringToEEPROM(SERVER_IP_ADDR, inputServerIP);  // IP na pozici 64
-  writeUint16ToEEPROM(PORT_ADDR, inputServerPort);     // Port na pozici 79
+  writeStringToEEPROM(SSID_ADDR, inputSSID);         
+  writeStringToEEPROM(PASS_ADDR, inputPassword);     
+  writeStringToEEPROM(SERVER_IP_ADDR, inputServerIP);
+  writeUint16ToEEPROM(PORT_ADDR, inputServerPort);   
   writeStringToEEPROM(NAME_ADDR, inputname);
 
   EEPROM.commit();
@@ -132,7 +125,6 @@ void APConfig::handleSave() {
   ESP.restart();
 }
 
-// Metoda pro připojení k uložené WiFi
 bool APConfig::connectToSavedWiFi() {
   String savedSSID = readStringFromEEPROM(SSID_ADDR, SSID_SIZE);
   String savedPassword = readStringFromEEPROM(PASS_ADDR, PASS_SIZE);
@@ -155,7 +147,6 @@ bool APConfig::connectToSavedWiFi() {
   return false;
 }
 
-// Metoda pro čtení řetězce z EEPROM
 String APConfig::readStringFromEEPROM(int start, int length) {
   String value = "";
   for (int i = 0; i < length; i++) {
@@ -165,12 +156,11 @@ String APConfig::readStringFromEEPROM(int start, int length) {
   return value;
 }
 
-// Metoda pro zápis řetězce do EEPROM
 void APConfig::writeStringToEEPROM(int start, const String& value) {
   for (int i = 0; i < value.length(); i++) {
     EEPROM.write(start + i, value[i]);
   }
-  EEPROM.write(start + value.length(), 0);  // Null terminátor
+  EEPROM.write(start + value.length(), 0);  // Null terminator
 }
 
 uint16_t APConfig::readUint16FromEEPROM(int address) {
@@ -178,13 +168,11 @@ uint16_t APConfig::readUint16FromEEPROM(int address) {
   return value;
 }
 
-// Metoda pro zápis 16bitového čísla do EEPROM (pro port)
 void APConfig::writeUint16ToEEPROM(int address, uint16_t value) {
   EEPROM.write(address, value & 0xFF);
   EEPROM.write(address + 1, (value >> 8) & 0xFF);
 }
 
-// Metoda pro vymazání EEPROM
 void APConfig::clearEEPROM() {
   for (int i = 0; i < EEPROM_SIZE; i++) {
     EEPROM.write(i, 0);
@@ -192,13 +180,11 @@ void APConfig::clearEEPROM() {
   EEPROM.commit();
 }
 
-// Metoda pro vrácení IP serveru
 const char* APConfig::getServerIP() {
   return serverIP;
 }
 
 
-// Metoda pro vrácení portu serveru
 uint16_t APConfig::getServerPort() {
   return serverPort;
 }

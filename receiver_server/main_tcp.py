@@ -1,7 +1,7 @@
 import socket
 import time
 import threading
-from typing import TypeAlias, Iterable
+from typing import TypeAlias
 from colorama import Fore, Back
 
 import tcp_sensor_node_protocol as snp

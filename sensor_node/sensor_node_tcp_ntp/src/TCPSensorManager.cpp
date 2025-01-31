@@ -23,12 +23,12 @@ void TCPSensorManager::sendInfo() {
     Serial.println("Sending count and name");
     if (client.connected()) {
         // Create a temporary buffer to hold all data to send
-        uint8_t dataBuffer[name.length() + 3 + sizeof(uint64_t)];  // Adjust the size as needed
+        uint8_t dataBuffer[name.length() + 3 + sizeof(uint64_t)];
         uint16_t index = 0;
 
         dataBuffer[index++] = STX;
 
-        // Copy the name string length and its characters into the buffer
+        // Copy the name into the buffer
         for (uint16_t i = 0; i < name.length(); i++) {
             dataBuffer[index++] = name[i];
         }

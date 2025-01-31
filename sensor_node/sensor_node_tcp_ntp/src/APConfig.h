@@ -5,8 +5,8 @@
 #include <WebServer.h>
 #include <DNSServer.h>
 
-#define EEPROM_SIZE 121  // 32 for SSID, 32 for password, 15 pro IP, 2 for port, 40 for name/hostname
-#define DNS_PORT 53      // Port DNS
+#define EEPROM_SIZE 121 // Total used size
+#define DNS_PORT 53
 
 // EEPROM START ADDRESSES
 #define SSID_ADDR 0
@@ -23,11 +23,11 @@
 
 class APConfig {
 public:
-  void begin(const char* apSSID, const char* apPassword, int resetPin, int statusLED = 2);  // Spuštění konfigurace WiFi a serveru
-  void apLoop();                                                                            // Hlavní smyčka pro obsluhu AP
+  void begin(const char* apSSID, const char* apPassword, int resetPin, int statusLED = 2);
+  void apLoop();
 
-  const char* getServerIP();  // Získání IP adresy serveru
-  uint16_t getServerPort();   // Získání portu serveru
+  const char* getServerIP();
+  uint16_t getServerPort();
   String getName();
   bool isInAPMode();
 

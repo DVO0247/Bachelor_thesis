@@ -3,16 +3,9 @@ from django.contrib.auth.models import AbstractUser, UserManager
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from django.db import connection
 from django.db.models.signals import pre_delete, post_delete
 from django.dispatch import receiver
-from django.contrib.auth.models import UserManager, BaseUserManager
-from django.contrib.auth.hashers import make_password
-
-from pathlib import Path
-from datetime import datetime
-from functools import cache
-from collections import defaultdict
+from django.contrib.auth.models import UserManager
 
 from api_clients import influxdb, grafana
 
@@ -27,13 +20,13 @@ class User(AbstractUser):
     darkmode = models.BooleanField(default=True)
 
     def save(self, *args, **kwargs) -> None:
-        grafana.change_user_role(self.username, 'Admin' if self.is_staff else 'Viewer')
+        grafana.change_user_role(self.username, 'Admin' if self.is_staff else 'Editor')
         return super().save(*args, **kwargs)
 
     def set_password(self, raw_password):
         if raw_password:
             if not self.pk:
-                grafana.create_user(self.username, raw_password, 'Viewer')
+                grafana.create_user(self.username, raw_password, 'Editor')
             else:
                 grafana.change_password(self.username, raw_password)
 
@@ -171,32 +164,12 @@ class UserProject(models.Model):
     def save(self, *args, **kwargs):
         if self.is_owner:
             self.is_editor = True
-        '''
-        if not self.pk and not self.is_owner:
-            grafana.add_team_member(self.project.name, self.user.username)
-        '''
         super().save(*args, **kwargs)
         update_folder_members(self.project)
         
 
     def __str__(self) -> str:
         return f'{self.pk}, {self.user}, ({self.project})'
-
-'''
-def update_grafana_team_members(project:Project):
-    team_members:grafana.TeamMembers = defaultdict(list)
-    for user_project in UserProject.objects.filter(project=project):
-        print('user_project:', user_project.user.username)
-        team_members['admins' if user_project.is_editor else 'members'].append(user_project.user.username)
-    grafana.update_team_members(project.name, team_members)
-'''
-
-'''
-@receiver(pre_delete, sender=UserProject,)
-def delete_grafana_team_member(sender, instance:UserProject, **kwargs):
-    grafana.remove_team_member(instance.project.name, instance.user.username)
-    #update_grafana_team_members(instance.project)
-'''
 
 def update_folder_members(project:Project):
     user_projects = UserProject.objects.filter(project=project)
