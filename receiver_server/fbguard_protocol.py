@@ -20,14 +20,14 @@ class Header:
         packet_byte_size:int|None = None,
         header_checksum = None
         ) -> None:
-        self.sync = sync if sync else self.EXPECTED_SYNC #3
-        self.packet_type = packet_type if packet_type else 0x00 #1
+        self.sync = sync if sync else self.EXPECTED_SYNC #3B
+        self.packet_type = packet_type if packet_type else 0x00 #1B
         self.device_id = device_id #32 #null-terminated
         self.sensor_id = sensor_id #32 #null-terminated
-        self.packet_counter = packet_counter % 0x10000 #2
-        self.packet_readout_count = packet_readout_count #2
-        self.packet_byte_size = packet_byte_size if packet_byte_size else 80 + self.packet_readout_count*24 + 4 #4
-        self.header_checksum = header_checksum #4
+        self.packet_counter = packet_counter % 0x10000 #2B
+        self.packet_readout_count = packet_readout_count #2B
+        self.packet_byte_size = packet_byte_size if packet_byte_size else 80 + self.packet_readout_count*24 + 4 #4B
+        self.header_checksum = header_checksum #4B
         
     @classmethod
     def from_bytes(cls, header_bytes:bytes):
@@ -54,9 +54,9 @@ class Header:
 
 @dataclass
 class Readout:
-    timestamp_seconds:int #8
-    timestamp_microseconds:int #8
-    value:float #8
+    timestamp_seconds:int #8B
+    timestamp_microseconds:int #8B
+    value:float #8B
 
     SIZE:ClassVar = 24
         

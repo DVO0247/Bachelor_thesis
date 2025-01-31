@@ -22,6 +22,11 @@ TEMP_DIR_PATH = Path.cwd()/'control_center'/'temp'
 def index(request):
     return redirect('project_list')
 
+#region User
+def user_details(request):
+    ...
+#endrefion
+
 #region Project
 def project_list(request):
     context = {}
@@ -328,10 +333,13 @@ def delete(request, model_name, pk):
 
         obj = get_object_or_404(Model, pk=pk)
         obj.delete()
-        previous_url = request.POST.get('previous_url')
-        if not previous_url:
-            previous_url = 'index'
-        return redirect(previous_url)
+        if isinstance(obj, Project):
+            return redirect(index)
+        else:
+            previous_url = request.POST.get('previous_url')
+            if not previous_url:
+                previous_url = 'index'
+            return redirect(previous_url)
 
 def toggle_dark_mode(request):
     user = request.user
@@ -348,4 +356,5 @@ class CustomLoginView(LoginView):
         return super().form_invalid(form)
     
 def Grafana(request):
-    return HttpResponseRedirect('http://127.0.0.1:3000') # TODO: redirect to outside IP
+    return HttpResponseRedirect('http://127.0.0.1:3000/dashboards') # TODO: redirect to outside IP
+#endrefion

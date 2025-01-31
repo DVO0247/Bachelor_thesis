@@ -1,0 +1,95 @@
+#include "Sensor.h"
+
+Sensor::Sensor(double (*readCallback)(), uint32_t samplePeriodMillis, uint8_t samplesPerPacket)
+    : readCallback(readCallback),
+      samplePeriodMillis(samplePeriodMillis),
+      samplesPerPacket(samplesPerPacket),
+      lastWriteMillis(0) {
+    parameters_mutex = xSemaphoreCreateMutex();
+    if (parameters_mutex == NULL) {
+        Serial.println("Mutex creation failed for Sensor");
+    }
+}
+
+Sensor::~Sensor() {
+    if (parameters_mutex != NULL) {
+        vSemaphoreDelete(parameters_mutex);
+    }
+}
+
+byte* Sensor::getBuffer() {
+    return data.getBuffer();
+}
+
+uint32_t Sensor::getSamplePeriodMillis() {
+    if (xSemaphoreTake(parameters_mutex, portMAX_DELAY)) {
+        uint32_t _samplePeriodMillis = this->samplePeriodMillis;
+        xSemaphoreGive(parameters_mutex);
+        return _samplePeriodMillis;
+    } else {
+        Serial.println("Error: Failed to take parameters_mutex semaphore\n");
+        return 0;
+    }
+}
+void Sensor::setSamplePeriodMillis(uint32_t samplePeriodMillis) {
+    if (xSemaphoreTake(parameters_mutex, portMAX_DELAY)) {
+        this->samplePeriodMillis = samplePeriodMillis;
+        xSemaphoreGive(parameters_mutex);
+    }
+    else {
+        Serial.println("Error: Failed to take parameters_mutex semaphore\n");
+    }
+}
+
+// Getter for samples per packet
+uint8_t Sensor::getSamplesPerPacket() {
+    if (xSemaphoreTake(parameters_mutex, portMAX_DELAY)) {
+        uint8_t _samplesPerPacket = this->samplesPerPacket;
+        xSemaphoreGive(parameters_mutex);
+        return _samplesPerPacket;
+    } else {
+        Serial.println("Error: Failed to take parameters_mutex semaphore\n");
+        return 0;
+    }
+}
+
+// Setter for samples per packet
+void Sensor::setSamplesPerPacket(uint8_t samplesPerPacket) {
+    if (xSemaphoreTake(parameters_mutex, portMAX_DELAY)) {
+        this->samplesPerPacket = samplesPerPacket;
+        xSemaphoreGive(parameters_mutex);
+    }else {
+        Serial.println("Error: Failed to take parameters_mutex semaphore\n");
+    }
+}
+
+// Check if the sample count in the SensorData is at its maximum
+bool Sensor::isSampleCountMax() {
+    return data.getSampleCount() >= getSamplesPerPacket();
+}
+
+uint32_t Sensor::getLastWriteMillis() {
+    return lastWriteMillis;
+}
+
+void Sensor::setLastWriteMillis(uint32_t writeMillis) {
+    if (xSemaphoreTake(parameters_mutex, portMAX_DELAY)) {
+        this->lastWriteMillis = writeMillis;
+        xSemaphoreGive(parameters_mutex);
+    }else {
+        Serial.println("Error: Failed to take parameters_mutex semaphore\n");
+    }
+}
+
+bool Sensor::isWriteReady(uint32_t _millis) {
+    return _millis - getLastWriteMillis() >= getSamplePeriodMillis();
+}
+
+bool Sensor::isPacketReady() {
+    return data.getSampleCount() >= getSamplesPerPacket();
+}
+
+void Sensor::readAndWrite(uint32_t writeMillis) {
+    data.write(writeMillis, readCallback());
+    setLastWriteMillis(writeMillis);
+}

@@ -4,7 +4,7 @@ from requests.auth import HTTPBasicAuth
 from typing import Literal, TypeAlias
 from enum import Enum
 
-GRAFANA_URL = 'http://127.0.0.1:3000/'
+GRAFANA_URL = 'http://127.0.0.1:3000'
 USERNAME = 'admin'
 PASSWORD = 'wsad'
 AUTH = HTTPBasicAuth(USERNAME, PASSWORD)
@@ -103,25 +103,6 @@ def get_team_members(team_name:str):
         return response.json()
     return False
 
-'''
-def update_team_member(team_name:str, username:str, team_perm:TeamPermission):
-    team = get_team(team_name)
-    user = get_user(username)
-    if team and user:
-        url = f'{GRAFANA_URL}/api/teams/{team['id']}/members'
-        response = requests.get(url, auth=AUTH)
-        ...
-        if not is_response_ok(response, True):
-            return False
-        for member in response.json():
-            if member['userId'] == user['id']:
-                member['permission'] = 4 if team_perm == 'Admins' else 1
-                data = member
-                response = requests.post(url, auth=AUTH, json=data)
-                return response
-    return False
-'''
-
 def delete_team(team_name:str):
     team = get_team(team_name)
     if team:
@@ -161,11 +142,21 @@ def remove_team_member(team_name:str, username:str):
             return True
     return False
     
-def change_password(username:str, new_password:str) -> bool:
+def change_user_password(username:str, new_password:str) -> bool:
     user = get_user(username)
     if user:
         data = {'password': new_password}
         url = f"{GRAFANA_URL}/api/admin/users/{user['id']}/password"
+        response = requests.put(url, auth=AUTH, json=data)
+        if is_response_ok(response, True):
+            return True
+    return False
+
+def change_user_email(username:str, new_email:str) -> bool:
+    user = get_user(username)
+    if user:
+        data = {'email': new_email}
+        url = f"{GRAFANA_URL}/api/users/{user['id']}"
         response = requests.put(url, auth=AUTH, json=data)
         if is_response_ok(response, True):
             return True
@@ -245,30 +236,6 @@ def rename_folder(old_folder_name:str, new_folder_name:str):
         if is_response_ok(response, True):
             return True
     return False
-
-'''
-def update_folder_permissions(folder_name:str, permited_team_name:str):
-    folder = get_folder(folder_name)
-    team = get_team(permited_team_name)
-    if folder and team:
-        url = f'{GRAFANA_URL}/api/folders/{folder['uid']}/permissions'
-        permissions = {
-            "items": [
-                {
-                "role": "Admin",
-                "permission": 4
-                },
-                {
-                "teamId": team['id'],
-                "permission": 2
-                },
-            ]
-            }
-        response = requests.post(url, auth=AUTH, json=permissions)
-        if is_response_ok(response, True):
-            return True
-    return False
-'''
     
 if __name__ == '__main__':
     pass

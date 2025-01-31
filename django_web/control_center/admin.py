@@ -9,7 +9,7 @@ class CustomUserAdmin(UserAdmin):
     list_display = ('id',) + UserAdmin.list_display # type: ignore
     fieldsets = UserAdmin.fieldsets + (
         ('Custom Fields', {
-            'fields': tuple() # additional fields
+            'fields': ('darkmode',) # additional fields
         }),
     ) # type: ignore
     list_display=UserAdmin.list_display + tuple() # type: ignore # tuple() = additional fields

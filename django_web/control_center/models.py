@@ -9,6 +9,8 @@ from django.contrib.auth.models import UserManager
 
 from api_clients import influxdb, grafana
 
+PROJECT_AUTO_PURGE = True # If True, deletes InfluxDB bucket and Grafana folder when a project is removed.
+
 class SensorNodeTypes(models.IntegerChoices):
     ESP32 = 0, 'ESP32'
     FBGUARD = 1, 'FBGuard'
@@ -20,6 +22,7 @@ class User(AbstractUser):
     darkmode = models.BooleanField(default=True)
 
     def save(self, *args, **kwargs) -> None:
+        
         grafana.change_user_role(self.username, 'Admin' if self.is_staff else 'Editor')
         return super().save(*args, **kwargs)
 
@@ -28,7 +31,7 @@ class User(AbstractUser):
             if not self.pk:
                 grafana.create_user(self.username, raw_password, 'Editor')
             else:
-                grafana.change_password(self.username, raw_password)
+                grafana.change_user_password(self.username, raw_password)
 
         return super().set_password(raw_password)
 
@@ -185,9 +188,9 @@ def user_project_post_delete(sender, instance:UserProject, **kwargs):
 
 @receiver(pre_delete, sender=Project)
 def project_pre_delete(sender, instance:Project, **kwargs):
-    influxdb.delete_bucket(instance.name)
-    #grafana.delete_team(instance.name)
-    grafana.delete_folder(instance.name)
+    if PROJECT_AUTO_PURGE:
+        influxdb.delete_bucket(instance.name)
+        grafana.delete_folder(instance.name)
 
 def clean_name(name:str) -> str:
     return name.replace('"', '')

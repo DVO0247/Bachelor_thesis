@@ -3,6 +3,7 @@ import time
 import threading
 from typing import TypeAlias
 from colorama import Fore, Back
+from abc import ABC, abstractmethod
 
 import tcp_sensor_node_protocol as snp
 import fbguard_protocol as fbg
@@ -47,23 +48,42 @@ class FreqCounter:
             self.count += count
         return self
 
-
-class Client:
+# Abstract class
+class Client(ABC):
     def __init__(self, server: 'Server', c: socket.socket, addr: Addr) -> None:
         self.server = server
         self.c = c
         self.addr = addr
+        self.run = True
+        self._name:str
+    
+    @property
+    def name(self):
+        return self._name
+    
+    # After assigning a name, stops an existing client with the same name
+    @name.setter
+    def name(self, value):
+        self._name = value
+        self.server.stop_client_if_exists(self._name)
 
+    @abstractmethod
+    def serve(self):
+        pass
 
-class SensorNode(Client):
+    def stop(self):
+        self.run = False
+
+    def __str__(self) -> str:
+        return f'({self.__class__.__name__}, {self.name}, {self.addr[0]}:{self.addr[1]})'
+
+class ESP32(Client):
     ADDITIONAL_TIMEOUT = 5
-
     def __init__(self, server: 'Server', c: socket.socket, addr: Addr, snp_info: snp.Info) -> None:
         super().__init__(server, c, addr)
         self.name = snp_info.name
         self.sensor_count = snp_info.sensor_count
         self.unix_time_at_zero = snp_info.unix_time_at_zero
-        self.run = True
         self.id: int
         self.sensor_params_list: list[ccq.NamedSensorParams]
         self.expected_sizes: tuple[int, ...]
@@ -102,8 +122,12 @@ class SensorNode(Client):
                 recv_buffer = bytes()
                 last_sensor_params_update = time.time()
                 while self.run:
-                    recv_buffer += self.c.recv(RECV_SIZE)
-                    sensor_samples_list, recv_buffer = snp.SensorSamples.list_from_bytes_with_remainder( recv_buffer, self.expected_sizes)
+                    try:
+                        recv_buffer += self.c.recv(RECV_SIZE)
+                    except socket.timeout:
+                        print(f'{self} - timed out')
+                        return
+                    sensor_samples_list, recv_buffer = snp.SensorSamples.list_from_bytes_with_remainder(recv_buffer, self.expected_sizes)
                     # print(sensor_samples_list)
                     for project_name, measurement_id in ccq.get_running_projects(self.id).items():
                         points = [
@@ -124,6 +148,7 @@ class SensorNode(Client):
                     # checks if params updated
                     if time.time() - last_sensor_params_update >= SENSOR_PARAMS_UPDATE_PERIOD:
                         if ccq.get_params_for_sensors(self.id) != self.sensor_params_list:
+                            print()
                             self.stop()
                         else:
                             last_sensor_params_update = time.time()
@@ -131,11 +156,7 @@ class SensorNode(Client):
         finally:
             self.run = False
             self.server.remove_client(self)
-            print(f'{self.addr} - {self.name} disconnected')
-
-    def stop(self):
-        self.run = False
-
+            print(f'{self} disconnected')
 
 class Server:
     def __init__(self, host: str, port: int) -> None:
@@ -143,6 +164,13 @@ class Server:
         self.port = port
         self._clients: list['Client'] = []
         self._clients_lock = threading.Lock()
+
+    def stop_client_if_exists(self, client_name:str):
+        with self._clients_lock:
+            for client in self._clients:
+                if client_name == client.name:
+                    print(f'{client} - this name already exists')
+                    client.stop()
 
     def add_client(self, client: Client):
         with self._clients_lock:
@@ -162,9 +190,8 @@ class Server:
             while True:
                 try:
                     c, addr = s.accept()
-                    print(f'{addr} connected', end=' ')
-                    recv_buffer = bytes() # TODO: remove
-                    recv_buffer += c.recv(RECV_SIZE)
+                    print(f'({addr[0]}:{addr[1]}) connected', end=' ')
+                    recv_buffer = c.recv(RECV_SIZE)
                 except socket.timeout:
                     continue
                 if recv_buffer:
@@ -173,12 +200,14 @@ class Server:
                             recv_buffer)
                         if message:
                             print(f'as {message.name}')
-                            self.add_client(SensorNode(self, c, addr, message))
+                            self.add_client(ESP32(self, c, addr, message))
+
                     elif recv_buffer[:3] == fbg.Header.EXPECTED_SYNC:
-                        message = fbg.Message.from_bytes(recv_buffer)
+                        #message = fbg.Message.from_bytes(recv_buffer)
                         raise NotImplementedError
+
                     else:
-                        print(f'unknown packet:\n{recv_buffer}')
+                        print(f'Unknown packet:\n{recv_buffer}')
                         c.close()
 
 
