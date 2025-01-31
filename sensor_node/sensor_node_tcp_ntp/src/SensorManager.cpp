@@ -39,12 +39,11 @@ uint8_t SensorManager::getSensorCount() {
     return sensorCount;
 }
 
-
 Sensor* SensorManager::addSensor(double (*callback)()) {
     if (sensorCount < MAX_SENSOR_COUNT) {
         sensors[sensorCount] = new Sensor(callback, UINT32_MAX, 1);
         sensorCount++;
-        return sensors[sensorCount];
+        return sensors[sensorCount - 1];
     } else {
         Serial.println("SensorManager: Maximum sensor count reached.");
         return nullptr;

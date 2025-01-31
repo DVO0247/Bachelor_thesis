@@ -17,8 +17,9 @@ RECV_SIZE = 4096
 # MAX_INFO_FRAGMENTATION = 5
 SENSOR_PARAMS_UPDATE_PERIOD = 1
 
-Addr: TypeAlias = tuple[str, int]  # (ip, port)
+MAX_UNIT32 = 0xFFFFFFFF
 
+Addr: TypeAlias = tuple[str, int]  # (ip, port)
 
 class FreqCounter:
     def __init__(self, measure_period) -> None:
@@ -91,6 +92,8 @@ class ESP32(Client):
         thread.start()
 
     def serve(self):
+        ready_to_time_overflow = False
+        timestamp_offset = 0
         try:
             with self.c:
                 id = ccq.get_sensor_node_id_or_create(
@@ -129,14 +132,23 @@ class ESP32(Client):
                         return
                     sensor_samples_list, recv_buffer = snp.SensorSamples.list_from_bytes_with_remainder(recv_buffer, self.expected_sizes)
                     # print(sensor_samples_list)
+
+                    # Check if ESP32 time overflowed
+                    current_timestamp = sensor_samples_list[0].samples[0].timestamp
+                    if not ready_to_time_overflow and current_timestamp >= MAX_UNIT32//2:
+                        ready_to_time_overflow = True
+                    elif ready_to_time_overflow and current_timestamp < (MAX_UNIT32//2)-1000: # 1000 - safety offset 
+                        ready_to_time_overflow = False
+                        timestamp_offset += MAX_UNIT32
+                        print(f'{self} - time overflow')
+                    
                     for project_name, measurement_id in ccq.get_running_projects(self.id).items():
                         points = [
                             influxdb.create_point(
                                 measurement_id,
                                 self.name,
                                 self.sensor_params_list[sensor_samples.sensor_id].name,
-                                sample.timestamp_to_unix(
-                                    self.unix_time_at_zero),
+                                sample.timestamp_to_unix(self.unix_time_at_zero)+timestamp_offset,
                                 sample.value,
                                 write_precision='ms'
                             )
@@ -148,7 +160,7 @@ class ESP32(Client):
                     # checks if params updated
                     if time.time() - last_sensor_params_update >= SENSOR_PARAMS_UPDATE_PERIOD:
                         if ccq.get_params_for_sensors(self.id) != self.sensor_params_list:
-                            print()
+                            print(f'{self} - params changed - restarting {self.__class__.__name__}')
                             self.stop()
                         else:
                             last_sensor_params_update = time.time()
@@ -156,7 +168,7 @@ class ESP32(Client):
         finally:
             self.run = False
             self.server.remove_client(self)
-            print(f'{self} disconnected')
+            print(f'{self} - disconnected')
 
 class Server:
     def __init__(self, host: str, port: int) -> None:

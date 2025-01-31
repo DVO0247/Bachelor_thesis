@@ -4,7 +4,7 @@
 #include "Sensor.h"
 
 #define MAX_SENSOR_COUNT 256
-#define QUEUE_SIZE_PER_SENSOR 5
+#define QUEUE_SIZE_PER_SENSOR 10
 
 struct DataToSend {
     uint8_t sensorId;              // ID senzoru
