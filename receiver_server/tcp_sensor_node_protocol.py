@@ -45,11 +45,11 @@ class Sample:
         value: float = struct.unpack('<d', sample_bytes[4:12])[0]
         return cls(timestamp, value)
 
-    def timestamp_to_iso(self, unix_time_at_zero: int) -> str:
-        return datetime.fromtimestamp((self.timestamp + unix_time_at_zero)/1000).isoformat(' ', 'milliseconds')
+    def timestamp_to_iso(self, unix_time_offset: int) -> str:
+        return datetime.fromtimestamp((self.timestamp + unix_time_offset)/1000).isoformat(' ', 'milliseconds')
 
-    def timestamp_to_unix(self, unix_time_at_zero: int) -> int:
-        return unix_time_at_zero + self.timestamp
+    def timestamp_to_unix(self, unix_time_offset: int) -> int:
+        return unix_time_offset + self.timestamp
 
 
 @dataclass
@@ -83,10 +83,10 @@ class SensorSamples:
 class Info:
     name: str
     sensor_count: int
-    unix_time_at_zero: int
+    unix_time_offset: int
 
-    UNIX_TIME_AT_ZERO_SIZE: ClassVar = 8
-    SIZE_WITHOUT_NAME: ClassVar = 3 + UNIX_TIME_AT_ZERO_SIZE
+    UNIX_TIME_OFFSET_SIZE: ClassVar = 8
+    SIZE_WITHOUT_NAME: ClassVar = 3 + UNIX_TIME_OFFSET_SIZE
 
     @classmethod
     def from_bytes(cls, _bytes: bytes):
@@ -100,9 +100,9 @@ class Info:
         index = etx_index + 1
         sensor_count = _bytes[index]
         index += 1
-        unix_time_at_zero = int.from_bytes(
-            _bytes[index:index+cls.UNIX_TIME_AT_ZERO_SIZE], byteorder='little')
-        return cls(name, sensor_count, unix_time_at_zero)
+        unix_time_offset = int.from_bytes(
+            _bytes[index:index+cls.UNIX_TIME_OFFSET_SIZE], byteorder='little')
+        return cls(name, sensor_count, unix_time_offset)
 
     @classmethod
     def from_bytes_with_remainder(cls, _bytes: bytes) -> tuple[Self|None, bytes]:

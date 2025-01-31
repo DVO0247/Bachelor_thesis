@@ -5,5 +5,8 @@
     "python.analysis.typeCheckingMode": "standard",
     "python.analysis.diagnosticSeverityOverrides": {
         "reportPrivateImportUsage":"none" 
-      }
+    },
+    "files.associations": {
+        "ctime": "cpp"
+    }
 }

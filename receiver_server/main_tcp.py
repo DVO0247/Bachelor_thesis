@@ -84,7 +84,7 @@ class ESP32(Client):
         super().__init__(server, c, addr)
         self.name = snp_info.name
         self.sensor_count = snp_info.sensor_count
-        self.unix_time_at_zero = snp_info.unix_time_at_zero
+        self.unix_time_offset = snp_info.unix_time_offset
         self.id: int
         self.sensor_params_list: list[ccq.NamedSensorParams]
         self.expected_sizes: tuple[int, ...]
@@ -148,7 +148,7 @@ class ESP32(Client):
                                 measurement_id,
                                 self.name,
                                 self.sensor_params_list[sensor_samples.sensor_id].name,
-                                sample.timestamp_to_unix(self.unix_time_at_zero)+timestamp_offset,
+                                sample.timestamp_to_unix(self.unix_time_offset)+timestamp_offset,
                                 sample.value,
                                 write_precision='ms'
                             )

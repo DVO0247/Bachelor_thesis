@@ -5,7 +5,7 @@
 
 #include "SensorData.h"
 #include "SensorManager.h"
-#include "UnixTimeAtZero.h"
+#include "UnixTimeOffset.h"
 
 #define STX 0x02
 #define ETX 0x03
@@ -22,7 +22,7 @@ bool initialized;
     uint16_t serverPort;
     String name;
     WiFiClient client;
-    uint64_t unixTimeAtZero;
+    uint64_t unixTimeOffset;
     void sendInfo();
     void receiveParams();
     void sendAndClearSamples();

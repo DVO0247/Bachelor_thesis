@@ -36,7 +36,7 @@ void TCPSensorManager::sendInfo() {
         // Add the sensor count
         dataBuffer[index++] = getSensorCount();
 
-        memcpy(&dataBuffer[index], &unixTimeAtZero, sizeof(uint64_t));
+        memcpy(&dataBuffer[index], &unixTimeOffset, sizeof(uint64_t));
         index += sizeof(uint64_t);
         client.write(dataBuffer, index);
     }
@@ -113,7 +113,7 @@ void TCPSensorManager::begin(const char* serverIP, uint16_t serverPort, String n
     this->serverIP = serverIP;
     this->serverPort = serverPort;
     this->name = name;
-    unixTimeAtZero = getUnixTimeAtZero(serverIP, DEFAULT_NTP_SERVER_2, DEFAULT_NTP_SERVER_3);
+    unixTimeOffset = getUnixTimeOffset(serverIP, DEFAULT_NTP_SERVER_2, DEFAULT_NTP_SERVER_3);
     initialized_mutex = xSemaphoreCreateMutex();
     if (initialized_mutex == NULL) {
         Serial.println("Mutex creation failed for SensorManager");

@@ -1,6 +1,6 @@
-#include "UnixTimeAtZero.h"
+#include "UnixTimeOffset.h"
 
-uint64_t getUnixTimeAtZero(const char* ntpServer1, const char* ntpServer2, const char* ntpServer3) {
+uint64_t getUnixTimeOffset(const char* ntpServer1, const char* ntpServer2, const char* ntpServer3) {
   configTime(0, 3600, ntpServer1, ntpServer2, ntpServer3);
 
   // Wait till time is synced
