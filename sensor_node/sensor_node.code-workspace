@@ -1,6 +1,7 @@
 {
 	"folders": [
 		{
+			"name": "sensor_node_tcp_ntp",
 			"path": "sensor_node_tcp_ntp"
 		},
 		{
@@ -16,7 +17,17 @@
 			"functional": "cpp",
 			"tuple": "cpp",
 			"type_traits": "cpp",
-			"utility": "cpp"
+			"utility": "cpp",
+			"*.tcc": "cpp",
+			"deque": "cpp",
+			"string": "cpp",
+			"unordered_map": "cpp",
+			"unordered_set": "cpp",
+			"vector": "cpp",
+			"string_view": "cpp",
+			"memory": "cpp",
+			"random": "cpp",
+			"initializer_list": "cpp"
 		}
 	}
 }

@@ -57,11 +57,10 @@ def get_init_state(sensor_node_id:int) -> bool|None:
     
 def get_params_for_sensors(sensor_node_id:int) -> list[NamedSensorParams]:
     sensors = Sensor.objects.filter(sensor_node__pk=sensor_node_id, sensor_node__initialized=True)
-    return [NamedSensorParams(sensor.sample_period, sensor.samples_per_packet, sensor.name) for sensor in sensors] # type: ignore
+    return [NamedSensorParams(sensor.sample_period, sensor.samples_per_message, sensor.name) for sensor in sensors] # type: ignore
         
 
 if __name__ == '__main__':
-    sensor_node = SensorNode.objects.first()
-    print(sensor_node.manage_sensors)
+    pass
 
 # TODO: LOG file with only once warnings

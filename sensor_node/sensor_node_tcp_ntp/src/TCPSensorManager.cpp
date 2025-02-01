@@ -53,19 +53,19 @@ void TCPSensorManager::receiveParams() {
     for (int i = 0; i < getSensorCount(); i++) {
         uint32_t samplePeriodMs;
         memcpy(&samplePeriodMs, &received_bytes[i * SERVER_REQUEST_SIZE_PER_SENSOR], sizeof(uint32_t));
-        uint8_t samplesPerPacket = received_bytes[i * SERVER_REQUEST_SIZE_PER_SENSOR + sizeof(uint32_t)];
+        uint8_t samplesPerMessage = received_bytes[i * SERVER_REQUEST_SIZE_PER_SENSOR + sizeof(uint32_t)];
         Serial.println("Set params received");
         Serial.printf("Sensor id: %d\n", i);
-        Serial.printf("Sample Period: %d ms\n", samplePeriodMs);
+        Serial.printf("Sample period: %d ms\n", samplePeriodMs);
         
-        if (samplesPerPacket > MAX_SAMPLES){
-            Serial.printf("Max Samples per packet exceted! - %d > %d (received > max)\n", samplesPerPacket, MAX_SAMPLES);
-            samplesPerPacket = MAX_SAMPLES;
+        if (samplesPerMessage > MAX_SAMPLES){
+            Serial.printf("Max samples per message exceted! - %d > %d (received > max)\n", samplesPerMessage, MAX_SAMPLES);
+            samplesPerMessage = MAX_SAMPLES;
         }
-        Serial.printf("Samples per packet: %d\n", samplesPerPacket);
+        Serial.printf("Samples per message: %d\n", samplesPerMessage);
 
         sensors[i]->setSamplePeriodMillis(samplePeriodMs);
-        sensors[i]->setSamplesPerPacket(samplesPerPacket);
+        sensors[i]->setSamplesPerMessage(samplesPerMessage);
     }
     set_initialized(true);
 }
@@ -122,6 +122,10 @@ void TCPSensorManager::begin(const char* serverIP, uint16_t serverPort, String n
     this->preSendBufferQueue = xQueueCreate(getSensorCount() * QUEUE_SIZE_PER_SENSOR, sizeof(DataToSend));
     xTaskCreatePinnedToCore(serverManagementTask, "ServerManagement", 10000, this, 1, NULL, 1);
     // client.setNoDelay(true);
+}
+
+void TCPSensorManager::begin(APConfig* apConfig, const char* ntpServer2, const char* ntpServer3) {
+    begin(apConfig->getServerIP(), apConfig->getServerPort(), apConfig->getName(), ntpServer2, ntpServer3);
 }
 
 void TCPSensorManager::processData() {

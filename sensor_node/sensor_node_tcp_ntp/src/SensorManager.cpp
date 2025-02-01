@@ -5,7 +5,7 @@ void SensorManager::doReadAndWrites() {
         int64_t _millis = millis();
         if (sensors[i]->isWriteReady(_millis)) {
             sensors[i]->readAndWrite(_millis);
-            if (sensors[i]->isPacketReady()) {
+            if (sensors[i]->isMessageReady()) {
                 DataToSend dataToSend;
                 dataToSend.sensorId = i;
                 dataToSend.sampleCount = sensors[i]->data.getSampleCount();

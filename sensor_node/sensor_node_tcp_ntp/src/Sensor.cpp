@@ -1,9 +1,9 @@
 #include "Sensor.h"
 
-Sensor::Sensor(double (*readCallback)(), uint32_t samplePeriodMillis, uint8_t samplesPerPacket)
+Sensor::Sensor(double (*readCallback)(), uint32_t samplePeriodMillis, uint8_t samplesPerMessage)
     : readCallback(readCallback),
       samplePeriodMillis(samplePeriodMillis),
-      samplesPerPacket(samplesPerPacket),
+      samplesPerMessage(samplesPerMessage),
       lastWriteMillis(0) {
     parameters_mutex = xSemaphoreCreateMutex();
     if (parameters_mutex == NULL) {
@@ -41,22 +41,22 @@ void Sensor::setSamplePeriodMillis(uint32_t samplePeriodMillis) {
     }
 }
 
-// Getter for samples per packet
-uint8_t Sensor::getSamplesPerPacket() {
+// Getter for samples per message
+uint8_t Sensor::getSamplesPerMessage() {
     if (xSemaphoreTake(parameters_mutex, portMAX_DELAY)) {
-        uint8_t _samplesPerPacket = this->samplesPerPacket;
+        uint8_t _samplesPerMessage = this->samplesPerMessage;
         xSemaphoreGive(parameters_mutex);
-        return _samplesPerPacket;
+        return _samplesPerMessage;
     } else {
         Serial.println("Error: Failed to take parameters_mutex semaphore\n");
         return 0;
     }
 }
 
-// Setter for samples per packet
-void Sensor::setSamplesPerPacket(uint8_t samplesPerPacket) {
+// Setter for samples per message
+void Sensor::setSamplesPerMessage(uint8_t samplesPerMessage) {
     if (xSemaphoreTake(parameters_mutex, portMAX_DELAY)) {
-        this->samplesPerPacket = samplesPerPacket;
+        this->samplesPerMessage = samplesPerMessage;
         xSemaphoreGive(parameters_mutex);
     }else {
         Serial.println("Error: Failed to take parameters_mutex semaphore\n");
@@ -65,7 +65,7 @@ void Sensor::setSamplesPerPacket(uint8_t samplesPerPacket) {
 
 // Check if the sample count in the SensorData is at its maximum
 bool Sensor::isSampleCountMax() {
-    return data.getSampleCount() >= getSamplesPerPacket();
+    return data.getSampleCount() >= getSamplesPerMessage();
 }
 
 uint32_t Sensor::getLastWriteMillis() {
@@ -85,8 +85,8 @@ bool Sensor::isWriteReady(uint32_t _millis) {
     return _millis - getLastWriteMillis() >= getSamplePeriodMillis();
 }
 
-bool Sensor::isPacketReady() {
-    return data.getSampleCount() >= getSamplesPerPacket();
+bool Sensor::isMessageReady() {
+    return data.getSampleCount() >= getSamplesPerMessage();
 }
 
 void Sensor::readAndWrite(uint32_t writeMillis) {

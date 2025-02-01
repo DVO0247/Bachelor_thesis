@@ -144,7 +144,7 @@ class Sensor(models.Model):
     id_in_sensor_node = models.PositiveIntegerField(null=False, blank=False)
     name = models.CharField(max_length=32, null=True, blank=False)
     sample_period = models.PositiveIntegerField(null=True, blank=False)
-    samples_per_packet = models.PositiveIntegerField(null=True, blank=False) # TODO: add validators
+    samples_per_message = models.PositiveIntegerField(null=True, blank=False) # TODO: add validators
 
     class Meta:
         unique_together = ['sensor_node', 'id_in_sensor_node']
@@ -152,12 +152,12 @@ class Sensor(models.Model):
     def save(self, *args, **kwargs):
         if self.name:
             self.name = clean_name(self.name)
-        samples_per_packet_range = (1,89)
-        if self.samples_per_packet:
-            if self.samples_per_packet < samples_per_packet_range[0]:
-                self.samples_per_packet = samples_per_packet_range[0]
-            elif self.samples_per_packet > samples_per_packet_range[1]:
-                self.samples_per_packet = samples_per_packet_range[1]
+        samples_per_message_range = (1,89)
+        if self.samples_per_message:
+            if self.samples_per_message < samples_per_message_range[0]:
+                self.samples_per_message = samples_per_message_range[0]
+            elif self.samples_per_message > samples_per_message_range[1]:
+                self.samples_per_message = samples_per_message_range[1]
                 
         return super().save(*args, **kwargs)
 
@@ -184,6 +184,7 @@ class UserProject(models.Model):
 
     def __str__(self) -> str:
         return f'{self.pk}, {self.user}, ({self.project})'
+
 
 def update_folder_members(project:Project):
     user_projects = UserProject.objects.filter(project=project)

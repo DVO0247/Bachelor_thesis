@@ -18,7 +18,7 @@ void setup() {
   Serial.begin(115200);
   apConfig.begin(apSSID, apPassword, resetPin);
   sensorManager.addSensor(queue_len);
-  sensorManager.begin(apConfig.getServerIP(), apConfig.getServerPort(), apConfig.getName());
+  sensorManager.begin(&apConfig);
 }
 
 void loop() {

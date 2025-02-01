@@ -115,12 +115,12 @@ class ESP32(Client):
 
                 self.c.settimeout(
                     max(
-                        (param.sample_period_ms/1000)*param.samples_per_packet +
+                        (param.sample_period_ms/1000)*param.samples_per_message +
                         self.ADDITIONAL_TIMEOUT for param in self.sensor_params_list
                     )
                 )
                 self.expected_sizes = tuple(
-                    snp.SensorSamples.get_expected_size(param.samples_per_packet)
+                    snp.SensorSamples.get_expected_size(param.samples_per_message)
                     for param in self.sensor_params_list
                 )
 

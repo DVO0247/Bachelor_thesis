@@ -1,11 +1,12 @@
 #pragma once
-#include "esp32-hal.h"
 #include <Arduino.h>
-#include "WiFiClient.h"
 
+#include "APConfig.h"
 #include "SensorData.h"
 #include "SensorManager.h"
 #include "UnixTimeOffset.h"
+#include "WiFiClient.h"
+#include "esp32-hal.h"
 
 #define STX 0x02
 #define ETX 0x03
@@ -15,8 +16,9 @@
 #define DEFAULT_NTP_SERVER_3 "tik.cesnet.cz"
 
 class TCPSensorManager : public SensorManager {
-  private:
-bool initialized;
+   private:
+    bool initialized;
+
    public:
     const char* serverIP;
     uint16_t serverPort;
@@ -26,18 +28,23 @@ bool initialized;
     void sendInfo();
     void receiveParams();
     void sendAndClearSamples();
-    
+
     bool is_initialized();
     void set_initialized(bool state);
     SemaphoreHandle_t initialized_mutex;
 
     TCPSensorManager();
     void begin(
-      const char* serverIP,
-      uint16_t serverPort,
-      String name,
-      const char* ntpServer2 = DEFAULT_NTP_SERVER_2,
-      const char* ntpServer3 = DEFAULT_NTP_SERVER_3
-      );
+        const char* serverIP,
+        uint16_t serverPort,
+        String name,
+        const char* ntpServer2 = DEFAULT_NTP_SERVER_2,
+        const char* ntpServer3 = DEFAULT_NTP_SERVER_3
+        );
+    void begin(
+        APConfig* apConfig,
+        const char* ntpServer2 = DEFAULT_NTP_SERVER_2,
+        const char* ntpServer3 = DEFAULT_NTP_SERVER_3
+        );
     void processData();
 };

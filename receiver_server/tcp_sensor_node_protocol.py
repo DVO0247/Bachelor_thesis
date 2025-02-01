@@ -7,13 +7,13 @@ STX = 0x02  # ASCII START OF TEXT
 ETX = 0x03  # ASCII END OF TEXT
 
 ENC = 'ascii'
-MAX_SAMPLES_PER_PACKET = 89
+MAX_SAMPLES_PER_MESSAGE = 89
 
 
 @dataclass
 class SensorParams:
     sample_period_ms: int
-    samples_per_packet: int
+    samples_per_message: int
 
 
 @dataclass
@@ -22,12 +22,12 @@ class SetSensorParams:
 
     def __post_init__(self):
         for params in self.sensor_params_list:
-            if params.samples_per_packet > MAX_SAMPLES_PER_PACKET:
-                raise Exception(F'Max samples per packet is {MAX_SAMPLES_PER_PACKET}')
+            if params.samples_per_message > MAX_SAMPLES_PER_MESSAGE:
+                raise Exception(F'Max samples per message is {MAX_SAMPLES_PER_MESSAGE}')
 
     def to_bytes(self) -> bytes:
         return b''.join(
-            struct.pack('<iB', param.sample_period_ms, param.samples_per_packet)
+            struct.pack('<iB', param.sample_period_ms, param.samples_per_message)
             for param in self.sensor_params_list
         )  # little endian 4B 1B
 
