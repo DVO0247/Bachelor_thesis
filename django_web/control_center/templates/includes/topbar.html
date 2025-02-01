@@ -1,21 +1,32 @@
 {% load static %}
 <div class="topbar d-flex align-items-center justify-content-between">
-
-    <!-- menu toggle button -->
+    <!-- Tlačítko pro vysunutí menu na menších obrazovkách -->
     <span class="menu-toggle" onclick="toggleSidebar()">&#9776;</span>
     <h4 class="me-1">Control Center</h4>
     <div style="border-left: 2px solid #ccc; height: 37px; margin: 0 20px;"></div>
-    
-    <!-- Right elements -->
+
+    <!-- Tlačítka zarovnaná vlevo -->
+
+    <!-- Tlačítka zarovnaná vpravo -->
     <div class="ms-auto ms-1 d-flex align-items-center">
-        <img id="themeToggle" src="{% static 'control_center/images/moon.svg' %}" alt="Přepnout téma" width="30" height="30"
-            class="me-2">
+        <img id="themeToggle" src="{% static 'control_center/images/moon.svg' %}" alt="Přepnout téma" width="30"
+            height="30" class="me-2">
         <div style="border-left: 2px solid #ccc; height: 37px; margin: 0 2px;"></div>
 
-        <h3 class="mb-0 me-3 ms-2">{{ user }}</h3>
-        <form action="{% url 'logout' %}" method="post" style="display:inline;">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-warning">Logout</button>
-        </form>
+        <div class="dropdown">
+            <h3 class="mb-0 me-3 ms-2 dropdown-toggle" id="userDropdown" role="button" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                {{ user }}
+            </h3>
+            <ul class="dropdown-menu" aria-labelledby="userDropdown">
+                <li><a class="dropdown-item" href="{% url 'password_change' %}">Change password</a></li>
+                <li>
+                    <form action="{% url 'logout' %}" method="post" class="m-0">
+                        {% csrf_token %}
+                        <button type="submit" class="dropdown-item text-danger">Logout</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
     </div>
 </div>

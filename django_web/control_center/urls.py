@@ -47,4 +47,5 @@ urlpatterns = [
     path('login/', views.CustomLoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('grafana/', views.Grafana, name='grafana'),
+    path('password_change/', views.CustomPasswordChangeView.as_view(), name='password_change'),
 ]

@@ -5,10 +5,12 @@ from django.core.files.temp import NamedTemporaryFile
 from django.conf import settings
 from django.forms.models import model_to_dict
 from django.forms import modelformset_factory
-from django.contrib.auth.views import LoginView
+from django.contrib.auth.views import LoginView, PasswordChangeView
 from django.contrib import messages
 from django.apps import apps
 from django.utils import timezone
+from django.urls import reverse_lazy
+
 
 from pathlib import Path
 
@@ -361,7 +363,11 @@ class CustomLoginView(LoginView):
     def form_invalid(self, form):
         messages.error(self.request, "Wrong password or username.")
         return super().form_invalid(form)
-    
+
+class CustomPasswordChangeView(PasswordChangeView):
+    template_name = 'password_change.html'
+    success_url = reverse_lazy('index')
+
 def Grafana(request):
     return HttpResponseRedirect('http://127.0.0.1:3000/dashboards') # TODO: redirect to outside IP
 #endrefion
