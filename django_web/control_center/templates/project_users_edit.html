@@ -20,7 +20,7 @@
         <tbody>
             {% for useri, form in user_forms.items %}
             <tr>
-                <td>{{ forloop.counter }}</td>
+                <td>{{ useri.pk }}</td>
                 {% if useri == user %}
                 <td>{{ useri.get_full_name|default:useri.username }} (you)</td>
                 {% else %}

@@ -7,6 +7,7 @@
 #include "UnixTimeOffset.h"
 #include "WiFiClient.h"
 #include "esp32-hal.h"
+#include <WiFi.h>
 
 #define STX 0x02
 #define ETX 0x03

@@ -134,7 +134,6 @@ def project_users_edit(request, project_pk):
     user_forms = {}
 
     if request.method == 'POST':
-        print(request.POST)  # Přidejte tento výstup pro kontrolu POST dat
         
         for user in users:
             form = UserProjectForm(request.POST, prefix=str(user.pk))
@@ -152,7 +151,6 @@ def project_users_edit(request, project_pk):
                 
                 is_member = form.cleaned_data.get('is_member', False)
                 is_editor = form.cleaned_data.get('is_editor', False)
-                print(user, is_member, is_editor)
 
                 user_project.is_editor = is_editor
 
@@ -192,6 +190,8 @@ def project_leave(request, project_pk):
     user_project.delete()
     return redirect('project_list')
 
+def reload_active_projects_panel(request):
+    return render(request, r'includes/active_projects_panel.html')
 #endregion
 
 #region Measurement
@@ -256,7 +256,7 @@ def start_measurement(request, project_pk):
         project.start_measurement()
         from_panel = request.POST.get('from_panel', False)
         if from_panel:
-            return reload_start_stop_panel(request)
+            return reload_active_projects_panel(request)
         else:
             return HttpResponseRedirect(request.META['HTTP_REFERER'])
     
@@ -266,12 +266,14 @@ def stop_measurement(request, project_pk):
         project.stop_measurement()
         from_panel = request.POST.get('from_panel', False)
         if from_panel:
-            return reload_start_stop_panel(request)
+            return reload_active_projects_panel(request)
         else:
             return HttpResponseRedirect(request.META['HTTP_REFERER'])
-    
-def reload_start_stop_panel(request):
-    return render(request, 'includes\\start_stop_panel.html')
+
+def reload_start_stop_panel(request, project_pk):
+    project = get_object_or_404(Project, pk=project_pk)
+    context = {'project':project}
+    return render(request, r'includes/start_stop_panel.html', context)
 #endregion
 
 #region SensorNode
@@ -279,6 +281,11 @@ def sensor_node_list(request):
     context = {}
     context['sensor_nodes'] = SensorNode.objects.all()
     return render(request, 'sensor_node_list.html', context)
+
+def reload_sensor_nodes_table(request):
+    context = {}
+    context['sensor_nodes'] = SensorNode.objects.all()
+    return render(request, r'includes/sensor_nodes_table.html', context)
 
 def sensor_node_edit(request, sensor_node_pk=None):
     context = {}

@@ -1,0 +1,86 @@
+<div id="sensor_nodes_table" hx-get="{% url 'reload_sensor_nodes_table' %}" hx-trigger="every 3s" hx-swap="outerHTML">
+    <table class="table table-striped table-bordered table-generic">
+    <thead style="border-width: 2px;">
+        <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Name</th>
+            <th scope="col">Type</th>
+            <th scope="col">Sensors</th>
+            <th scope="col"></th>
+        </tr>
+    </thead>
+    <tbody style="border-width: 3px;">
+        <tr>
+            <td colspan="5">
+                Initialized
+            </td>
+        </tr>
+        {% for sensor_node in sensor_nodes %}
+        {% if sensor_node.initialized %}
+        <tr>
+            <th scope="row">{{ sensor_node.pk }}</th>
+            <td>{{ sensor_node.name }}</td>
+            <td>{{ sensor_node.get_type_display }}</td>
+            <td>
+                {% for sensor in sensor_node.sensors.all %}
+                {{sensor.name}},
+                {% endfor %}
+            </td>
+            <td>
+                {% if not sensor_node.is_running %}
+                <a class="btn btn-primary btn-sm" href="{% url 'sensor_node_edit' sensor_node.pk %}"
+                    role="button">Edit</a>
+                {% if sensor_node.manage_sensors %}
+                <a class="btn btn-primary btn-sm" href="{% url 'sensors_edit' sensor_node.pk %}" role="button">Edit
+                    Sensors</a>
+                {% endif %}
+
+                {% else %}
+                <div class="tooltip-wrapper">
+                    <span class="tooltip-text">Sensor Node is in running Project</span>
+                    <a class="btn btn-secondary btn-sm disabled" role="button">Edit</a>
+                </div>
+                {% if sensor_node.manage_sensors %}
+                <div class="tooltip-wrapper">
+                    <span class="tooltip-text">Sensor Node is in running Project</span>
+                    <a class="btn btn-secondary btn-sm disabled" role="button">Edit sensors</a>
+                </div>
+                {% endif %}
+                {% endif %}
+            </td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+    </tbody>
+    <tbody style="border-width: 3px;">
+        <tr>
+            <td colspan="5">
+                Not Initialized
+            </td>
+        </tr>
+        {% for sensor_node in sensor_nodes %}
+        {% if not sensor_node.initialized %}
+        <tr>
+            <th scope="row">{{ sensor_node.pk }}</th>
+            <td>{{ sensor_node.name }}</td>
+            <td>{{ sensor_node.get_type_display }}</td>
+            <td>
+                {% for sensor in sensor_node.sensors.all %}
+                {{sensor.name}},
+                {% endfor %}
+            </td>
+            <td>
+                <a class="btn btn-primary btn-sm" href="{% url 'sensor_node_edit' sensor_node.pk %}"
+                    role="button">Edit</a>
+                <a class="btn btn-primary btn-sm" href="{% url 'sensors_edit' sensor_node.pk %}"
+                    role="button">Initialize</a>
+                <a class="btn btn-secondary btn-sm" href="{% url 'sensors_edit' sensor_node.pk %}" role="button"
+                    style="pointer-events: none; opacity: 0.5;">Initialize</a>
+
+            </td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+    </tbody>
+    </table>
+</div>

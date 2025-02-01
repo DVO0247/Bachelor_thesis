@@ -17,7 +17,7 @@
             {% for user_project in this_user_projects %}
             {% with user2=user_project.user %}
             <tr>
-                <td>{{ forloop.counter }}</td>
+                <td>{{ user2.pk }}</td>
                 <td>{{ user2.get_full_name|default:user2.username }}</td>
                 <td>
                     <input class="checkbox" type="checkbox" {{ user_project.is_editor|yesno:'checked,' }} disabled>
