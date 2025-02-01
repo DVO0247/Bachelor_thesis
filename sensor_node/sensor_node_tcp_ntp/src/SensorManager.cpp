@@ -11,7 +11,7 @@ void SensorManager::doReadAndWrites() {
                 dataToSend.sampleCount = sensors[i]->data.getSampleCount();
                 memcpy(dataToSend.dataBuffer, sensors[i]->data.getBuffer(), sensors[i]->data.getCurrentByteSize());
 
-                xQueueSend(sendBufferQueue, &dataToSend, portMAX_DELAY);
+                xQueueSend(preSendBufferQueue, &dataToSend, portMAX_DELAY);
                 sensors[i]->data.clear();
             }
         }
@@ -62,5 +62,5 @@ void SensorManager::clearAllSensors() {
 
 void SensorManager::clearSendBufferQueue() {
     void* dummy;
-    while (xQueueReceive(sendBufferQueue, &dummy, 0) == pdTRUE);
+    while (xQueueReceive(preSendBufferQueue, &dummy, 0) == pdTRUE);
 }

@@ -53,7 +53,7 @@ void TCPSensorManager::receiveParams() {
     for (int i = 0; i < getSensorCount(); i++) {
         uint32_t samplePeriodMs;
         memcpy(&samplePeriodMs, &received_bytes[i * SERVER_REQUEST_SIZE_PER_SENSOR], sizeof(uint32_t));
-        uint8_t samplesPerPacket = received_bytes[i * SERVER_REQUEST_SIZE_PER_SENSOR + 4];
+        uint8_t samplesPerPacket = received_bytes[i * SERVER_REQUEST_SIZE_PER_SENSOR + sizeof(uint32_t)];
         Serial.println("Set params received");
         Serial.printf("Sensor id: %d\n", i);
         Serial.printf("Sample Period: %d ms\n", samplePeriodMs);
@@ -92,8 +92,8 @@ void TCPSensorManager::set_initialized(bool state) {
 
 void TCPSensorManager::sendAndClearSamples() {
     DataToSend dataToSend;
-    while (uxQueueMessagesWaiting(sendBufferQueue) > 0) {
-        if (xQueueReceive(sendBufferQueue, &dataToSend, portMAX_DELAY) == pdPASS) {
+    while (uxQueueMessagesWaiting(preSendBufferQueue) > 0) {
+        if (xQueueReceive(preSendBufferQueue, &dataToSend, portMAX_DELAY) == pdPASS) {
             uint16_t dataSize = dataToSend.sampleCount * SAMPLE_SIZE;
             uint8_t sendBuffer[1 + dataSize];
             // Serial.println(String(dataToSend.sensorId)+" "+ String(dataToSend.sampleCount));
@@ -119,7 +119,7 @@ void TCPSensorManager::begin(const char* serverIP, uint16_t serverPort, String n
         Serial.println("Mutex creation failed for SensorManager");
     }
     set_initialized(false);
-    this->sendBufferQueue = xQueueCreate(getSensorCount() * QUEUE_SIZE_PER_SENSOR, sizeof(DataToSend));
+    this->preSendBufferQueue = xQueueCreate(getSensorCount() * QUEUE_SIZE_PER_SENSOR, sizeof(DataToSend));
     xTaskCreatePinnedToCore(serverManagementTask, "ServerManagement", 10000, this, 1, NULL, 1);
     // client.setNoDelay(true);
 }

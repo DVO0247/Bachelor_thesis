@@ -19,7 +19,7 @@ class SensorManager {
     void doReadAndWrites();
     // TODO: make something private and protected
    public:
-    QueueHandle_t sendBufferQueue;
+    QueueHandle_t preSendBufferQueue;
     SensorManager();
     ~SensorManager();
     Sensor* addSensor(double (*callback)());

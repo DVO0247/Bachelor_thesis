@@ -70,7 +70,7 @@ class SensorSamples:
         cls_list: list[Self] = []
         # checks if can get expected size then checks if remainder bytes has expected size
         while len(_bytes) > i and (expected_size := expected_sizes[_bytes[i]]) <= len(_bytes) - i:
-            cls_list.append(cls.from_bytes(_bytes[i:i+expected_size]))
+            cls_list.append(cls.from_bytes(_bytes[i:i+expected_size])) # TODO: reduce slicing
             i += expected_size
         return cls_list, _bytes[i:]
 
@@ -82,8 +82,8 @@ class SensorSamples:
 @dataclass
 class Info:
     name: str
-    sensor_count: int
-    unix_time_offset: int
+    sensor_count: int # 1B
+    unix_time_offset: int # 8B
 
     UNIX_TIME_OFFSET_SIZE: ClassVar = 8
     SIZE_WITHOUT_NAME: ClassVar = 3 + UNIX_TIME_OFFSET_SIZE
@@ -110,7 +110,7 @@ class Info:
             etx_index = _bytes.find(ETX)
             expected_size = cls.expected_size(etx_index)
             if etx_index != -1 and len(_bytes) >= (expected_size):
-                return cls.from_bytes(_bytes[:expected_size]), _bytes[expected_size:]
+                return cls.from_bytes(_bytes[:expected_size]), _bytes[expected_size:] # TODO: reduce slicing
 
         return None, _bytes
 

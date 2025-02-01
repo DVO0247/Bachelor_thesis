@@ -202,7 +202,7 @@ class Server:
             while True:
                 try:
                     c, addr = s.accept()
-                    print(f'({addr[0]}:{addr[1]}) connected', end=' ')
+                    print(f'({addr[0]}:{addr[1]}) - connected', end=' ')
                     recv_buffer = c.recv(RECV_SIZE)
                 except socket.timeout:
                     continue
@@ -219,8 +219,9 @@ class Server:
                         raise NotImplementedError
 
                     else:
-                        print(f'Unknown packet:\n{recv_buffer}')
+                        print(f'but is Unknown\nReceived data:\n{recv_buffer}')
                         c.close()
+                        print(f'({addr[0]}:{addr[1]}) - disconnected')
 
 
 if __name__ == '__main__':
