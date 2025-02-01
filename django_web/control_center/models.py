@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.db.models.signals import pre_delete, post_delete
 from django.dispatch import receiver
 from django.contrib.auth.models import UserManager
+from typing import Iterable
 
 from api_clients import influxdb, grafana
 
@@ -15,7 +16,11 @@ class SensorNodeTypes(models.IntegerChoices):
     ESP32 = 0, 'ESP32'
     FBGUARD = 1, 'FBGuard'
 
-class CustomUserManager(UserManager): # TODO: delete after clean database
+SENSOR_NODES_FOR_SENSOR_MANAGE: Iterable[SensorNodeTypes] = (
+    SensorNodeTypes.ESP32,
+)
+
+class CustomUserManager(UserManager): # TODO: delete after database clear
     pass
 
 class User(AbstractUser):
@@ -114,6 +119,10 @@ class SensorNode(models.Model):
     initialized = models.BooleanField(default=False)
     type = models.IntegerField(choices=SensorNodeTypes) # type: ignore
 
+    @property
+    def manage_sensors(self) -> bool:
+        return self.type in SENSOR_NODES_FOR_SENSOR_MANAGE
+
     def is_running(self):
         projects = Project.objects.filter(sensor_nodes=self)
         for project in projects:
@@ -123,6 +132,8 @@ class SensorNode(models.Model):
 
     def save(self, *args, **kwargs):
         self.name = clean_name(self.name)
+        if not self.manage_sensors:
+            self.initialized = True
         super().save(*args, **kwargs)
 
     def __str__(self) -> str:
@@ -141,7 +152,7 @@ class Sensor(models.Model):
     def save(self, *args, **kwargs):
         if self.name:
             self.name = clean_name(self.name)
-        samples_per_packet_range = (1,121)
+        samples_per_packet_range = (1,89)
         if self.samples_per_packet:
             if self.samples_per_packet < samples_per_packet_range[0]:
                 self.samples_per_packet = samples_per_packet_range[0]

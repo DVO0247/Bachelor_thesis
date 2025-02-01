@@ -37,17 +37,22 @@
                 {% if not sensor_node.is_running %}
                 <a class="btn btn-primary btn-sm" href="{% url 'sensor_node_edit' sensor_node.pk %}"
                     role="button">Edit</a>
+                {% if sensor_node.manage_sensors %}
                 <a class="btn btn-primary btn-sm" href="{% url 'sensors_edit' sensor_node.pk %}" role="button">Edit
                     Sensors</a>
+                {% endif %}
+                
                 {% else %}
                 <div class="tooltip-wrapper">
                     <span class="tooltip-text">Sensor Node is in running Project</span>
                     <a class="btn btn-secondary btn-sm disabled" role="button">Edit</a>
                 </div>
+                {% if sensor_node.manage_sensors %}
                 <div class="tooltip-wrapper">
                 <span class="tooltip-text">Sensor Node is in running Project</span>
                     <a class="btn btn-secondary btn-sm disabled" role="button">Edit sensors</a>
                 </div>
+                {% endif %}
                 {% endif %}
             </td>
         </tr>
@@ -74,13 +79,11 @@
             <td>
                 <a class="btn btn-primary btn-sm" href="{% url 'sensor_node_edit' sensor_node.pk %}"
                     role="button">Edit</a>
-                {% if sensor_node.get_type_display != 'FBGuard' %}
                 <a class="btn btn-primary btn-sm" href="{% url 'sensors_edit' sensor_node.pk %}"
                     role="button">Initialize</a>
-                {% else %}
                 <a class="btn btn-secondary btn-sm" href="{% url 'sensors_edit' sensor_node.pk %}" role="button"
                     style="pointer-events: none; opacity: 0.5;">Initialize</a>
-                {% endif %}
+                
             </td>
         </tr>
         {% endif %}

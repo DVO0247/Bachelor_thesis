@@ -51,12 +51,15 @@ class FreqCounter:
 
 # Abstract class
 class Client(ABC):
+    TYPE: ccq.SensorNodeTypes
+
     def __init__(self, server: 'Server', c: socket.socket, addr: Addr) -> None:
         self.server = server
         self.c = c
         self.addr = addr
         self.run = True
-        self._name:str
+
+        self._name: str
     
     @property
     def name(self):
@@ -78,7 +81,9 @@ class Client(ABC):
     def __str__(self) -> str:
         return f'({self.__class__.__name__}, {self.name}, {self.addr[0]}:{self.addr[1]})'
 
+
 class ESP32(Client):
+    TYPE = ccq.SensorNodeTypes.ESP32
     ADDITIONAL_TIMEOUT = 5
     def __init__(self, server: 'Server', c: socket.socket, addr: Addr, snp_info: snp.Info) -> None:
         super().__init__(server, c, addr)
@@ -97,7 +102,7 @@ class ESP32(Client):
         try:
             with self.c:
                 id = ccq.get_sensor_node_id_or_create(
-                    self.name, self.sensor_count)
+                    self.name, self.TYPE, self.sensor_count)
                 if id:
                     self.id = id
                     del id
@@ -170,6 +175,11 @@ class ESP32(Client):
             self.server.remove_client(self)
             print(f'{self} - disconnected')
 
+
+class FBGuard(Client):
+    ...
+
+
 class Server:
     def __init__(self, host: str, port: int) -> None:
         self.host = host
@@ -181,7 +191,7 @@ class Server:
         with self._clients_lock:
             for client in self._clients:
                 if client_name == client.name:
-                    print(f'{client} - this name already exists')
+                    print(f'{client} - client with this name is already connected')
                     client.stop()
 
     def add_client(self, client: Client):

@@ -11,7 +11,7 @@ APConfig apConfig;
 TCPSensorManager sensorManager;
 
 double queue_len() {
-  return uxQueueMessagesWaiting(sensorManager.sendBufferQueue);
+  return uxQueueMessagesWaiting(sensorManager.preSendBufferQueue);
 }
 
 void setup() {

@@ -18,7 +18,7 @@ DATA_DIR_PATH = Path(__file__).parent.parent/'data'
 class NamedSensorParams(SensorParams):
     name:str
 
-def create_sensor_node(name:str, sensor_count:int, type:SensorNodeTypes = SensorNodeTypes.ESP32) -> SensorNode|None:
+def create_sensor_node(name:str, type:SensorNodeTypes, sensor_count:int|None) -> SensorNode|None:
     sensor_node = SensorNode(name=name, type=type)
     try:
         sensor_node.full_clean()
@@ -27,21 +27,22 @@ def create_sensor_node(name:str, sensor_count:int, type:SensorNodeTypes = Sensor
         return None
     else:
         sensor_node.save()
-        for i in range(sensor_count):
-            sensor = Sensor(sensor_node=sensor_node, id_in_sensor_node=i)
-            sensor.save()
+        if sensor_node.manage_sensors and sensor_count:
+            for i in range(sensor_count):
+                sensor = Sensor(sensor_node=sensor_node, id_in_sensor_node=i)
+                sensor.save()
         print(name, 'created')
         return sensor_node
     
 
-def get_sensor_node_id_or_create(sensor_node_name:str, sensor_count:int) -> int|None:
-    sensor_node = SensorNode.objects.filter(name=sensor_node_name).first()
+def get_sensor_node_id_or_create(name:str, type:SensorNodeTypes, sensor_count:int|None = None) -> int|None:
+    sensor_node = SensorNode.objects.filter(name=name).first()
     if sensor_node:
         if sensor_count != Sensor.objects.filter(sensor_node=sensor_node).count():
-            raise Exception(f'DB has different number of sensors for {sensor_node}')
+            raise Exception(f'Control center has different number of sensors for {sensor_node}')
         return sensor_node.pk
     else:
-        sensor_node = create_sensor_node(sensor_node_name, sensor_count)
+        sensor_node = create_sensor_node(name, type, sensor_count)
         return sensor_node.pk if sensor_node else None
 
 
@@ -60,6 +61,7 @@ def get_params_for_sensors(sensor_node_id:int) -> list[NamedSensorParams]:
         
 
 if __name__ == '__main__':
-    pass
+    sensor_node = SensorNode.objects.first()
+    print(sensor_node.manage_sensors)
 
 # TODO: LOG file with only once warnings
