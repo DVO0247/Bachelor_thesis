@@ -16,18 +16,19 @@ class SensorNodeTypes(models.IntegerChoices):
     ESP32 = 0, 'ESP32'
     FBGUARD = 1, 'FBGuard'
 
-SENSOR_NODES_FOR_SENSOR_MANAGE: Iterable[SensorNodeTypes] = (
+SENSOR_NODES_FOR_SENSOR_MANAGE: tuple[SensorNodeTypes] = (
     SensorNodeTypes.ESP32,
 )
 
+
 class CustomUserManager(UserManager): # TODO: delete after database clear
     pass
+
 
 class User(AbstractUser):
     darkmode = models.BooleanField(default=True)
 
     def save(self, *args, **kwargs) -> None:
-        
         grafana.change_user_role(self.username, 'Admin' if self.is_staff else 'Editor')
         return super().save(*args, **kwargs)
 
@@ -42,6 +43,7 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
 
 class Project(models.Model):
     name = models.CharField(max_length=32, null=False, blank= False)
@@ -71,8 +73,7 @@ class Project(models.Model):
 
         # TODO: grafana change querry bucket name (?)
         super().save(*args, **kwargs)
-        
-            
+               
     def __str__(self) -> str:
         return f'{self.pk}, {self.name}'
 
@@ -139,6 +140,7 @@ class SensorNode(models.Model):
     def __str__(self) -> str:
         return f'{self.pk}, {self.name}'
 
+
 class Sensor(models.Model):
     sensor_node = models.ForeignKey(SensorNode, related_name='sensors', on_delete=models.CASCADE)
     id_in_sensor_node = models.PositiveIntegerField(null=False, blank=False)
@@ -164,13 +166,13 @@ class Sensor(models.Model):
     def __str__(self) -> str:
         return f'{self.sensor_node.name}, {self.id_in_sensor_node}, {self.name}'
 
+
 class UserProject(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     is_activated = models.BooleanField(default=True)
     is_owner = models.BooleanField(default=False)
     is_editor = models.BooleanField(default=False)
-    
     
     class Meta:
         unique_together = (('user','project'),)

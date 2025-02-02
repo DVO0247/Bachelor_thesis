@@ -1,6 +1,6 @@
 import struct
 from datetime import datetime
-from typing import Self, Iterable, ClassVar
+from typing import Self, Iterable, ClassVar, Sequence
 from dataclasses import dataclass
 
 STX = 0x02  # ASCII START OF TEXT
@@ -60,19 +60,18 @@ class SensorSamples:
     @classmethod
     def from_bytes(cls, samples_bytes: bytes):
         sensor_id: int = samples_bytes[0]
-        samples = tuple(Sample.from_bytes(
-            samples_bytes[i:i+Sample.SIZE]) for i in range(1, len(samples_bytes), Sample.SIZE))
+        samples = tuple(Sample.from_bytes(samples_bytes[i:i+Sample.SIZE]) for i in range(1, len(samples_bytes), Sample.SIZE))
         return cls(sensor_id, samples)
 
     @classmethod
-    def list_from_bytes_with_remainder(cls, _bytes: bytes, expected_sizes: tuple[int, ...] | list[int]) -> tuple[list[Self], bytes]:
-        i = 0
+    def list_from_bytes_with_remainder(cls, _bytes: bytes, expected_sizes: Sequence[int]) -> tuple[list[Self], bytes]:
         cls_list: list[Self] = []
-        # checks if can get expected size then checks if remainder bytes has expected size
-        while len(_bytes) > i and (expected_size := expected_sizes[_bytes[i]]) <= len(_bytes) - i:
-            cls_list.append(cls.from_bytes(_bytes[i:i+expected_size])) # TODO: reduce slicing
-            i += expected_size
-        return cls_list, _bytes[i:]
+        bytes_view = memoryview(_bytes)
+        # Checks if can get expected message size for sensor, then checks if bytes has at least expected size
+        while len(bytes_view) > 0 and (expected_size := expected_sizes[bytes_view[0]]) <= len(bytes_view): # (bytes_view[0] -> sensor_id)
+            cls_list.append(cls.from_bytes(bytes_view[:expected_size]))
+            bytes_view = bytes_view[expected_size:]
+        return cls_list, bytes(bytes_view)
 
     @staticmethod
     def get_expected_size(sample_count: int) -> int:

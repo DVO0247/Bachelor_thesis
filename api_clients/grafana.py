@@ -1,4 +1,3 @@
-# Source: https://grafana.com/docs/grafana/latest/developers/http_api/
 import requests
 from requests.auth import HTTPBasicAuth
 from typing import Literal, TypeAlias

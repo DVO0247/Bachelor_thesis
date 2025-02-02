@@ -4,7 +4,6 @@ from influxdb_client.client.write_api import WriteType, WriteOptions, PointSetti
 from influxdb_client import OrganizationsApi, AddResourceMemberRequestBody
 from typing import Iterable, TypeAlias, Literal, Generator
 from datetime import datetime, tzinfo, timezone, timedelta
-import time
 from pathlib import Path
 
 ORG = "main"
@@ -13,7 +12,9 @@ TOKEN = 'jyoMO_g-zvjqhxZ-ePQ1yfsmxdEQ-E3DJljyXamt_i5CWKfvhqWE18Gd3mWCSfsFbVhbKh-
 
 client = InfluxDBClient(url=URL, token=TOKEN, org=ORG)
 
-WritePrecision: TypeAlias = Literal['s','ms','us','ns']
+TimePrecision: TypeAlias = Literal['s', 'ms', 'us', 'ns']
+DateTimePrecisions: TypeAlias = Literal['hours', 'minutes', 'seconds', 'milliseconds', 'microseconds']
+
 
 class Api:
     users = client.users_api()
@@ -23,41 +24,50 @@ class Api:
     bucket = client.buckets_api()
     query = client.query_api()
 
-def get_auth_by_name(name:str) -> Authorization|None:
+
+def get_auth_by_name(name: str) -> Authorization | None:
     for auth in Api.auth.find_authorizations():
         if auth.description == name:
             return auth
-        
-def get_user_by_name(name:str) -> User|None:
+
+
+def get_user_by_name(name: str) -> User | None:
     users = Api.users.find_users(name=name, limit=1).users
     return users[0] if users else None
 
-def get_org_by_name(name:str) -> Organization|None:
+
+def get_org_by_name(name: str) -> Organization | None:
     orgs = client.organizations_api().find_organizations(org=name)
     return orgs[0] if orgs else None
+
 
 def add_organization_member(org_id: str, user_id: str):
     request_body = AddResourceMemberRequestBody(id=user_id)
     return Api.org._organizations_service.post_orgs_id_members(org_id=org_id, add_resource_member_request_body=request_body)
 
-def create_bucket(bucket_name:str) -> Bucket:
+
+def create_bucket(bucket_name: str) -> Bucket:
     return Api.bucket.create_bucket(org=ORG, bucket_name=bucket_name)
 
-def rename_bucket(current_name:str, new_name:str) -> Bucket|None:
-    bucket:Bucket|None = Api.bucket.find_bucket_by_name(current_name)
+
+def rename_bucket(current_name: str, new_name: str) -> Bucket | None:
+    bucket: Bucket | None = Api.bucket.find_bucket_by_name(current_name)
     if bucket:
         bucket.name = new_name
         return Api.bucket.update_bucket(bucket)
-    
-def delete_bucket(bucket_name:str) -> Bucket|None:
-    bucket:Bucket|None = Api.bucket.find_bucket_by_name(bucket_name)
+
+
+def delete_bucket(bucket_name: str) -> Bucket | None:
+    bucket: Bucket | None = Api.bucket.find_bucket_by_name(bucket_name)
     if bucket:
         return Api.bucket.delete_bucket(bucket)
 
-def write(bucket_name:str, points:Iterable[Point]):
+
+def write(bucket_name: str, points: Iterable[Point]):
     return Api.write.write(bucket=bucket_name, org=ORG, record=points)
 
-def create_point(measurement_id, sensor_node_name: str, sensor_name: str, timestamp: int, value: float, write_precision:WritePrecision) -> Point:
+
+def create_point(measurement_id, sensor_node_name: str, sensor_name: str, timestamp: int, value: float, write_precision: TimePrecision) -> Point:
     return (
         Point(measurement_id)
         .tag("Sensor Node", sensor_node_name)
@@ -65,17 +75,19 @@ def create_point(measurement_id, sensor_node_name: str, sensor_name: str, timest
         .field(sensor_name, value)
     )
 
-def query_select(bucket_name:str, measurement_id, limit_n:int, page:int):
+
+def query_select(bucket_name: str, measurement_id, limit_n: int, page: int):
     query = f'''
     from(bucket: "{bucket_name}")
     |> range(start: 0)
     |> filter(fn: (r) => r["_measurement"] == "{measurement_id}")
-    |> limit(n:{limit_n}, offset: {page*limit_n})  
+    |> limit(n:{limit_n}, offset: {page*limit_n})
     '''
     result = Api.query.query(query, ORG)
     return result[0].records if result else []
-    
-def query_count(bucket_name:str, measurement_id) -> int:
+
+
+def query_count(bucket_name: str, measurement_id) -> int:
     query = f'''
     from(bucket: "{bucket_name}")
     |> range(start: 0)
@@ -85,14 +97,15 @@ def query_count(bucket_name:str, measurement_id) -> int:
     result = Api.query.query(query, ORG)
     return result[0].records[0].get_value() if result else 0
 
-def query_select_all(bucket_name:str, measurement_id, batch_size:int=100_000):
+
+def query_select_all(bucket_name: str, measurement_id, batch_size: int = 100_000):
     page = 0
     while True:
         query = f'''
         from(bucket: "{bucket_name}")
         |> range(start: 0)
         |> filter(fn: (r) => r["_measurement"] == "{measurement_id}")
-        |> limit(n:{batch_size}, offset: {page*batch_size})  
+        |> limit(n:{batch_size}, offset: {page*batch_size})
         '''
         result = Api.query.query(query, ORG)
         if result:
@@ -101,13 +114,22 @@ def query_select_all(bucket_name:str, measurement_id, batch_size:int=100_000):
         else:
             return
 
-def export_csv(bucket_name:str, measurement_id, out_path:Path|str, _timezone:tzinfo, batch_size:int = 100_000):
-    open(out_path, 'w').close() # create or clear file
+
+def export_csv(
+    bucket_name: str,
+    measurement_id,
+    out_path: Path|str,
+    _timezone: tzinfo,
+    time_precision: DateTimePrecisions = 'microseconds',
+    batch_size: int = 100_000
+    ):
+    open(out_path, 'w').close()  # create or clear file
     with open(out_path, 'a') as file:
         file.write('timestamp,value\n')
         for record in query_select_all(bucket_name, measurement_id, batch_size):
-            file.write(f'{record.get_time().astimezone(_timezone).isoformat(' ', 'milliseconds')[:-6]},{record.get_value()}\n')
-            #print(record.get_time())
+            file.write(f'{record.get_time().astimezone(_timezone).isoformat(' ', time_precision)[:-6]},{record.get_value()}\n')
+            # print(record.get_time())
+
 
 if __name__ == '__main__':
     pass

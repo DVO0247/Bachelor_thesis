@@ -223,7 +223,7 @@ def explore_data(request, project_pk, measurement_id, sensor_pk, page=1, limit_n
     current_timezone = timezone.get_current_timezone()
     context['records'] = (
         (
-            record.get_time().astimezone(current_timezone).isoformat(' ', 'milliseconds')[:-6],
+            record.get_time().astimezone(current_timezone).isoformat(' ', 'microseconds')[:-6],
             record.get_value()
         )
         for record in records
@@ -247,7 +247,7 @@ def export_csv(request, project_pk, measurement_id, sensor_pk):
     project = get_object_or_404(Project, pk=project_pk)
     measurement= get_object_or_404(Measurement, project=project, id_in_project=measurement_id)
     sensor = get_object_or_404(Sensor, pk=sensor_pk)
-    influxdb.export_csv(project.name, measurement.id_in_project, out_path, timezone.get_current_timezone(), 100_000)
+    influxdb.export_csv(project.name, measurement.id_in_project, out_path, timezone.get_current_timezone())
     filename = f'{project.name}_{sensor.sensor_node.name}_{sensor.name}_{measurement.id_in_project}_{measurement.start_time.isoformat(timespec='milliseconds')[:-6]}.csv'
 
     return FileResponse(open(out_path, 'rb'), as_attachment=True, filename=filename)

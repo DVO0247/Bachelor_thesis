@@ -6,7 +6,7 @@
                 <th style="white-space: nowrap;">Name</th>
                 <th style="white-space: nowrap;">M ID</th>
                 <th style="white-space: nowrap;"></th>
-            </tr>   
+            </tr>
         </thead>
         <tbody>
             {% for user_project in user_projects %}
@@ -15,42 +15,38 @@
             {% with last_measurement=project.get_last_measurement %}
             {% if active_project and project.pk == active_project.pk %}
             <b>
-            {% endif %}
-            <tr>
-                <td class="align-middle" style="word-wrap: break-word; white-space: normal; word-break: break-word;">
-                    <a href="{% url 'project_details' project.pk %}"
-                        style="color: {{ user.darkmode|yesno:'white,black' }};">
-                        {{ project.name }}
-                    </a>
-                </td>
-                <td class="align-middle">
-                    {% if last_measurement %}
-                    {{ last_measurement.get_next_or_running_id }}
-                    {% else %}
-                    0
-                    {% endif %}
-                </td>
-                <td class="align-middle text-center">
-                    <form method="post" style="display:inline;">
-                        {% csrf_token %}
-                        <input type="hidden" name="from_panel" value="true">
-                        {% if not project.is_running %}
-                        <button class="btn btn-success btn-sm btn-short"
-                            hx-post="{% url 'start_measurement' project.pk %}" hx-target="#active_projects"
-                            hx-swap="outerHTML">
-                            Start
-                        </button>
+                {% endif %}
+                <tr>
+                    <td class="align-middle"
+                        style="word-wrap: break-word; white-space: normal; word-break: break-word;">
+                        <a href="{% url 'project_details' project.pk %}"
+                            style="color: {{ user.darkmode|yesno:'white,black' }};">
+                            {{ project.name }}
+                        </a>
+                    </td>
+                    <td class="align-middle">
+                        {% if last_measurement %}
+                        {{ last_measurement.get_next_or_running_id }}
                         {% else %}
-                        <button class="btn btn-danger btn-sm btn-short"
-                            hx-post="{% url 'stop_measurement' project.pk %}" hx-target="#active_projects"
-                            hx-swap="outerHTML">
-                            Stop
-                        </button>
+                        0
                         {% endif %}
-                    </form>
-                </td>
-            </tr>
-            {% if active_project and project.pk == active_project.pk %}
+                    </td>
+                    <td class="align-middle text-center">
+                        {% if not project.is_running %}
+                        <form action="{% url 'start_measurement' project.pk %}" method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <button class="btn btn-success btn-sm btn-short" type="submit">Start</button>
+                        </form>
+                        {% else %}
+                        <form action="{% url 'stop_measurement' project.pk %}" method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <button class="btn btn-danger btn-sm btn-short" type="submit">Stop</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                    
+                </tr>
+                {% if active_project and project.pk == active_project.pk %}
             </b>
             {% endif %}
             {% endwith %}

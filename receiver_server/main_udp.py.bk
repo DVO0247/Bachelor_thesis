@@ -106,7 +106,7 @@ class SensorNode:
                     sensor_samples[sensor.name] = sensor.samples_buffer # type: ignore
                     sensor.samples_buffer = []
 
-        running_projects:dict[str, int] = ccq.get_running_projects(self.id) # type: ignore
+        running_projects:dict[str, int] = ccq.get_running_project_measurementss(self.id) # type: ignore
         for project_name, measurement_id in running_projects.items():
             # Generator for points from all sensor in sensor node
             points = (
@@ -114,7 +114,7 @@ class SensorNode:
                 .tag("Sensor Node", self.name)
                 .time(
                     time = self.unix_time_at_zero + sample.timestamp, # type: ignore
-                    write_precision = influxdb.WritePrecision.MS
+                    write_precision = influxdb.TimePrecision.MS
                     )
                 .field(sensor_name, sample.value)
                 for sensor_name, samples_buffer in sensor_samples.items() for sample in samples_buffer
