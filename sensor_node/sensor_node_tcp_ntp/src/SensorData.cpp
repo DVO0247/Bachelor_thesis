@@ -16,13 +16,11 @@ Sample SensorData::getSample(uint8_t index) {
   index *= SAMPLE_SIZE;
   Sample sample;
 
-  // Přečteme 8 bajty do uint32_t
   memcpy(&sample.time, &buffer[index], sizeof(uint32_t));
 
-  // Přečteme 8 bajtů do double
   memcpy(&sample.value, &buffer[index + sizeof(uint32_t)], sizeof(double));
 
-  return sample;  // Vrátí strukturu se dvěma hodnotami
+  return sample;
 }
 
 uint8_t SensorData::getSampleCount() {
@@ -33,10 +31,11 @@ void SensorData::write(uint32_t _millis, double value) {
   if (currentIndex + sizeof(uint32_t) + sizeof(double) <= BUFFER_SIZE) {
     uint64_t timestamp = _millis;
 
+    // Copy timestamp to buffer
     memcpy(&buffer[currentIndex], &timestamp, sizeof(uint32_t));
     currentIndex += sizeof(uint32_t);
 
-    // Přidání dat (double) - uložené jako 8 bajtů
+    // Copy value to buffer
     memcpy(&buffer[currentIndex], &value, sizeof(double));
     currentIndex += sizeof(double);
     sampleCount++;
@@ -45,7 +44,6 @@ void SensorData::write(uint32_t _millis, double value) {
   }
 }
 
-// Metoda pro vymazání bufferu (resetuje index)
 void SensorData::clear() {
   currentIndex = 0;
   sampleCount = 0;

@@ -67,7 +67,7 @@ void TCPSensorManager::receiveParams() {
         sensors[i]->setSamplePeriodMillis(samplePeriodMs);
         sensors[i]->setSamplesPerMessage(samplesPerMessage);
     }
-    set_initialized(true);
+    set_initialized(true);  
 }
 
 bool TCPSensorManager::is_initialized() {
