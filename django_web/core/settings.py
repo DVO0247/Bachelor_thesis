@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'control_center',
-    'oauth2_provider', # TODO: remove
 ]
 
 MIDDLEWARE = [
