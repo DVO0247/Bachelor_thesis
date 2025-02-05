@@ -4,15 +4,21 @@ import threading
 from typing import TypeAlias
 from colorama import Fore, Back
 from abc import ABC, abstractmethod
-from enum import StrEnum
+from pathlib import Path
+import tomllib
 
 import tcp_sensor_node_protocol as snp
 import fbguard_protocol as fbg
 import control_center_queries as ccq
 from api_clients import influxdb
 
-HOST = '0.0.0.0'
-PORT = 666
+CONFIG_FILE_PATH = Path(__file__).parent.parent/'config.toml'
+
+with open(CONFIG_FILE_PATH, 'rb') as file:
+    config:dict = tomllib.load(file)['receiver_server']
+
+HOST = config['host']
+PORT = config['port']
 
 RECV_SIZE = 4096
 SENSOR_PARAMS_UPDATE_PERIOD = 1

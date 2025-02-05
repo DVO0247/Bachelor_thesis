@@ -1,16 +1,20 @@
-from influxdb_client import InfluxDBClient, Point, Bucket, PostBucketRequest, Authorization, User, Organization
-from influxdb_client.client.write_api import SYNCHRONOUS, ASYNCHRONOUS
-from influxdb_client.client.write_api import WriteType, WriteOptions, PointSettings
-from influxdb_client import OrganizationsApi, AddResourceMemberRequestBody
-from typing import Iterable, TypeAlias, Literal, Generator
+from influxdb_client import InfluxDBClient, Point, Bucket, Authorization, User, Organization
+from influxdb_client import AddResourceMemberRequestBody
+from typing import Iterable, TypeAlias, Literal
 from datetime import datetime, tzinfo, timezone, timedelta
 from pathlib import Path
+import tomllib
 
-ORG = "main"
-URL = "http://127.0.0.1:8086"
-TOKEN = 'jyoMO_g-zvjqhxZ-ePQ1yfsmxdEQ-E3DJljyXamt_i5CWKfvhqWE18Gd3mWCSfsFbVhbKh-0OiABAMydHuwu7w=='
+CONFIG_FILE_PATH = Path(__file__).parent.parent/'config.toml'
 
-client = InfluxDBClient(url=URL, token=TOKEN, org=ORG)
+with open(CONFIG_FILE_PATH, 'rb') as file:
+    config:dict = tomllib.load(file)['influxdb']
+
+URL = config['url']
+TOKEN = config['token']
+ORG_NAME = config['org_name']
+
+client = InfluxDBClient(url=URL, token=TOKEN, org=ORG_NAME)
 
 TimePrecision: TypeAlias = Literal['s', 'ms', 'us', 'ns']
 DateTimePrecisions: TypeAlias = Literal['hours', 'minutes', 'seconds', 'milliseconds', 'microseconds']
@@ -47,7 +51,7 @@ def add_organization_member(org_id: str, user_id: str):
 
 
 def create_bucket(bucket_name: str) -> Bucket:
-    return Api.bucket.create_bucket(org=ORG, bucket_name=bucket_name)
+    return Api.bucket.create_bucket(org=ORG_NAME, bucket_name=bucket_name)
 
 
 def rename_bucket(current_name: str, new_name: str) -> Bucket | None:
@@ -64,7 +68,7 @@ def delete_bucket(bucket_name: str) -> Bucket | None:
 
 
 def write(bucket_name: str, points: Iterable[Point]):
-    return Api.write.write(bucket=bucket_name, org=ORG, record=points)
+    return Api.write.write(bucket=bucket_name, org=ORG_NAME, record=points)
 
 
 def create_point(measurement_id, sensor_node_name: str, sensor_name: str, timestamp: int, value: float, write_precision: TimePrecision) -> Point:
@@ -83,7 +87,7 @@ def query_select(bucket_name: str, measurement_id, limit_n: int, page: int):
     |> filter(fn: (r) => r["_measurement"] == "{measurement_id}")
     |> limit(n:{limit_n}, offset: {page*limit_n})
     '''
-    result = Api.query.query(query, ORG)
+    result = Api.query.query(query, ORG_NAME)
     return result[0].records if result else []
 
 
@@ -94,7 +98,7 @@ def query_count(bucket_name: str, measurement_id) -> int:
     |> filter(fn: (r) => r["_measurement"] == "{measurement_id}")
     |> count()
     '''
-    result = Api.query.query(query, ORG)
+    result = Api.query.query(query, ORG_NAME)
     return result[0].records[0].get_value() if result else 0
 
 
@@ -107,7 +111,7 @@ def query_select_all(bucket_name: str, measurement_id, batch_size: int = 100_000
         |> filter(fn: (r) => r["_measurement"] == "{measurement_id}")
         |> limit(n:{batch_size}, offset: {page*batch_size})
         '''
-        result = Api.query.query(query, ORG)
+        result = Api.query.query(query, ORG_NAME)
         if result:
             yield from result[0].records
             page += 1

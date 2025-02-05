@@ -1,0 +1,14 @@
+[influxdb]
+url = 'http://127.0.0.1:8086'
+token = 'jyoMO_g-zvjqhxZ-ePQ1yfsmxdEQ-E3DJljyXamt_i5CWKfvhqWE18Gd3mWCSfsFbVhbKh-0OiABAMydHuwu7w=='
+org_name = 'main'
+
+[grafana]
+url = 'http://127.0.0.1:3000'
+username = 'admin'
+password = 'wsad'
+org_name = 'Main Org.'
+
+[receiver_server]
+host = '0.0.0.0'
+port = 6666

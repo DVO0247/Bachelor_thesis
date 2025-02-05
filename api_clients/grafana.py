@@ -2,12 +2,19 @@ import requests
 from requests.auth import HTTPBasicAuth
 from typing import Literal, TypeAlias
 from enum import Enum
+from pathlib import Path
+import tomllib
 
-GRAFANA_URL = 'http://127.0.0.1:3000'
-USERNAME = 'admin'
-PASSWORD = 'wsad'
+CONFIG_FILE_PATH = Path(__file__).parent.parent/'config.toml'
+
+with open(CONFIG_FILE_PATH, 'rb') as file:
+    config:dict = tomllib.load(file)['grafana']
+
+GRAFANA_URL = config['url']
+USERNAME = config['username']
+PASSWORD = config['password']
+ORG_NAME = config['org_name']
 AUTH = HTTPBasicAuth(USERNAME, PASSWORD)
-ORG_NAME = 'Main Org.'
 
 Role:TypeAlias = Literal['Viewer', 'Editor', 'Admin']
 TeamPermission:TypeAlias = Literal['Member', 'Admin']
