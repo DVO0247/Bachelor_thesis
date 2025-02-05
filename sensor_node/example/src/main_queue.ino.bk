@@ -5,7 +5,7 @@
 
 #define apSSID "ESP32_CONF"
 #define apPassword "Config00"
-#define resetPin 18
+#define confResetPin 18
 
 APConfig apConfig;
 TCPSensorManager sensorManager;
@@ -16,7 +16,7 @@ double queue_len() {
 
 void setup() {
   Serial.begin(115200);
-  apConfig.begin(apSSID, apPassword, resetPin);
+  apConfig.begin(apSSID, apPassword, confResetPin);
   sensorManager.addSensor(queue_len);
   sensorManager.begin(&apConfig);
 }

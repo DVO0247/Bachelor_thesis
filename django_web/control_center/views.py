@@ -369,5 +369,6 @@ class CustomPasswordChangeView(PasswordChangeView):
     success_url = reverse_lazy('index')
 
 def Grafana(request):
-    return HttpResponseRedirect('http://127.0.0.1:3000/dashboards') # TODO: redirect to outside IP
+    ip = request.get_host().split(':')[0]
+    return HttpResponseRedirect(f'http://{ip}:3000/dashboards') # TODO: redirect to outside IP
 #endrefion

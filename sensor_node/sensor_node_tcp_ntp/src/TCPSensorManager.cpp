@@ -1,7 +1,7 @@
 #include "TCPSensorManager.h"
 
 void serverManagementTask(void* pvParameters) {
-    TCPSensorManager* manager = static_cast<TCPSensorManager*>(pvParameters);  // Přetypování parametru
+    TCPSensorManager* manager = static_cast<TCPSensorManager*>(pvParameters);
     while (true) {
         if (!manager->client.connected()) {
             manager->set_initialized(false);
@@ -122,7 +122,7 @@ void TCPSensorManager::begin(const char* serverIP, uint16_t serverPort, String n
     this->preSendBufferQueue = xQueueCreate(getSensorCount() * QUEUE_SIZE_PER_SENSOR, sizeof(DataToSend));
     xTaskCreatePinnedToCore(serverManagementTask, "ServerManagement", 10000, this, 1, NULL, 1);
     // client.setNoDelay(true);
-}
+}   
 
 void TCPSensorManager::begin(APConfig* apConfig, const char* ntpServer2, const char* ntpServer3) {
     begin(apConfig->getServerIP(), apConfig->getServerPort(), apConfig->getName(), ntpServer2, ntpServer3);
