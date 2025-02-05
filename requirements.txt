@@ -1,0 +1,5 @@
+Django=5.1.*
+influxdb-client=1.48.*
+requests>=2.32.3, <3
+whitenoise>=6.8.2, <7
+colorama>=0.4.6, <0.5
