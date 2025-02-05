@@ -7,3 +7,11 @@ Cílem práce je implementace datového centra, které bude zajišťovat sběr d
 3. Realizujte teplotní senzor využívající zařízení ESP32 s odesíláním dat do datového centra.
 4. Ověřte funkčnost senzoru a datového centra dlouhodobým měřením teploty.
 
+## Instalace
+
+### Instalace InfluxDB v2
+https://docs.influxdata.com/influxdb/v2/install/
+
+### Instalace Grafany
+https://grafana.com/docs/grafana/latest/setup-grafana/installation/
+

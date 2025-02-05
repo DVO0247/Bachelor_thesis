@@ -1,12 +1,13 @@
 #include "APConfig.h"
 
-void APConfig::begin(const char* apSSID, const char* apPassword, int resetPin, int statusLED) {
+void APConfig::begin(const char* apSSID, const char* apPassword, int confResetPin, int statusLED) {
   this->apSSID = apSSID;
   this->apPassword = apPassword;
-  this->resetPin = resetPin;
+  this->confResetPin = confResetPin;
   this->statusLED = statusLED;
 
-  pinMode(resetPin, INPUT_PULLUP);
+  pinMode(confResetPin, INPUT_PULLUP);
+
   if (statusLED >= 0) {
     pinMode(statusLED, OUTPUT);
   }
@@ -59,15 +60,15 @@ void APConfig::apLoop() {
 }
 
 void APConfig::checkReset() {
-  if (digitalRead(resetPin) == LOW) {
+  if (digitalRead(confResetPin) == LOW) {
     delay(1000);
-    if (digitalRead(resetPin) == LOW) {
+    if (digitalRead(confResetPin) == LOW) {
       Serial.print("Reset pin was grounded. ");
       clearEEPROM();
       delay(1000);
       digitalWrite(statusLED, HIGH);
       Serial.println("EEPROM erased, waiting for reset pin to be released.");
-      while (digitalRead(resetPin) == LOW) {
+      while (digitalRead(confResetPin) == LOW) {
         delay(10);
       }
       digitalWrite(statusLED, LOW);
@@ -93,13 +94,13 @@ void APConfig::handleRoot() {
   server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   server.sendHeader("Pragma", "no-cache");
   server.sendHeader("Expires", "-1");
-  String html = "<html><body><h2>WiFi Configuration</h2>";
+  String html = "<html><body><h2>Configuration</h2>";
   html += "<form action='/save' method='POST'>";
   html += "SSID: <input type='text' name='ssid'><br>";
   html += "Password: <input type='password' name='password'><br>";
   html += "Server IP: <input type='text' name='serverip'><br>";
   html += "Port: <input type='number' name='port'><br>";
-  html += "Name: <input type='text' name='name' maxlength='36'><br>";
+  html += "Name: <input type='text' name='name' maxlength='40'><br>";
   html += "<input type='submit' value='Save'>";
   html += "</form></body></html>";
   server.send(200, "text/html", html);

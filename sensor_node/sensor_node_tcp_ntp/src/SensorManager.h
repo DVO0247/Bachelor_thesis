@@ -22,7 +22,7 @@ class SensorManager {
     QueueHandle_t preSendBufferQueue;
     SensorManager();
     ~SensorManager();
-    Sensor* addSensor(double (*callback)());
+    Sensor* addSensor(double (*readCallback)());
     Sensor* getSensor(uint8_t sensorId);
     uint8_t getSensorCount();
     bool isWriteReady(uint8_t sensorId);

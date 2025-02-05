@@ -20,11 +20,6 @@ SENSOR_NODES_FOR_SENSOR_MANAGE: tuple[SensorNodeTypes] = (
     SensorNodeTypes.ESP32,
 )
 
-
-class CustomUserManager(UserManager): # TODO: delete after database clear
-    pass
-
-
 class User(AbstractUser):
     darkmode = models.BooleanField(default=True)
 

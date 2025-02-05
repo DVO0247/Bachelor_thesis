@@ -1,4 +1,5 @@
 #pragma once
+#include "esp32-hal.h"
 #include <Arduino.h>
 
 #include "APConfig.h"
@@ -6,7 +7,6 @@
 #include "SensorManager.h"
 #include "UnixTimeOffset.h"
 #include "WiFiClient.h"
-#include "esp32-hal.h"
 #include <WiFi.h>
 
 #define STX 0x02

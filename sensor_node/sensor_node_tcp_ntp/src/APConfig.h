@@ -3,7 +3,6 @@
 #include <EEPROM.h>
 #include <WebServer.h>
 #include <WiFi.h>
-
 #include "esp32-hal.h"
 
 #define DNS_PORT 53
@@ -25,19 +24,18 @@ constexpr uint8_t EEPROM_SIZE = SSID_SIZE + PASS_SIZE + SERVER_IP_SIZE + PORT_SI
 
 class APConfig {
    public:
-    void begin(const char* apSSID, const char* apPassword, int resetPin, int statusLED = 2);
-    void apLoop();
+    void begin(const char* apSSID, const char* apPassword, int confResetPin, int statusLED = BUILTIN_LED);
 
     const char* getServerIP();
     uint16_t getServerPort();
     String getName();
     bool isInAPMode();
-
    private:
+    void apLoop();
     void checkReset();
     const char* apSSID;
     const char* apPassword;
-    int resetPin;
+    int confResetPin;
     int statusLED;
     DNSServer dnsServer;
     WebServer server;

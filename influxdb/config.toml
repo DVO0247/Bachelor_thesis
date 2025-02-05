@@ -1,5 +1,0 @@
-http-bind-address = '127.0.0.1:8086'
-
-bolt-path = ".\\storage\\influxd.bolt"
-engine-path = ".\\storage\\engine"
-sqlite-path = ".\\storage\\influxd.sqlite"
