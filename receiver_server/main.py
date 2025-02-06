@@ -6,8 +6,8 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 import tomllib
 import logging
-from rich.logging import RichHandler
 import logging.config
+from rich.logging import RichHandler
 
 import tcp_sensor_node_protocol as snp
 import fbguard_protocol as fbg
@@ -29,6 +29,11 @@ MAX_FIRST_MESSAGE_FRAGMENTATION = 1024
 UINT32_MAX = 0xFFFFFFFF
 
 Addr: TypeAlias = tuple[str, int]  # (ip, port)
+
+def thread_exception_handler(args):
+    logging.error(f"Exception in thread {args.thread.name}: {args.exc_value}", exc_info=(args.exc_type, args.exc_value, args.exc_traceback))
+
+threading.excepthook = thread_exception_handler
 
 class FreqCounter:
     def __init__(self, measure_period:float|int) -> None:
@@ -75,7 +80,7 @@ class Client(ABC):
         self._run = True
         self.server.add_client(self)
         log.info(f'({addr[0]}:{addr[1]}) identified as {self.name}')
-        #self.server.stop_client_if_exists(self.name, self) TODO: try this
+        #self.server.stop_client_if_exists(self.name, self)
 
     @abstractmethod
     def serve(self):
@@ -289,7 +294,7 @@ class Server:
             while True:
                 try:
                     c, addr = s.accept()
-                    threading.Thread(target=self.handle_new_connection, args=(c, addr)).start()
+                    threading.Thread(target=self.handle_new_connection, args=(c, addr), name=str(addr)).start()
                 except socket.timeout:
                     continue
 

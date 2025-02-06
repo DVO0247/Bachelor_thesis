@@ -78,5 +78,3 @@ def add_sensor(sensor_node_id:int, sensor_name:str) -> Sensor:
 
 if __name__ == '__main__':
     pass
-
-# TODO: LOG file with only once warnings
