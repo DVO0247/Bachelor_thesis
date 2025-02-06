@@ -298,15 +298,12 @@ class Server:
                 except socket.timeout:
                     continue
 
-
-if __name__ == '__main__':
+def main():
+    global log
     logging.config.dictConfig({'version': 1, 'disable_existing_loggers': True})
     LOG_FILE_PATH = Path(__file__).parent/'log.txt'
     log = logging.getLogger()
     log.setLevel(logging.DEBUG if DEBUG else logging.INFO)
-
-    console_handler = RichHandler()
-    console_handler.setLevel(logging.DEBUG)
 
     file_handler = logging.FileHandler(LOG_FILE_PATH)
     file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
@@ -315,5 +312,9 @@ if __name__ == '__main__':
     log.addHandler(file_handler)
 
     Server(HOST, PORT).run()
+
+if __name__ == '__main__':
+    main()
+
 else:
     log = logging.getLogger(__name__)

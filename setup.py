@@ -1,6 +1,5 @@
 from setuptools import setup, find_packages
 from pathlib import Path
-import subprocess
 
 ROOT_DIR = Path(__file__).parent
 
@@ -18,7 +17,6 @@ setup(
     entry_points={
         'console_scripts': [
             'manage=django_web.manage:main',
-            'receiver=receiver_server.main'
         ],
     },
 )
