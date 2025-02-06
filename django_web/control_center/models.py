@@ -6,7 +6,6 @@ from django.utils import timezone
 from django.db.models.signals import pre_delete, post_delete
 from django.dispatch import receiver
 from django.contrib.auth.models import UserManager
-from typing import Iterable
 
 from api_clients import influxdb, grafana
 
@@ -140,7 +139,7 @@ class Sensor(models.Model):
     sensor_node = models.ForeignKey(SensorNode, related_name='sensors', on_delete=models.CASCADE)
     id_in_sensor_node = models.PositiveIntegerField(null=False, blank=False)
     name = models.CharField(max_length=32, null=True, blank=False)
-    sample_period = models.PositiveIntegerField(null=True, blank=False)
+    sample_period = models.PositiveIntegerField(null=True, blank=False, verbose_name='Sample period (ms)')
     samples_per_message = models.PositiveIntegerField(null=True, blank=False) # TODO: add validators
 
     class Meta:

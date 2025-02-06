@@ -4,6 +4,8 @@ from typing import Iterable, TypeAlias, Literal
 from datetime import datetime, tzinfo, timezone, timedelta
 from pathlib import Path
 import tomllib
+import logging
+log = logging.getLogger(__name__)
 
 CONFIG_FILE_PATH = Path(__file__).parent.parent/'config.toml'
 
@@ -15,6 +17,8 @@ TOKEN = config['token']
 ORG_NAME = config['org_name']
 
 client = InfluxDBClient(url=URL, token=TOKEN, org=ORG_NAME)
+if not client.ping():
+    log.error('Failed to establish connection with Influxdb')
 
 TimePrecision: TypeAlias = Literal['s', 'ms', 'us', 'ns']
 DateTimePrecisions: TypeAlias = Literal['hours', 'minutes', 'seconds', 'milliseconds', 'microseconds']
@@ -27,7 +31,6 @@ class Api:
     write = client.write_api()
     bucket = client.buckets_api()
     query = client.query_api()
-
 
 def get_auth_by_name(name: str) -> Authorization | None:
     for auth in Api.auth.find_authorizations():

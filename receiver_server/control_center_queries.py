@@ -5,6 +5,8 @@ import sys
 from pathlib import Path
 from dataclasses import dataclass
 from tcp_sensor_node_protocol import SensorParams
+import logging
+log = logging.getLogger(__name__)
 
 django_root_path = Path(__file__).parent.parent/'django_web'
 sys.path.append(str(django_root_path))
@@ -29,7 +31,7 @@ def create_sensor_node(name:str, type:SensorNodeTypes, sensor_count:int|None) ->
         for i in range(sensor_count): # type: ignore
             sensor = Sensor(sensor_node=sensor_node, id_in_sensor_node=i)
             sensor.save()
-    print(f'Sensor node {name} created')
+    log.info(f'Sensor node {name} created')
     return sensor_node
     
 
@@ -71,7 +73,7 @@ def add_sensor(sensor_node_id:int, sensor_name:str) -> Sensor:
     )
     #sensor.full_clean()
     sensor.save()
-    print(f'Sensor {sensor.name} added to {sensor_node.name}')
+    log.info(f'Sensor {sensor.name} added to {sensor_node.name}')
     return sensor
 
 if __name__ == '__main__':

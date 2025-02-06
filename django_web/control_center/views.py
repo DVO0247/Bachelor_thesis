@@ -11,13 +11,11 @@ from django.apps import apps
 from django.utils import timezone
 from django.urls import reverse_lazy
 
-
 from pathlib import Path
 
 from .models import User, Project, SensorNode, Sensor, UserProject, Measurement, SensorNodeTypes
 from .forms import SensorNodeForm, ProjectForm, LoginForm, SensorForm, UserProjectForm
 from api_clients import influxdb
-from api_clients import grafana
 
 TEMP_DIR_PATH = Path.cwd()/'control_center'/'temp' 
 

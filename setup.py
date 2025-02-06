@@ -1,28 +1,8 @@
 from setuptools import setup, find_packages
-from setuptools.command.install import install
 from pathlib import Path
 import subprocess
 
 ROOT_DIR = Path(__file__).parent
-
-class PostInstall(install):
-    def run(self):
-        # Spustí standardní instalaci
-        install.run(self)
-
-        # Spustí Django management příkazy
-        django_web_path = ROOT_DIR/'django_web'
-        commands = (
-            ['python', 'manage.py', 'makemigrations', 'control_center'],
-            ['python', 'manage.py', 'migrate'],
-            ['python', 'manage.py', 'collectstatic', '--clear', '--noinput'],
-        )
-
-        for command in commands:
-            try:
-                subprocess.check_call(command, cwd=django_web_path)
-            except subprocess.CalledProcessError as e:
-                print(f'Error while executing command {command}: {e}')
 
 
 def load_requirements():
@@ -38,10 +18,10 @@ setup(
     entry_points={
         'console_scripts': [
             'manage=django_web.manage:main',
-            'receiver=receiver_server'
+            'receiver=receiver_server.main'
         ],
     },
-    cmdclass={
-        "install": PostInstall,
-    },
 )
+
+if __name__ == '__main__':
+    print('hello')

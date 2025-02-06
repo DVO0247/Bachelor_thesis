@@ -4,6 +4,8 @@ from typing import Literal, TypeAlias
 from enum import Enum
 from pathlib import Path
 import tomllib
+import logging
+log = logging.getLogger(__name__)
 
 CONFIG_FILE_PATH = Path(__file__).parent.parent/'config.toml'
 
@@ -42,7 +44,11 @@ def get_org_id(name:str):
     if is_response_ok(response, True):
         return response.json()['id']
 
-ORG_ID = get_org_id(ORG_NAME)
+try:
+    ORG_ID = get_org_id(ORG_NAME)
+except requests.exceptions.ConnectionError:
+    log.error('Failed to establish connection with Grafana')
+
 
 def create_user(name:str, password:str, role:Role = 'Viewer') -> int: # type: ignore
     url = f"{GRAFANA_URL}/api/admin/users"
