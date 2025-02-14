@@ -26,6 +26,7 @@
                     <th scope="col">Name</th>
                     <th scope="col">Type</th>
                     <th scope="col">Sensors</th>
+                    <th scope="col" style="text-align: center;">State</th>
                 </tr>
             </thead>
             <tbody style="border-width: 3px;">
@@ -38,6 +39,17 @@
                         {% for sensor in sensor_node.sensors.all %}
                         {{ sensor.name }},
                         {% endfor %}
+                    </td>
+                    <td style="text-align: center;">
+                        <div class="tooltip-wrapper">
+                            {% if sensor_node.connected %}
+                            🟢
+                            <span class="tooltip-text">Connected</span>
+                            {% else %}
+                            🔴
+                            <span class="tooltip-text">Disconnected</span>
+                            {% endif %}
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -76,7 +88,6 @@
                     <td>
                         <input class="checkbox" type="checkbox" {{ user_project.is_editor|yesno:'checked,' }} disabled>
                     </td>
-                   
                 </tr>
                 {% endwith %}
                 {% endfor %}

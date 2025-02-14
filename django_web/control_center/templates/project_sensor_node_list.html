@@ -12,12 +12,13 @@
             <th scope="col">Name</th>
             <th scope="col">Type</th>
             <th scope="col">Sensors</th>
+            <th scope="col" style="text-align: center;">State</th>
             <th scope="col"></th>
         </tr>
     </thead>
     <tbody style="border-width: 3px;">
         <tr>
-            <td colspan="5">
+            <td colspan="6">
                 In project
             </td>
         </tr>
@@ -30,6 +31,17 @@
                 {% for sensor in sensor_node.sensors.all %}
                 {{ sensor.name }},
                 {% endfor %}
+            </td>
+            <td style="text-align: center;">
+                <div class="tooltip-wrapper">
+                    {% if sensor_node.connected %}
+                    🟢
+                    <span class="tooltip-text">Connected</span>
+                    {% else %}
+                    🔴
+                    <span class="tooltip-text">Disconnected</span>
+                    {% endif %}
+                </div>
             </td>
             <td>
                 {% if not sensor_node.is_running %}
@@ -65,7 +77,7 @@
     </tbody>
     <tbody style="border-width: 3px;">
         <tr>
-            <td colspan="5">Not in project</td>
+            <td colspan="6">Not in project</td>
         </tr>
         {% for sensor_node in sensor_nodes %}
         {% if sensor_node not in project_sensor_nodes and sensor_node.initialized %}
@@ -77,6 +89,17 @@
                 {% for sensor in sensor_node.sensors.all %}
                 {{ sensor.name }},
                 {% endfor %}
+            </td>
+            <td style="text-align: center;">
+                <div class="tooltip-wrapper">
+                    {% if sensor_node.connected %}
+                    🟢
+                    <span class="tooltip-text">Connected</span>
+                    {% else %}
+                    🔴
+                    <span class="tooltip-text">Disconnected</span>
+                    {% endif %}
+                </div>
             </td>
             <td>
                 {% if not sensor_node.is_running %}

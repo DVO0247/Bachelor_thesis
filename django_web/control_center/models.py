@@ -109,6 +109,7 @@ class SensorNode(models.Model):
     name = models.CharField(max_length=40, unique=True)
     initialized = models.BooleanField(default=False)
     type = models.IntegerField(choices=SensorNodeTypes) # type: ignore
+    connected = models.BooleanField(default=False)
 
     @property
     def manage_sensors(self) -> bool:

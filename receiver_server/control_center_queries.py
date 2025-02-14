@@ -76,5 +76,15 @@ def add_sensor(sensor_node_id:int, sensor_name:str) -> Sensor:
     log.info(f'Sensor {sensor.name} added to {sensor_node.name}')
     return sensor
 
+def set_sensor_node_conn_state(sensor_node_id:int, state:bool):
+    sensor_node = SensorNode.objects.get(pk=sensor_node_id)
+    sensor_node.connected = state
+    sensor_node.save()
+
+def set_all_sensor_nodes_conn_state(state:bool):
+    for sensor_node in SensorNode.objects.all():
+        sensor_node.connected = state
+        sensor_node.save()
+
 if __name__ == '__main__':
     pass

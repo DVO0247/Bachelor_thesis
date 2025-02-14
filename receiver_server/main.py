@@ -29,6 +29,11 @@ MAX_FIRST_MESSAGE_FRAGMENTATION = 1024
 UINT32_MAX = 0xFFFFFFFF
 CLIENT_TIMEOUT = 3
 
+class KeepAlive:
+    INTERVAL = 15
+    INTERVAL_BETWEEN_ATTEMPTS = 1
+    MAX_FAILED_ATTEMPTS = 3
+
 if DEBUG:
     from math import isnan
 
@@ -94,7 +99,10 @@ class Client(ABC):
         self._run = False
 
     def _remove_client(self):
+        self.stop()
         self.server.remove_client(self)
+        if hasattr(self, 'id'):
+            ccq.set_sensor_node_conn_state(self.id, False)
         log.info(f'{self} - disconnected')
 
     def __str__(self) -> str:
@@ -117,6 +125,7 @@ class ESP32(Client):
             time_overflow_offset = 0
             with self.c:
                 self.id = ccq.get_sensor_node_id_or_create(self.name, self.TYPE, self.sensor_count)
+                ccq.set_sensor_node_conn_state(self.id, True)
                 
                 sensor_params_list: list[ccq.NamedSensorParams]
                 while not (sensor_params_list := ccq.get_params_for_sensors(self.id)):
@@ -145,14 +154,12 @@ class ESP32(Client):
                 while self._run:
                     try:
                         self.recv_buffer += self.c.recv(RECV_SIZE)
-                    except socket.timeout:
+                    except TimeoutError:
                         pass
-                        '''
-                        log.warning(f'{self} - timed out')
-                        self.stop()
+                    except ConnectionResetError:
+                        log.warning(f'{self} - not alive')
                         return
-                        '''
-                    
+
                     sensor_samples_list, self.recv_buffer = snp.SensorSamples.list_from_bytes_with_remainder(self.recv_buffer, expected_sizes)
                     # print(sensor_samples_list)
 
@@ -204,6 +211,7 @@ class FBGuard(Client):
     def __init__(self, server: 'Server', c: socket.socket, addr: tuple[str, int], fbguard_message:fbg.Message, remainder:bytes) -> None:
         self.name = fbguard_message.header.device_id
         self.id = ccq.get_sensor_node_id_or_create(self.name, self.TYPE)
+        ccq.set_sensor_node_conn_state(self.id, True)
         self.sensor_names: set[str] = set(ccq.get_sensor_names(self.id))
         initial_recv_buffer = fbguard_message.to_bytes() + remainder
         super().__init__(server, c, addr, initial_recv_buffer)
@@ -217,9 +225,10 @@ class FBGuard(Client):
             while self._run:
                 try:
                     self.recv_buffer += self.c.recv(RECV_SIZE)
-                except socket.timeout:
-                    log.warning(f'{self} - timed out')
-                    self.stop()
+                except TimeoutError:
+                    pass
+                except ConnectionResetError:
+                    log.warning(f'{self} - not alive')
                     return
                 messages, self.recv_buffer = fbg.Message.list_from_bytes_with_remainder(self.recv_buffer)
 
@@ -297,17 +306,21 @@ class Server:
                     return
 
     def run(self):
+        ccq.set_all_sensor_nodes_conn_state(False)
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind((self.host, self.port))
             s.settimeout(60*5)
             s.listen(5)
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1) # Enable keep-alive
+            s.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, KeepAlive.INTERVAL)   # keep-alive Interval
+            s.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, KeepAlive.INTERVAL_BETWEEN_ATTEMPTS)   # Interval between attempts
+            s.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, KeepAlive.MAX_FAILED_ATTEMPTS) # Max failed attempts
             log.info(f"Server is listening on {self.host}:{self.port}")
-
             while True:
                 try:
                     c, addr = s.accept()
                     threading.Thread(target=self.handle_new_connection, args=(c, addr), name=str(addr)).start()
-                except socket.timeout:
+                except TimeoutError:
                     continue
 
 def main():
