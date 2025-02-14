@@ -17,6 +17,8 @@ setup(
     entry_points={
         'console_scripts': [
             'manage=django_web.manage:main',
+            'receiver=receiver_server.main:main',
+            'receiverd=receiver_server.daemon_main:main',
         ],
     },
 )

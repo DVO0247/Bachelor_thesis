@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 CONFIG_FILE_PATH = Path(__file__).parent.parent/'config.toml'
 
 with open(CONFIG_FILE_PATH, 'rb') as file:
-    config:dict = tomllib.load(file)['influxdb']
+    config = tomllib.load(file)['influxdb']
 
 URL = config['url']
 TOKEN = config['token']
@@ -71,7 +71,7 @@ def delete_bucket(bucket_name: str) -> Bucket | None:
 
 
 def write(bucket_name: str, points: Iterable[Point]):
-    return Api.write.write(bucket=bucket_name, org=ORG_NAME, record=points)
+    Api.write.write(bucket=bucket_name, org=ORG_NAME, record=points)
 
 
 def create_point(measurement_id, sensor_node_name: str, sensor_name: str, timestamp: int, value: float, write_precision: TimePrecision) -> Point:
@@ -139,4 +139,6 @@ def export_csv(
 
 
 if __name__ == '__main__':
-    pass
+    print(Api.auth.find_authorizations())
+
+# TODO: Remove unsused things

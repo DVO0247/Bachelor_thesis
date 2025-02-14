@@ -7,15 +7,21 @@ import tomllib
 import logging
 log = logging.getLogger(__name__)
 
+if __package__:
+    from . import influxdb
+else:
+    import influxdb
+
 CONFIG_FILE_PATH = Path(__file__).parent.parent/'config.toml'
 
 with open(CONFIG_FILE_PATH, 'rb') as file:
-    config:dict = tomllib.load(file)['grafana']
+    config = tomllib.load(file)['grafana']
 
 GRAFANA_URL = config['url']
 USERNAME = config['username']
 PASSWORD = config['password']
 ORG_NAME = config['org_name']
+INFLUXDB_SOURCE_NAME = config['influxdb_source_name']
 AUTH = HTTPBasicAuth(USERNAME, PASSWORD)
 
 Role:TypeAlias = Literal['Viewer', 'Editor', 'Admin']
@@ -44,11 +50,53 @@ def get_org_id(name:str):
     if is_response_ok(response, True):
         return response.json()['id']
 
+def get_source(source_name:str) -> dict|None:
+    url = f'{GRAFANA_URL}/api/datasources/name/{source_name}'
+    response = requests.get(url, auth=AUTH)
+    if is_response_ok(response, False):
+        return response.json()
+
+def add_influxdb_source():
+    source = {
+        'orgId': ORG_ID,
+        'name': f'{INFLUXDB_SOURCE_NAME}', # TODO !!!!!!!!!!!!!!!!!!!!!!
+        'type': 'influxdb',
+        'access': 'proxy',
+        'url': influxdb.URL,
+        'basicAuth': True,
+        'basicAuthUser': '',
+        'withCredentials': False,
+        'isDefault': True, 
+        'jsonData': {
+            'defaultBucket': 'main',
+            'httpMode': 'POST',
+            'organization': influxdb.ORG_NAME,
+            'version': 'Flux',
+        },
+        'secureJsonData': {'token': influxdb.TOKEN},
+    }
+
+    url = f'{GRAFANA_URL}/api/datasources'
+    response = requests.post(url, auth=AUTH, json=source)
+    if is_response_ok(response, True):
+        return response.json()
+
+
 try:
     ORG_ID = get_org_id(ORG_NAME)
 except requests.exceptions.ConnectionError:
     log.error('Failed to establish connection with Grafana')
+else:
+    if not get_source(INFLUXDB_SOURCE_NAME):
+        if add_influxdb_source():
+            log.info('InfluxDB source added to Grafana')
 
+
+def delete_source(source_name:str):
+    url = f'{GRAFANA_URL}/api/datasources/name/{source_name}'
+    response = requests.delete(url, auth=AUTH)
+    if is_response_ok(response, True):
+        return response.json()
 
 def create_user(name:str, password:str, role:Role = 'Viewer') -> int: # type: ignore
     url = f"{GRAFANA_URL}/api/admin/users"
@@ -248,6 +296,9 @@ def rename_folder(old_folder_name:str, new_folder_name:str):
         if is_response_ok(response, True):
             return True
     return False
-    
+
 if __name__ == '__main__':
+    #print(get_source(INFLUXDB_SOURCE_NAME))
+    print(add_influxdb_source())
+    #print(delete_source(f'{INFLUXDB_SOURCE_NAME}_2'))
     pass

@@ -19,21 +19,19 @@
 class TCPSensorManager : public SensorManager {
    private:
     bool initialized;
-
-   public:
-    const char* serverIP;
-    uint16_t serverPort;
-    String name;
-    WiFiClient client;
-    uint64_t unixTimeOffset;
     void sendInfo();
     void receiveParams();
     void sendAndClearSamples();
-
     bool is_initialized();
     void set_initialized(bool state);
     SemaphoreHandle_t initialized_mutex;
-
+    uint64_t unixTimeOffset;
+    WiFiClient client;
+    const char* serverIP;
+    uint16_t serverPort;
+    String name;    
+    
+   public:
     TCPSensorManager();
     void begin(
         const char* serverIP,
@@ -48,4 +46,5 @@ class TCPSensorManager : public SensorManager {
         const char* ntpServer3 = DEFAULT_NTP_SERVER_3
         );
     void processData();
+    void serverManage();
 };

@@ -3,7 +3,6 @@ from django.http import HttpResponse, JsonResponse, HttpResponseRedirect, FileRe
 from django.core.exceptions import PermissionDenied
 from django.core.files.temp import NamedTemporaryFile
 from django.conf import settings
-from django.forms.models import model_to_dict
 from django.forms import modelformset_factory
 from django.contrib.auth.views import LoginView, PasswordChangeView
 from django.contrib import messages

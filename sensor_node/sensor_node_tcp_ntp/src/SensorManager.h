@@ -17,7 +17,10 @@ class SensorManager {
     Sensor* sensors[MAX_SENSOR_COUNT];
     uint8_t sensorCount = 0;
     void doReadAndWrites();
-    // TODO: make something private and protected
+    bool isWriteReady(uint8_t sensorId);
+    void clearAllSensors();
+    void clearSendBufferQueue();
+
    public:
     QueueHandle_t preSendBufferQueue;
     SensorManager();
@@ -25,7 +28,4 @@ class SensorManager {
     Sensor* addSensor(double (*readCallback)());
     Sensor* getSensor(uint8_t sensorId);
     uint8_t getSensorCount();
-    bool isWriteReady(uint8_t sensorId);
-    void clearAllSensors();
-    void clearSendBufferQueue();
 };

@@ -3,18 +3,7 @@
 void serverManagementTask(void* pvParameters) {
     TCPSensorManager* manager = static_cast<TCPSensorManager*>(pvParameters);
     while (true) {
-        if (!manager->client.connected()) {
-            manager->set_initialized(false);
-            Serial.println("Connecting to " + String(manager->serverIP) + ":" + String(manager->serverPort));
-            while (!manager->client.connected()) {
-                manager->client.connect(manager->serverIP, manager->serverPort);
-            }
-            Serial.println("Connected");
-            manager->sendInfo();
-            manager->receiveParams();
-        }
-
-        manager->sendAndClearSamples();
+        manager->serverManage();
         vTaskDelay(1);
     }
 }
@@ -136,4 +125,19 @@ void TCPSensorManager::processData() {
         clearSendBufferQueue();
         while(!(client.connected() && is_initialized()));
     }
+}
+
+void TCPSensorManager::serverManage() {
+    if (!client.connected()) {
+            set_initialized(false);
+            Serial.println("Connecting to " + String(serverIP) + ":" + String(serverPort));
+            while (!client.connected()) {
+                client.connect(serverIP, serverPort);
+            }
+            Serial.println("Connected");
+            sendInfo();
+            receiveParams();
+        }
+
+        sendAndClearSamples();
 }

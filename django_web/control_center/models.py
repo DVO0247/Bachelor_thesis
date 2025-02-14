@@ -1,11 +1,10 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser, UserManager
+from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.db.models.signals import pre_delete, post_delete
 from django.dispatch import receiver
-from django.contrib.auth.models import UserManager
 
 from api_clients import influxdb, grafana
 
@@ -55,17 +54,14 @@ class Project(models.Model):
     def save(self, *args, **kwargs):
         self.name = clean_name(self.name)
 
-        if not self.pk:
+        if not self.pk: # checks if not already exists
             influxdb.create_bucket(self.name)
-            #grafana.create_team(self.name)
             grafana.create_folder(self.name)
         else:
             old = Project.objects.get(pk=self.pk)
             if old.name!=self.name:
                 influxdb.rename_bucket(old.name, self.name)
                 grafana.rename_folder(old.name, self.name)
-
-        # TODO: grafana change querry bucket name (?)
         super().save(*args, **kwargs)
                
     def __str__(self) -> str:
@@ -110,7 +106,7 @@ class Measurement(models.Model):
         return f'{self.project.pk}, {self.id_in_project}'
 
 class SensorNode(models.Model):
-    name = models.CharField(max_length=32, unique=True)
+    name = models.CharField(max_length=40, unique=True)
     initialized = models.BooleanField(default=False)
     type = models.IntegerField(choices=SensorNodeTypes) # type: ignore
 

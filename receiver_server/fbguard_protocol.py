@@ -22,13 +22,12 @@ class Header:
     def __post_init__(self):
         if self.sync != self.EXPECTED_SYNC:
             raise Exception('Wrong sync bytes')
-        self.packet_byte_size = self.packet_byte_size if self.packet_byte_size else 80 + self.packet_readout_count*24 + 4
+        if not self.packet_byte_size:
+            self.packet_byte_size = 80 + self.packet_readout_count*24 + 4
         
     @classmethod
     def from_bytes(cls, header_bytes:bytes):
         sync:bytes = header_bytes[0:3]
-        if sync != cls.EXPECTED_SYNC:
-            raise Exception(f'sync != {cls.EXPECTED_SYNC}')
         packet_type:int = header_bytes[3]
         device_id:str = bytes(header_bytes[4:36]).rstrip(b'\x00').decode(ENC)
         sensor_id:str = bytes(header_bytes[36:68]).rstrip(b'\x00').decode(ENC)

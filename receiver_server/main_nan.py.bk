@@ -5,6 +5,7 @@ from typing import TypeAlias
 from abc import ABC, abstractmethod
 from pathlib import Path
 import tomllib
+from math import isnan
 import logging
 import logging.config
 from rich.logging import RichHandler
@@ -17,7 +18,7 @@ from api_clients import influxdb
 CONFIG_FILE_PATH = Path(__file__).parent.parent/'config.toml'
 
 with open(CONFIG_FILE_PATH, 'rb') as file:
-    config = tomllib.load(file)['receiver_server']
+    config:dict = tomllib.load(file)['receiver_server']
 
 HOST = config['host']
 PORT = config['port']
@@ -28,9 +29,6 @@ SENSOR_PARAMS_UPDATE_PERIOD = 1
 MAX_FIRST_MESSAGE_FRAGMENTATION = 1024
 UINT32_MAX = 0xFFFFFFFF
 CLIENT_TIMEOUT = 3
-
-if DEBUG:
-    from math import isnan
 
 Addr: TypeAlias = tuple[str, int]  # (ip, port)
 
@@ -112,9 +110,11 @@ class ESP32(Client):
         super().__init__(server, c, addr)
 
     def serve(self):
+        NAN_IGNORE_DURATION = 10
         try:
             ready_to_time_overflow = False
             time_overflow_offset = 0
+            nan_ignore_to:float|None = None 
             with self.c:
                 self.id = ccq.get_sensor_node_id_or_create(self.name, self.TYPE, self.sensor_count)
                 
@@ -165,11 +165,18 @@ class ESP32(Client):
                             ready_to_time_overflow = False
                             time_overflow_offset += UINT32_MAX
                             log.info(f'{self} - time overflow')
+                        
+                        
+                        if not (nan_ignore_to and nan_ignore_to>=time.time()):
+                            for sensor_samples in sensor_samples_list:
+                                for sample in sensor_samples.samples:
+                                    if isnan(sample.value):
+                                        log.error(f'{self} - received NaN value in sensor ID: {sensor_samples.sensor_id}')
+                                        nan_ignore_to = time.time() + NAN_IGNORE_DURATION
+                                        break
+                        
 
-                        if DEBUG and any(isnan(sample.value) for sensor_samples in sensor_samples_list for sample in sensor_samples.samples): # type: ignore
-                            log.debug(f'{self} - NaN value detected')
-
-                        # Creates sample points for each running project
+                        # Creates sample points for every running project
                         for project_name, measurement_id in ccq.get_running_project_measurements(self.id):
                             points = [
                                 influxdb.create_point(
