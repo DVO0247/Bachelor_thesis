@@ -6,7 +6,7 @@ org_name = 'main'
 [grafana]
 url = 'http://127.0.0.1:3000'
 username = 'admin'
-password = 'wsad'
+password = 'wsadwsad'
 org_name = 'Main Org.'
 influxdb_source_name = 'influxdb'
 

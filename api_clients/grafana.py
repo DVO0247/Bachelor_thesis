@@ -18,11 +18,12 @@ with open(CONFIG_FILE_PATH, 'rb') as file:
     config = tomllib.load(file)['grafana']
 
 GRAFANA_URL = config['url']
-USERNAME = config['username']
-PASSWORD = config['password']
+ADMIN_USERNAME = config['username']
+ADMIN_PASSWORD = config['password']
 ORG_NAME = config['org_name']
 INFLUXDB_SOURCE_NAME = config['influxdb_source_name']
-AUTH = HTTPBasicAuth(USERNAME, PASSWORD)
+TOKEN = 'glsa_78Qymplocox2UDAjcfaLX7JtyuySepVi_063aae67'
+AUTH = HTTPBasicAuth(ADMIN_USERNAME, ADMIN_PASSWORD)
 
 Role:TypeAlias = Literal['Viewer', 'Editor', 'Admin']
 TeamPermission:TypeAlias = Literal['Member', 'Admin']
@@ -203,13 +204,18 @@ def remove_team_member(team_name:str, username:str):
     return False
     
 def change_user_password(username:str, new_password:str) -> bool:
+    if username == ADMIN_USERNAME:
+        log.warning(f'{ADMIN_USERNAME} password should be changed manually in Grafana')
+        return False
     user = get_user(username)
     if user:
         data = {'password': new_password}
         url = f"{GRAFANA_URL}/api/admin/users/{user['id']}/password"
         response = requests.put(url, auth=AUTH, json=data)
-        if is_response_ok(response, True):
+        if is_response_ok(response, False):
             return True
+        else:
+            log.error(response.json())
     return False
 
 def change_user_email(username:str, new_email:str) -> bool:
