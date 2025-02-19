@@ -109,7 +109,7 @@ class Info:
             etx_index = _bytes.find(ETX)
             expected_size = cls.expected_size(etx_index)
             if etx_index != -1 and len(_bytes) >= (expected_size):
-                return cls.from_bytes(_bytes[:expected_size]), _bytes[expected_size:] # TODO: reduce slicing
+                return cls.from_bytes(_bytes[:expected_size]), _bytes[expected_size:]
 
         return None, _bytes
 

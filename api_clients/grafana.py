@@ -59,7 +59,7 @@ def get_source(source_name:str) -> dict|None:
 def add_influxdb_source():
     source = {
         'orgId': ORG_ID,
-        'name': f'{INFLUXDB_SOURCE_NAME}', # TODO !!!!!!!!!!!!!!!!!!!!!!
+        'name': f'{INFLUXDB_SOURCE_NAME}',
         'type': 'influxdb',
         'access': 'proxy',
         'url': influxdb.URL,

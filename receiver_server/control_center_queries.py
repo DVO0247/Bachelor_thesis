@@ -13,7 +13,7 @@ sys.path.append(str(django_root_path))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
 django.setup()
 
-from control_center.models import SensorNodeTypes, Sensor, SensorNode, Measurement, Project
+from control_center.models import SensorNodeTypes, Sensor, SensorNode, Measurement
 
 DATA_DIR_PATH = Path(__file__).parent.parent/'data'
 
