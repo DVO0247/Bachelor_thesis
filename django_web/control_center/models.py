@@ -187,7 +187,11 @@ def update_folder_members(project:Project):
 
     grafana.update_folder_permissions(project.name, members)
 
-@receiver(post_delete, sender=UserProject,)
+@receiver(post_delete, sender=User)
+def user_post_delete(sender, instance:User, **kwargs):
+    grafana.delete_user(instance.username)
+
+@receiver(post_delete, sender=UserProject)
 def user_project_post_delete(sender, instance:UserProject, **kwargs):
     update_folder_members(instance.project)
 

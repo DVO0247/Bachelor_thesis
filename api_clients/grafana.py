@@ -265,7 +265,6 @@ def delete_folder(folder_name:str):
     return False
 
 def update_folder_permissions(folder_name:str, members:dict[str, FolderPermission]):
-    print(members)
     folder = get_folder(folder_name)
     member_ids:dict[int, FolderPermission] = dict()
     for name, perm in members.items():
