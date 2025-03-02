@@ -287,7 +287,7 @@ class Server:
             for _ in range(MAX_FIRST_MESSAGE_FRAGMENTATION):
                 recv_buffer += c.recv(RECV_SIZE)
 
-                if recv_buffer[0] == snp.STX:
+                if recv_buffer[0] == ESP32.TYPE.value:
                     message, recv_buffer = snp.Info.from_bytes_with_remainder(recv_buffer)
                     if message:
                         ESP32(self, c, addr, message).serve()
@@ -310,7 +310,7 @@ class Server:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind((self.host, self.port))
             s.settimeout(60*5)
-            s.listen(5)
+            s.listen(20) # max number of pending requests
             s.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1) # Enable keep-alive
             s.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, KeepAlive.INTERVAL)   # keep-alive Interval
             s.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, KeepAlive.INTERVAL_BETWEEN_ATTEMPTS)   # Interval between attempts
@@ -322,6 +322,8 @@ class Server:
                     threading.Thread(target=self.handle_new_connection, args=(c, addr), name=str(addr)).start()
                 except TimeoutError:
                     continue
+                finally:
+                    ccq.set_all_sensor_nodes_conn_state(False)
 
 def main():
     global log

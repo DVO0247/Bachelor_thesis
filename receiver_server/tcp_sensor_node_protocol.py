@@ -3,8 +3,7 @@ from datetime import datetime
 from typing import Self, Iterable, ClassVar, Sequence
 from dataclasses import dataclass
 
-STX = 0x02  # ASCII START OF TEXT
-ETX = 0x03  # ASCII END OF TEXT
+ASCII_NULL = 0x00
 
 ENC = 'ascii'
 MAX_SAMPLES_PER_MESSAGE = 89
@@ -89,11 +88,9 @@ class Info:
 
     @classmethod
     def from_bytes(cls, _bytes: bytes):
-        if _bytes[0] != STX:
-            raise Exception('STX not found in info message')
-        etx_index = _bytes.find(ETX)
+        etx_index = _bytes.find(ASCII_NULL)
         if etx_index == -1:
-            raise Exception('ETX not found in info message')
+            raise Exception('Null terminator not found in info message')
         index = 1
         name = _bytes[index:etx_index].decode(ENC)
         index = etx_index + 1
@@ -105,8 +102,8 @@ class Info:
 
     @classmethod
     def from_bytes_with_remainder(cls, _bytes: bytes) -> tuple[Self|None, bytes]:
-        if len(_bytes) > 0 and _bytes[0] == STX:
-            etx_index = _bytes.find(ETX)
+        if len(_bytes) > 0:
+            etx_index = _bytes.find(ASCII_NULL)
             expected_size = cls.expected_size(etx_index)
             if etx_index != -1 and len(_bytes) >= (expected_size):
                 return cls.from_bytes(_bytes[:expected_size]), _bytes[expected_size:]

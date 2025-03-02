@@ -9,8 +9,9 @@
 #include "WiFiClient.h"
 #include <WiFi.h>
 
-#define STX 0x02
-#define ETX 0x03
+#define SENSOR_NODE_TYPE 0x00
+#define ASCII_NULL 0x00
+
 #define SERVER_REQUEST_SIZE_PER_SENSOR 5
 
 #define DEFAULT_NTP_SERVER_2 "cz.pool.ntp.org"
