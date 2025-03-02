@@ -106,6 +106,7 @@ class Message:
     
     @classmethod
     def list_from_bytes_with_remainder(cls, message_bytes:bytes) -> tuple[list[Self], bytes]:
+        """Return the list of `Messages` and any remainder bytes"""
         cls_list: list[Self] = []
         bytes_view = memoryview(message_bytes)
         while (expected_size := cls.get_expected_size(bytes_view)) and expected_size <= len(bytes_view):

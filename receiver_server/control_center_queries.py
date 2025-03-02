@@ -40,6 +40,7 @@ def create_sensor_node(name:str, type:SensorNodeTypes, sensor_count:int|None) ->
     
 
 def get_sensor_node_id_or_create(name:str, type:SensorNodeTypes, sensor_count:int|None = None) -> int:
+    """Create a new sensor node if it doesn't exist and retrieve the sensor node ID."""
     sensor_node = SensorNode.objects.filter(name=name).first()
     if sensor_node:
         if sensor_node.manage_sensors and sensor_count != Sensor.objects.filter(sensor_node=sensor_node).count():
@@ -51,6 +52,7 @@ def get_sensor_node_id_or_create(name:str, type:SensorNodeTypes, sensor_count:in
 
 
 def get_running_project_measurements(sensor_node_id:int) -> list[tuple[str, int]]:
+    """Retrieve the measurement IDs of all projects with running measurements for a specific sensor node."""
     measurements = Measurement.objects.filter(end_time=None, sensor_nodes=sensor_node_id)
     return [(m.project.name, m.id_in_project) for m in measurements]
 
@@ -67,6 +69,11 @@ def get_sensor_names(sensor_node_id:int) -> list[str]:
     return [sensor.name for sensor in sensors if sensor.name]
 
 def add_sensor(sensor_node_id:int, sensor_name:str) -> Sensor:
+    """Add a new sensor to the Control Center database.
+
+    This function is designed to add a sensor to the system for sensor nodes that do not have their sensors managed
+    within the Control Center.
+    """
     sensor_node = SensorNode.objects.get(pk=sensor_node_id)
     max_id = Sensor.objects.filter(sensor_node=sensor_node).aggregate(Max('id_in_sensor_node'))['id_in_sensor_node__max']
 
@@ -81,11 +88,13 @@ def add_sensor(sensor_node_id:int, sensor_name:str) -> Sensor:
     return sensor
 
 def set_sensor_node_conn_state(sensor_node_id:int, state:bool):
+    """Set connection state for the sensor node"""
     sensor_node = SensorNode.objects.get(pk=sensor_node_id)
     sensor_node.connected = state
     sensor_node.save()
 
 def set_all_sensor_nodes_conn_state(state:bool):
+    """Set connection state for all sensor nodes"""
     for sensor_node in SensorNode.objects.all():
         sensor_node.connected = state
         sensor_node.save()
