@@ -4,6 +4,7 @@ from .models import User, Project, SensorNode, Sensor, UserProject
 from django.contrib.auth import get_user_model
 
 class BootstrapModelForm(forms.ModelForm):
+    """Model Form with Bootstrap html classes"""
     def __init__(self, *args, **kwargs):
         super(BootstrapModelForm, self).__init__(*args, **kwargs)
         for field in self.fields.values():

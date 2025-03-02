@@ -2,10 +2,10 @@ from .models import UserProject
 
 def user_projects(request):
     """
-    Přidá seznam projektů pro aktuálně přihlášeného uživatele do kontextu všech views.
+    Adds the list of projects for the currently logged in user to the context of all views.
     """
     if request.user.is_authenticated:
-        # Získání všech projektů, kde je uživatel členem
+        # Get all projects where the user is a member
         projects = UserProject.objects.filter(user=request.user).select_related('project')
         return {
             'user_projects': projects,

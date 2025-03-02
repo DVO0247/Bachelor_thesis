@@ -64,7 +64,7 @@ void Sensor::setSamplesPerMessage(uint8_t samplesPerMessage) {
 }
 
 // Check if the sample count in the SensorData is at its maximum
-bool Sensor::isSampleCountMax() {
+bool Sensor::isSampleCountAtMax() {
     return data.getSampleCount() >= getSamplesPerMessage();
 }
 

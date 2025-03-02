@@ -1,3 +1,7 @@
+"""
+This module provides functionality for handling Sensor Node messages, including serialization and deserialization.
+"""
+
 import struct
 from datetime import datetime
 from typing import Self, Iterable, ClassVar, Sequence
@@ -64,6 +68,10 @@ class SensorSamples:
 
     @classmethod
     def list_from_bytes_with_remainder(cls, _bytes: bytes, expected_sizes: Sequence[int]) -> tuple[list[Self], bytes]:
+        """Return the list of SensorSamples and any remainder bytes
+        
+        expected_sizes (Sequence[int]): A sequence of expected message sizes for each sensor node's sensor, sorted by sensor IDs.
+        """
         cls_list: list[Self] = []
         bytes_view = memoryview(_bytes)
         # Checks if can get expected message size for sensor, then checks if bytes has at least expected size
@@ -102,6 +110,7 @@ class Info:
 
     @classmethod
     def from_bytes_with_remainder(cls, _bytes: bytes) -> tuple[Self|None, bytes]:
+        """Return the Info and any remainder bytes"""
         if len(_bytes) > 0:
             etx_index = _bytes.find(ASCII_NULL)
             expected_size = cls.expected_size(etx_index)

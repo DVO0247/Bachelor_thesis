@@ -8,12 +8,15 @@ from django.dispatch import receiver
 
 from api_clients import influxdb, grafana
 
-PROJECT_AUTO_PURGE = True # If True, deletes InfluxDB bucket and Grafana folder when a project is removed.
+# If set to True, automatically deletes the associated InfluxDB bucket and Grafana folder
+# when a project is removed from the system.
+PROJECT_AUTO_PURGE = True
 
 class SensorNodeTypes(models.IntegerChoices):
     ESP32 = 0, 'ESP32'
     FBGUARD = 1, 'FBGuard'
 
+# A tuple defining the sensor node types intended for sensor management.
 SENSOR_NODES_FOR_SENSOR_MANAGE: tuple[SensorNodeTypes] = (
     SensorNodeTypes.ESP32,
 )
@@ -27,6 +30,7 @@ class User(AbstractUser):
 
     def set_password(self, raw_password):
         if raw_password:
+            # Check if the object does not already exist
             if not self.pk:
                 grafana.create_user(self.username, raw_password, 'Editor')
             else:
@@ -54,12 +58,15 @@ class Project(models.Model):
     def save(self, *args, **kwargs):
         self.name = clean_name(self.name)
 
-        if not self.pk: # checks if not already exists
+        # Check if the object does not already exist
+        if not self.pk: 
             influxdb.create_bucket(self.name)
             grafana.create_folder(self.name)
         else:
+            # If the project already exists, check if the name has changed
             old = Project.objects.get(pk=self.pk)
-            if old.name!=self.name:
+            if old.name != self.name:
+                # If the name has changed, rename the InfluxDB bucket and Grafana folder
                 influxdb.rename_bucket(old.name, self.name)
                 grafana.rename_folder(old.name, self.name)
         super().save(*args, **kwargs)
@@ -69,6 +76,7 @@ class Project(models.Model):
 
     def start_measurement(self)->None:
         last_measurement = self.get_last_measurement()
+        # Do nothing if the measurement is already running
         if last_measurement and last_measurement.is_running():
             return
         measurement = Measurement.objects.create(
@@ -97,7 +105,11 @@ class Measurement(models.Model):
         unique_together = ['project', 'id_in_project']
 
     def get_next_or_running_id(self):
-        return self.id_in_project+1 if not self.is_running() else self.id_in_project
+        """
+        Returns the next ID in the project if the current project is not running.
+        If the project is running, returns the current project's ID.
+        """
+        return self.id_in_project + 1 if not self.is_running() else self.id_in_project
 
     def is_running(self):
         return self.end_time is None
@@ -113,6 +125,10 @@ class SensorNode(models.Model):
 
     @property
     def manage_sensors(self) -> bool:
+        """
+        Determines if the current `SensorNode` is included in the list of sensor types
+        that are intended for sensor management.
+        """
         return self.type in SENSOR_NODES_FOR_SENSOR_MANAGE
 
     def is_running(self):
@@ -146,6 +162,7 @@ class Sensor(models.Model):
         if self.name:
             self.name = clean_name(self.name)
         samples_per_message_range = (1,89)
+        # Ensure `samples_per_message` is within the permitted range
         if self.samples_per_message:
             if self.samples_per_message < samples_per_message_range[0]:
                 self.samples_per_message = samples_per_message_range[0]
@@ -180,6 +197,7 @@ class UserProject(models.Model):
 
 
 def update_folder_members(project:Project):
+    """Update all user permissions for the Grafana folder"""
     user_projects = UserProject.objects.filter(project=project)
     members:dict[str, grafana.FolderPermission] = dict()
     for user_project in user_projects:
@@ -189,17 +207,24 @@ def update_folder_members(project:Project):
 
 @receiver(post_delete, sender=User)
 def user_post_delete(sender, instance:User, **kwargs):
+    """Remove the user from Grafana after they are deleted from the system."""
     grafana.delete_user(instance.username)
 
 @receiver(post_delete, sender=UserProject)
 def user_project_post_delete(sender, instance:UserProject, **kwargs):
+    """Remove the user from the associated Grafana folder after they are removed from the project."""
     update_folder_members(instance.project)
 
 @receiver(pre_delete, sender=Project)
 def project_pre_delete(sender, instance:Project, **kwargs):
+    """
+    Before a project is deleted, remove the associated InfluxDB bucket and Grafana folder  
+    if `PROJECT_AUTO_PURGE` is `True`.
+    """
     if PROJECT_AUTO_PURGE:
         influxdb.delete_bucket(instance.name)
         grafana.delete_folder(instance.name)
 
 def clean_name(name:str) -> str:
+    '''Remove `"` from name'''
     return name.replace('"', '')

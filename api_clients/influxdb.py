@@ -1,3 +1,8 @@
+"""
+This module defines functions for interacting with InfluxDBv2 API.  
+These functions are intended to be called from the Control Center, Receiver server and Gradana API client.
+"""
+
 from influxdb_client import InfluxDBClient, Point, Bucket, Authorization, User, Organization
 from influxdb_client import AddResourceMemberRequestBody
 from typing import Iterable, TypeAlias, Literal
@@ -33,6 +38,7 @@ class Api:
     query = client.query_api()
 
 def get_auth_by_name(name: str) -> Authorization | None:
+    """Find authorizations by name."""
     for auth in Api.auth.find_authorizations():
         if auth.description == name:
             return auth
@@ -75,6 +81,7 @@ def write(bucket_name: str, points: Iterable[Point]):
 
 
 def create_point(measurement_id, sensor_node_name: str, sensor_name: str, timestamp: int, value: float, write_precision: TimePrecision) -> Point:
+    """Create InfluxDB `Point`"""
     return (
         Point(measurement_id)
         .tag("Sensor Node", sensor_node_name)
@@ -106,6 +113,11 @@ def query_count(bucket_name: str, measurement_id) -> int:
 
 
 def query_select_all(bucket_name: str, measurement_id, batch_size: int = 100_000):
+    """Generator for safely selecting all data for a measurement.  
+
+    This function retrieves data in batches, preventing excessive memory usage  
+    by avoiding loading the entire dataset at once.
+    """
     page = 0
     while True:
         query = f'''
@@ -136,9 +148,5 @@ def export_csv(
         for record in query_select_all(bucket_name, measurement_id, batch_size):
             file.write(f'{record.get_time().astimezone(_timezone).isoformat(' ', time_precision)[:-6]},{record.get_value()}\n')
             # print(record.get_time())
-
-
-if __name__ == '__main__':
-    print(Api.auth.find_authorizations())
 
 # TODO: Remove unsused things

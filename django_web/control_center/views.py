@@ -2,7 +2,6 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect, FileResponse
 from django.core.exceptions import PermissionDenied
 from django.core.files.temp import NamedTemporaryFile
-from django.conf import settings
 from django.forms import modelformset_factory
 from django.contrib.auth.views import LoginView, PasswordChangeView
 from django.contrib import messages
@@ -39,7 +38,6 @@ def project_details(request, project_pk):
     context['project_sensor_nodes'] = project.sensor_nodes.all()
     context['user_project'] = get_object_or_404(UserProject, user=request.user, project=project)
     context['this_user_projects'] = UserProject.objects.filter(project=project)
-    #context['project'] = project
     return render(request, 'project_details.html', context)
 
 
@@ -52,8 +50,8 @@ def project_edit(request, pk=None):
         if form.is_valid():
             project = form.save()
             if instance is None:
-                userproject = UserProject(user=request.user, project=project, is_owner=True)
-                userproject.save()
+                user_project = UserProject(user=request.user, project=project, is_owner=True)
+                user_project.save()
             previous_url = request.POST.get('previous_url')
             if not previous_url:
                 previous_url = 'index'
@@ -67,6 +65,7 @@ def project_edit(request, pk=None):
         return render(request, 'project_edit.html', context)
 
 def project_activate(request, project_pk):
+    """Add project to user's activated project list"""
     if request.method == 'POST':
         user_project = get_object_or_404(UserProject, project=project_pk, user=request.user)
         
@@ -78,6 +77,7 @@ def project_activate(request, project_pk):
         return redirect(request.META['HTTP_REFERER'])
     
 def project_deactivate(request, project_pk):
+    """Remove project from user's activated project list"""
     if request.method == 'POST':
         user_project = get_object_or_404(UserProject, project=project_pk, user=request.user)
         
@@ -133,20 +133,19 @@ def project_users_edit(request, project_pk):
     user_forms = {}
 
     if request.method == 'POST':
-        
         for user in users:
             form = UserProjectForm(request.POST, prefix=str(user.pk))
-            
             if form.is_valid():
                 user_project = UserProject.objects.filter(user=user, project=project).first()
+                # Check if the user is not already in project
                 if not user_project:
                     user_project = UserProject(user=user, project=project)
-                    new = True
+                    is_already_member = False
                 else:
-                    new = False
-                #user_project, created = UserProject.objects.get_or_create(user=user, project=project)
+                    is_already_member = True
+
                 if user_project.is_owner:
-                    continue
+                    continue # Don't change permission for owner
                 
                 is_member = form.cleaned_data.get('is_member', False)
                 is_editor = form.cleaned_data.get('is_editor', False)
@@ -154,7 +153,7 @@ def project_users_edit(request, project_pk):
                 user_project.is_editor = is_editor
 
                 if not is_member:
-                    if not new:
+                    if is_already_member:
                         user_project.delete()
                 else:
                     user_project.save()
@@ -165,7 +164,7 @@ def project_users_edit(request, project_pk):
 
     else:
         user_projects = UserProject.objects.filter(project=project)
-        owner = user_projects.filter(is_owner=True).first()
+        user_project_owner = user_projects.filter(is_owner=True).first()
         for user in users:
             user_project = user_projects.filter(user=user).first()
             initial_data = {
@@ -175,8 +174,8 @@ def project_users_edit(request, project_pk):
 
             form = UserProjectForm(initial=initial_data, prefix=str(user.pk))
             
-            # Pokud je uživatel aktuálně přihlášený, nastavíme atribut `disabled`
-            if owner and user == owner.user:
+            if user_project_owner and user == user_project_owner.user:
+                # Disable form fields for the owner
                 form.fields['is_member'].widget.attrs['disabled'] = 'disabled'
                 form.fields['is_editor'].widget.attrs['disabled'] = 'disabled'
             
@@ -190,11 +189,16 @@ def project_leave(request, project_pk):
     return redirect('project_list')
 
 def reload_active_projects_panel(request):
+    """
+    Reload sidebar active projects panel.
+    Called by htmlx.
+    """
     return render(request, r'includes/active_projects_panel.html')
 #endregion
 
 #region Measurement
 def measurement_list(request, project_pk):
+    """List of all measurement for the project"""
     context = {}
     project = get_object_or_404(Project, pk=project_pk)
     context['project'] = project
@@ -202,6 +206,7 @@ def measurement_list(request, project_pk):
     return render(request, 'measurement_list.html', context)
 
 def measurement_data(request, project_pk, measurement_id):
+    """Show all sensor nodes and it's sensors asociated with measurement"""
     context = {}
     project = get_object_or_404(Project, pk=project_pk)
     measurement = get_object_or_404(Measurement, project=project, id_in_project=measurement_id)
@@ -235,6 +240,7 @@ def explore_data(request, project_pk, measurement_id, sensor_pk, page=1, limit_n
     return render(request, 'explore_data.html', context)
 
 def explore_data_goto(request, project_pk, measurement_id, sensor_pk, count=50):
+    """Redirect to explore data view"""
     page = int(request.POST.get('page', 1))
     return redirect('explore_data', project_pk=project_pk, measurement_id=measurement_id, sensor_pk=sensor_pk, page=page)
 
@@ -270,6 +276,10 @@ def stop_measurement(request, project_pk):
             return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
 def reload_start_stop_panel(request, project_pk):
+    """
+    Reload start stop panel.
+    Called by htmlx.
+    """
     project = get_object_or_404(Project, pk=project_pk)
     context = {'project':project}
     return render(request, r'includes/start_stop_panel.html', context)
@@ -282,6 +292,10 @@ def sensor_node_list(request):
     return render(request, 'sensor_node_list.html', context)
 
 def reload_sensor_nodes_table(request):
+    """
+    Reload table of all sensor nodes.
+    Called by htmlx.
+    """
     context = {}
     context['sensor_nodes'] = SensorNode.objects.all()
     return render(request, r'includes/sensor_nodes_table.html', context)
@@ -334,6 +348,7 @@ def sensor_list(request, sensor_node_pk):
 
 #region Other
 def delete(request, model_name, pk):
+    """Generic object delete function"""
     if request.method == 'POST':
         Model = apps.get_model('control_center',model_name)
 
@@ -366,6 +381,7 @@ class CustomPasswordChangeView(PasswordChangeView):
     success_url = reverse_lazy('index')
 
 def Grafana(request):
+    """Redirect to Grafana by client IP"""
     ip = request.get_host().split(':')[0]
-    return HttpResponseRedirect(f'http://{ip}:3000/dashboards') # TODO: redirect to outside IP
+    return HttpResponseRedirect(f'http://{ip}:3000/dashboards')
 #endrefion

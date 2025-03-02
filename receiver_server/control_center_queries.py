@@ -1,3 +1,7 @@
+"""
+This module provides connection to the control center database and query functions.
+"""
+
 import os
 import django
 from django.db.models import Max

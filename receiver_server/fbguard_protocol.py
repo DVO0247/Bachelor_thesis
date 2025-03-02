@@ -1,3 +1,7 @@
+"""
+This module provides functionality for handling FBGuard messages, including serialization and deserialization.
+"""
+
 import struct
 from dataclasses import dataclass
 from typing import ClassVar, Self, Any
@@ -93,6 +97,7 @@ class Message:
     
     @classmethod
     def from_bytes_with_remainder(cls, message_bytes:bytes) -> tuple[Self|None, bytes]:
+        """Return the message and any remainder bytes"""
         expected_size = cls.get_expected_size(message_bytes)
         if expected_size and expected_size <= len(message_bytes):
             return cls.from_bytes(message_bytes[:expected_size]), message_bytes[expected_size:]

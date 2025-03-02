@@ -1,3 +1,8 @@
+"""
+This module defines functions for interacting with Grafana's API.  
+These functions are intended to be called from the Control Center.
+"""
+
 import requests
 from requests.auth import HTTPBasicAuth
 from typing import Literal, TypeAlias
@@ -301,9 +306,3 @@ def rename_folder(old_folder_name:str, new_folder_name:str):
         if is_response_ok(response, True):
             return True
     return False
-
-if __name__ == '__main__':
-    #print(get_source(INFLUXDB_SOURCE_NAME))
-    print(add_influxdb_source())
-    #print(delete_source(f'{INFLUXDB_SOURCE_NAME}_2'))
-    pass

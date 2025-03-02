@@ -1,8 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import User, Project, SensorNode, Sensor, UserProject, Measurement
-from django.contrib.auth.forms import UserCreationForm, UsernameField
-from django.contrib.auth import forms as auth_forms
 
 class CustomUserAdmin(UserAdmin):
     model = User
@@ -12,7 +10,7 @@ class CustomUserAdmin(UserAdmin):
             'fields': ('darkmode',) # additional fields
         }),
     ) # type: ignore
-    list_display=UserAdmin.list_display + tuple() # type: ignore # tuple() = additional fields
+    list_display=UserAdmin.list_display + tuple() # type: ignore # additional fields belongs to inside tuple
     
 
 admin.site.register(User, CustomUserAdmin)

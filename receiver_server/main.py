@@ -1,3 +1,7 @@
+"""
+This module is used to handle TCP communication between the server and clients.
+"""
+
 import socket
 import time
 import threading
