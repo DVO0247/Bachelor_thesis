@@ -39,12 +39,17 @@ class FolderPermission(Enum):
     EDIT = 2
     ADMIN = 4
 
+class ResponseException(Exception):
+    def __init__(self, response:requests.Response) -> None:
+        message = f"Error: {response.status_code} - {response.json()['message']}"
+        super().__init__(message)
+
 def is_response_ok(response:requests.Response, raise_exception:bool = False) -> bool:
     try:
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
         if raise_exception:
-            raise Exception(f"Error: {response.status_code} - {response.json()['message']}") from e
+            raise ResponseException(response) from e
         else:
             return False
     else:
@@ -117,7 +122,10 @@ def create_user(name:str, password:str, role:Role = 'Viewer') -> int: # type: ig
     }
 
     response = requests.post(url, auth=AUTH, json=user)
-    if is_response_ok(response, True):
+    if response.status_code == 412:
+        log.error(f"User with email '{user['email']}' or username '{user['name']}' already exists")
+        return -1
+    elif is_response_ok(response, True):
         return response.json()['id']
 
 def get_user(name:str) -> dict|None:
