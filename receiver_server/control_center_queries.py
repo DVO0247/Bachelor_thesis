@@ -12,11 +12,19 @@ from tcp_sensor_node_protocol import SensorParams
 import logging
 log = logging.getLogger(__name__)
 
-django_root_path = Path(__file__).parent.parent/'django_web'
+# Get the path to the root directory of the Django project (Control Center)
+django_root_path = Path(__file__).parent.parent / 'django_web'
+
+# Add this path to the system path to allow importing the Django project  
 sys.path.append(str(django_root_path))
+
+# Set the path to the Django configuration file (points to settings.py) as an environment variable
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
+
+# Initialize the Django application, which loads the configuration from the file specified in DJANGO_SETTINGS_MODULE
 django.setup()
 
+# Import models from the Control Center
 from control_center.models import SensorNodeTypes, Sensor, SensorNode, Measurement
 
 DATA_DIR_PATH = Path(__file__).parent.parent/'data'
@@ -29,7 +37,7 @@ def create_sensor_node(name:str, type:SensorNodeTypes, sensor_count:int|None) ->
     sensor_node = SensorNode(name=name, type=type)
     if sensor_node.manage_sensors and not sensor_count:
         raise Exception(f'Sensor count needed for {type.name} type')
-    sensor_node.full_clean()
+    #sensor_node.full_clean()
     sensor_node.save()
     if sensor_node.manage_sensors:
         for i in range(sensor_count): # type: ignore

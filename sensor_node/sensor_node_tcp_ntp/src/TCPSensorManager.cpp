@@ -21,7 +21,7 @@ void TCPSensorManager::sendInfo() {
         for (uint16_t i = 0; i < name.length(); i++) {
             dataBuffer[index++] = name[i];
         }
-        dataBuffer[index++] = ASCII_NULL;
+        dataBuffer[index++] = ASCII_ETX;
         // Add the sensor count
         dataBuffer[index++] = getSensorCount();
 

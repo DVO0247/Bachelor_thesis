@@ -11,7 +11,7 @@ APConfig apConfig;
 TCPSensorManager sensorManager;
 
 bool state = false;
-double readPi() {
+float readPi() {
   state = !state;
   if (state) {
     return PI;

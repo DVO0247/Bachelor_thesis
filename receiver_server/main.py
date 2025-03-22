@@ -30,8 +30,8 @@ DEBUG = config['debug']
 RECV_SIZE = 4096
 SENSOR_PARAMS_UPDATE_PERIOD = 1
 MAX_FIRST_MESSAGE_FRAGMENTATION = 1024
-UINT32_MAX = 0xFFFFFFFF
 CLIENT_TIMEOUT = 3
+UINT32_MAX = 0xFFFFFFFF
 
 class KeepAlive:
     INTERVAL = 15
@@ -81,7 +81,7 @@ if DEBUG:
 
 # Abstract class
 class Client(ABC):
-    TYPE: ccq.SensorNodeTypes      
+    TYPE: ccq.SensorNodeTypes
 
     def __init__(self, server: 'Server', c: socket.socket, addr: Addr, initial_recv_buffer:bytes = bytes()) -> None:
         self.id: int
@@ -103,6 +103,7 @@ class Client(ABC):
         self._run = False
 
     def _remove_client(self):
+        """Remove `Client` from `Server`"""
         self.stop()
         self.server.remove_client(self)
         if hasattr(self, 'id'):
@@ -114,7 +115,7 @@ class Client(ABC):
 
 
 class ESP32(Client):
-    TYPE = ccq.SensorNodeTypes.ESP32
+    TYPE = ccq.SensorNodeTypes.ESP32 # need to add to Control Center
     #ADDITIONAL_TIMEOUT = 5
 
     def __init__(self, server: 'Server', c: socket.socket, addr: Addr, snp_info: snp.Info) -> None:
@@ -235,7 +236,6 @@ class FBGuard(Client):
                     log.warning(f'{self} - not alive')
                     return
                 messages, self.recv_buffer = fbg.Message.list_from_bytes_with_remainder(self.recv_buffer)
-
                 # Checks if new names are received
                 for name in (message.header.sensor_id for message in messages):
                     if name not in self.sensor_names:
@@ -243,6 +243,7 @@ class FBGuard(Client):
                         ccq.add_sensor(self.id, name)
 
                 for project_name, measurement_id in ccq.get_running_project_measurements(self.id):
+                    
                     points = [
                         influxdb.create_point(
                             measurement_id,
@@ -255,6 +256,7 @@ class FBGuard(Client):
                         for message in messages
                         for readout in message.data.readouts
                     ]
+
                     influxdb.write(project_name, points)
                     if DEBUG:
                         freq.__add__(len(points))
@@ -270,6 +272,7 @@ class Server:
         self._clients_lock = threading.Lock()
 
     def stop_client_if_exists(self, client_name:str, ignore:Client|None):
+        """Stop client with the same name if exist"""
         with self._clients_lock:
             for client in self._clients:
                 if client_name == client.name and client != ignore:
@@ -293,6 +296,7 @@ class Server:
 
                 if recv_buffer[0] == ESP32.TYPE.value:
                     message, recv_buffer = snp.Info.from_bytes_with_remainder(recv_buffer)
+                    log.debug(message)
                     if message:
                         ESP32(self, c, addr, message).serve()
                         return

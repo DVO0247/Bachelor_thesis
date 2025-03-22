@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Self, Iterable, ClassVar, Sequence
 from dataclasses import dataclass
 
-ASCII_NULL = 0x00
+ASCII_ETX = 0x03
 
 ENC = 'ascii'
 MAX_SAMPLES_PER_MESSAGE = 89
@@ -96,7 +96,7 @@ class Info:
 
     @classmethod
     def from_bytes(cls, _bytes: bytes):
-        etx_index = _bytes.find(ASCII_NULL)
+        etx_index = _bytes.find(ASCII_ETX)
         if etx_index == -1:
             raise Exception('Null terminator not found in info message')
         index = 1
@@ -112,7 +112,7 @@ class Info:
     def from_bytes_with_remainder(cls, _bytes: bytes) -> tuple[Self|None, bytes]:
         """Return the Info and any remainder bytes"""
         if len(_bytes) > 0:
-            etx_index = _bytes.find(ASCII_NULL)
+            etx_index = _bytes.find(ASCII_ETX)
             expected_size = cls.expected_size(etx_index)
             if etx_index != -1 and len(_bytes) >= (expected_size):
                 return cls.from_bytes(_bytes[:expected_size]), _bytes[expected_size:]

@@ -12,8 +12,7 @@
 // Sensor node type identifier
 #define SENSOR_NODE_TYPE 0x00
 
-// Null character used in ASCII encoding
-#define ASCII_NULL 0x00
+#define ASCII_ETX 0x03
 
 // Number of bytes required per sensor request from the server
 #define SERVER_REQUEST_SIZE_PER_SENSOR 5

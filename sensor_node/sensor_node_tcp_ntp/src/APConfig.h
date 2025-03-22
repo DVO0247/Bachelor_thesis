@@ -9,22 +9,23 @@
 // Port for DNS server
 #define DNS_PORT 53
 
-// EEPROM START ADDRESSES for different settings
-#define SSID_ADDR 0
-#define PASS_ADDR 32
-#define SERVER_IP_ADDR 64
-#define PORT_ADDR 79
-#define NAME_ADDR 81
-
 // Sizes of the settings data
-#define SSID_SIZE 32
-#define PASS_SIZE 32
-#define SERVER_IP_SIZE 15
-#define PORT_SIZE 2
-#define NAME_SIZE 40
+constexpr uint8_t SSID_SIZE = 32;
+constexpr uint8_t PASS_SIZE = 32;
+constexpr uint8_t SERVER_IP_SIZE = 15;
+constexpr uint8_t PORT_SIZE = 2;
+constexpr uint8_t NAME_SIZE = 40;
+
+// EEPROM START ADDRESSES for different settings
+constexpr uint16_t SSID_ADDR = 0;
+constexpr uint16_t PASS_ADDR = SSID_ADDR + SSID_SIZE;
+constexpr uint16_t SERVER_IP_ADDR = PASS_ADDR + PASS_SIZE;
+constexpr uint16_t PORT_ADDR = SERVER_IP_ADDR + SERVER_IP_SIZE;
+constexpr uint16_t NAME_ADDR = PORT_ADDR + PORT_SIZE;
+
 
 // Total EEPROM size used for storing settings
-constexpr uint8_t EEPROM_SIZE = SSID_SIZE + PASS_SIZE + SERVER_IP_SIZE + PORT_SIZE + NAME_SIZE;
+constexpr uint16_t EEPROM_SIZE = SSID_SIZE + PASS_SIZE + SERVER_IP_SIZE + PORT_SIZE + NAME_SIZE;
 
 class APConfig {
    private:
