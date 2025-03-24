@@ -2,7 +2,6 @@
      hx-get="{% url 'reload_start_stop_panel' project.pk %}" 
      hx-trigger="every 3s" 
      hx-swap="outerHTML">
-    <hr>
     <p>
         {% with last_measurement=project.get_last_measurement %}
         <b>Measurement: {{ last_measurement.get_next_or_running_id }}</b>

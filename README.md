@@ -28,9 +28,10 @@ Nastavení parametrů v souboru `config.toml`.
 python3.13 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-python django_web/manage.py makemigrations control_center
-python django_web/manage.py migrate
+#python django_web/manage.py makemigrations control_center
+#python django_web/manage.py migrate
 python django_web/manage.py collectstatic --noinput --clear
-python django_web/manage.py createsuperuser
+#python django_web/manage.py createsuperuser
+python django_web/manage.py createadmin
 python django_web/manage.py runserver
 ```

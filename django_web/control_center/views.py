@@ -13,7 +13,7 @@ from pathlib import Path
 
 from .models import User, Project, SensorNode, Sensor, UserProject, Measurement, SensorNodeTypes
 from .forms import SensorNodeForm, ProjectForm, LoginForm, SensorForm, UserProjectForm
-from api_clients import influxdb
+from api_clients import influxdb, grafana
 
 TEMP_DIR_PATH = Path.cwd()/'control_center'/'temp' 
 
@@ -38,6 +38,8 @@ def project_details(request, project_pk):
     context['project_sensor_nodes'] = project.sensor_nodes.all()
     context['user_project'] = get_object_or_404(UserProject, user=request.user, project=project)
     context['this_user_projects'] = UserProject.objects.filter(project=project)
+    grafana_folder = grafana.get_folder(project.name)
+    context['grafana_endpoint'] = f'dashboards/f/{grafana_folder['uid']}' if grafana_folder else None
     return render(request, 'project_details.html', context)
 
 
@@ -380,8 +382,8 @@ class CustomPasswordChangeView(PasswordChangeView):
     template_name = 'password_change.html'
     success_url = reverse_lazy('index')
 
-def Grafana(request):
+def Grafana(request, endpoint:str = 'dashboards'):
     """Redirect to Grafana by client IP"""
     ip = request.get_host().split(':')[0]
-    return HttpResponseRedirect(f'http://{ip}:3000/dashboards')
+    return HttpResponseRedirect(f'http://{ip}:3000/{endpoint}')
 #endrefion

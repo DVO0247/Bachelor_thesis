@@ -48,6 +48,7 @@ urlpatterns = [
     path('toggle_dark_mode/', views.toggle_dark_mode, name='toggle_dark_mode'),
     path('login/', views.CustomLoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
+    path('grafana/<path:endpoint>', views.Grafana, name='grafana'),
     path('grafana/', views.Grafana, name='grafana'),
     path('password_change/', views.CustomPasswordChangeView.as_view(), name='password_change'),
 ]

@@ -117,8 +117,7 @@
                 {% endif %}
                 
                
-                <a class="btn btn-primary btn-sm" href="{% url 'measurement_list' project.pk %}"
-                    role="button">Measurements</a>
+                
                 {% if not user_project.is_activated %}
                 <form action="{% url 'project_activate' project.pk %}" method="post" style="display:inline;">
                     {% csrf_token %}
@@ -130,17 +129,26 @@
                     <input class="btn btn-danger btn-sm" type="submit" value="Deactivate">
                 </form>
                 {% endif %}
-            
+                
         </div>
+        <div class="mt-2">
+            <a class="btn btn-primary btn-sm" href="{% url 'measurement_list' project.pk %}"
+                    role="button">Measurements</a>
+            <a class="btn btn-warning btn-sm" href="{% url 'grafana' grafana_endpoint %}" role="button" target="_blank">Grafana dashboards</a>
+        </div>
+        <hr>
+        
         {% if user_project.is_activated %}
-       {% include 'includes/start_stop_panel.html' %}
-    {% endif %}
+        {% include 'includes/start_stop_panel.html' %}
+        {% endif %}
 
     </div>
 </div>
 <div class="mt-3">
     <a href="{% url 'project_list' %}" class="btn btn-secondary">Back</a>
 </div>
+
+
 
 <!-- Add a media query for small screens -->
 <style>

@@ -62,6 +62,7 @@ class Project(models.Model):
         if not self.pk: 
             influxdb.create_bucket(self.name)
             grafana.create_folder(self.name)
+            grafana.create_dashboard(self.name)
         else:
             # If the project already exists, check if the name has changed
             old = Project.objects.get(pk=self.pk)

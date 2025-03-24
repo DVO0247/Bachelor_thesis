@@ -9,7 +9,9 @@ from typing import Literal, TypeAlias
 from enum import Enum
 from pathlib import Path
 import tomllib
+import json
 import logging
+from functools import lru_cache
 log = logging.getLogger(__name__)
 
 if __package__:
@@ -18,6 +20,7 @@ else:
     import influxdb
 
 CONFIG_FILE_PATH = Path(__file__).parent.parent/'config.toml'
+NEW_DASHBOARD_TEMPLATE_PATH = Path(__file__).parent/'grafana_dashboard.json'
 
 with open(CONFIG_FILE_PATH, 'rb') as file:
     config = tomllib.load(file)['grafana']
@@ -55,22 +58,24 @@ def is_response_ok(response:requests.Response, raise_exception:bool = False) -> 
     else:
         return True
 
-def get_org_id(name:str):
+@lru_cache
+def get_org_id(name:str = ORG_NAME) -> str:
     url = f'{GRAFANA_URL}/api/orgs/name/{name}'
     response = requests.get(url, auth=AUTH)
-    if is_response_ok(response, True):
-        return response.json()['id']
+    is_response_ok(response, True)
+    return response.json()['id']
 
-def get_source(source_name:str) -> dict|None:
+@lru_cache
+def get_source(source_name:str = INFLUXDB_SOURCE_NAME) -> dict:
     url = f'{GRAFANA_URL}/api/datasources/name/{source_name}'
     response = requests.get(url, auth=AUTH)
-    if is_response_ok(response, False):
-        return response.json()
+    is_response_ok(response, True)
+    return response.json()
 
-def add_influxdb_source():
+def add_influxdb_source(name:str):
     source = {
-        'orgId': ORG_ID,
-        'name': f'{INFLUXDB_SOURCE_NAME}',
+        'orgId': get_org_id(),
+        'name': f'{name}',
         'type': 'influxdb',
         'access': 'proxy',
         'url': influxdb.URL,
@@ -93,16 +98,6 @@ def add_influxdb_source():
         return response.json()
 
 
-try:
-    ORG_ID = get_org_id(ORG_NAME)
-except requests.exceptions.ConnectionError:
-    log.error('Failed to establish connection with Grafana')
-else:
-    if not get_source(INFLUXDB_SOURCE_NAME):
-        if add_influxdb_source():
-            log.info('InfluxDB source added to Grafana')
-
-
 def delete_source(source_name:str):
     url = f'{GRAFANA_URL}/api/datasources/name/{source_name}'
     response = requests.delete(url, auth=AUTH)
@@ -117,7 +112,7 @@ def create_user(name:str, password:str, role:Role = 'Viewer') -> int: # type: ig
         "email": name,
         "login": name,
         "password": password,
-        'orgId': ORG_ID,
+        'orgId': get_org_id(),
         'role': role,
     }
 
@@ -145,7 +140,7 @@ def delete_user(name:str) -> bool:
     return False
 
 def get_org_users():
-    url = f'{GRAFANA_URL}/api/orgs/{ORG_ID}/users'
+    url = f'{GRAFANA_URL}/api/orgs/{get_org_id()}/users'
     response = requests.get(url, auth=AUTH)
     if is_response_ok(response):
         return response.json()
@@ -154,7 +149,7 @@ def create_team(name:str) -> int|None:
     url = f'{GRAFANA_URL}/api/teams'
     team = {
         "name": name,
-        "orgId": ORG_ID
+        "orgId": get_org_id()
     }
     response = requests.post(url, auth=AUTH, json=team)
     if is_response_ok(response, True):
@@ -245,7 +240,7 @@ def change_user_role(username:str, role:Role):
     user = get_user(username)
     if user:
         data = {'role': role}
-        url = f'{GRAFANA_URL}/api/orgs/{ORG_ID}/users/{user['id']}'
+        url = f'{GRAFANA_URL}/api/orgs/{get_org_id()}/users/{user['id']}'
         response = requests.patch(url, auth=AUTH, json=data)
         if is_response_ok(response, True):
             return True
@@ -314,3 +309,38 @@ def rename_folder(old_folder_name:str, new_folder_name:str):
         if is_response_ok(response, True):
             return True
     return False
+
+def create_dashboard(project_name : str):
+    folder = get_folder(project_name)
+
+    if folder:
+        url = f'{GRAFANA_URL}/api/dashboards/db'
+        with open(NEW_DASHBOARD_TEMPLATE_PATH, 'rb') as file:
+            dashboard : dict = json.load(file)
+
+        dashboard['panels'][0]['datasource']['uid'] = get_source()['uid']
+        dashboard['panels'][0]['targets'][0]['datasource']['uid'] = get_source()['uid']
+        query = dashboard['panels'][0]['targets'][0]['query'].replace(r'{{ bucket }}', project_name)
+        dashboard['panels'][0]['targets'][0]['query'] = query
+        
+        data = {
+            "dashboard": dashboard,
+            "folderUid": folder['uid'],
+            "overwrite": False
+        }
+        
+        response = requests.post(url, auth=AUTH, json=data)
+        return True
+    return False 
+
+try:
+    get_org_id(ORG_NAME)
+except requests.exceptions.ConnectionError:
+    log.error('Failed to establish connection with Grafana')
+else:
+    try:
+        get_source(INFLUXDB_SOURCE_NAME)
+    except ResponseException:
+        get_source.cache_clear()
+        if add_influxdb_source(INFLUXDB_SOURCE_NAME):
+            log.info('InfluxDB source added to Grafana')
