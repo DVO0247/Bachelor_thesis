@@ -24,7 +24,7 @@
             "datasource": {
                 "default": true,
                 "type": "influxdb",
-                "uid": "decgwr20xfg1sd"
+                "uid": ""
             },
             "fieldConfig": {
                 "defaults": {
@@ -104,7 +104,7 @@
                 {
                     "datasource": {
                         "type": "influxdb",
-                        "uid": "decgwr20xfg1sd"
+                        "uid": ""
                     },
                     "query": "from(bucket: \"{{ bucket }}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)\n  |> yield(name: \"mean\")\n",
                     "refId": "A"
