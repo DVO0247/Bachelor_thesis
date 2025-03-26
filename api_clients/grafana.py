@@ -246,6 +246,13 @@ def change_user_role(username:str, role:Role):
             return True
     return False
 
+def get_folders() -> list[dict]:
+    url = f'{GRAFANA_URL}/api/folders'
+    response = requests.get(url, auth=AUTH)
+    if is_response_ok(response, True):
+        return response.json()
+    return []
+
 def get_folder(folder_name:str):
     url = f'{GRAFANA_URL}/api/folders'
     response = requests.get(url, auth=AUTH)

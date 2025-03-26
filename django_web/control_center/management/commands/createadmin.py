@@ -5,7 +5,7 @@ import os
 class Command(BaseCommand):
     help = 'Create a admin user in Control center, Grafana and InfluxDB'
 
-    def handle(self, *args, **kwargs):
+    def handle(self, *args, **options):
         username = os.getenv('DJANGO_SUPERUSER_USERNAME', 'admin')
         password = os.getenv('DJANGO_SUPERUSER_PASSWORD', 'admin')
 
