@@ -3,7 +3,7 @@ This module defines functions for interacting with InfluxDBv2 API.
 These functions are intended to be called from the Control Center, Receiver server and Gradana API client.
 """
 
-from influxdb_client import InfluxDBClient, Point, Bucket, Authorization, User, Organization, Buckets
+from influxdb_client import InfluxDBClient, Point, Bucket, Authorization, User, Organization, Buckets, WriteOptions
 from influxdb_client import AddResourceMemberRequestBody
 from typing import Iterable, TypeAlias, Literal
 from datetime import datetime, tzinfo, timezone, timedelta
@@ -33,7 +33,7 @@ class Api:
     users = client.users_api()
     auth = client.authorizations_api()
     org = client.organizations_api()
-    write = client.write_api()
+    write = client.write_api(WriteOptions(flush_interval=100))
     bucket = client.buckets_api()
     query = client.query_api()
 

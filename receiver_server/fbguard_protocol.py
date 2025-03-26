@@ -22,6 +22,7 @@ class Header:
     header_checksum:Any = None # 4B
 
     EXPECTED_SYNC:ClassVar = b'\x55\x00\x55'
+    SIZE:ClassVar = 80
 
     def __post_init__(self):
         if self.sync != self.EXPECTED_SYNC:
@@ -45,6 +46,13 @@ class Header:
         device_id_bytes = self.device_id.encode(ENC)[:31].ljust(32, b'\x00')
         sensor_id_bytes = self.sensor_id.encode(ENC)[:31].ljust(32, b'\x00')
         return self.sync + self.packet_type.to_bytes(1, BYTE_ORDER) + device_id_bytes + sensor_id_bytes + self.packet_counter.to_bytes(2, BYTE_ORDER) + self.packet_readout_count.to_bytes(2, BYTE_ORDER) + self.packet_byte_size.to_bytes(4, BYTE_ORDER) + bytes(4)  # type: ignore # TODO: checksum
+    
+    def compute_checksum(self):
+        #raise NotImplementedError
+        if self.packet_byte_size:
+            #count = self.packet_byte_size/4-1
+            _bytes = self.to_bytes()[:self.SIZE-4]
+            return sum(_bytes)
 
 
 @dataclass
@@ -134,3 +142,6 @@ class Message:
             return None
         else:
             return int.from_bytes(message_bytes[72:76], BYTE_ORDER)
+        
+    def compute_checksum(self):
+        raise NotImplementedError
