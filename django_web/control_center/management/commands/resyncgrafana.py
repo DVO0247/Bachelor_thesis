@@ -12,7 +12,7 @@ class Command(BaseCommand):
         projects_names = set(Project.objects.values_list('name', flat=True))
         
         projects_not_in_grafana = projects_names - grafana_project_names
-        for project_name in projects_not_in_grafana :
+        for project_name in projects_not_in_grafana:
             grafana.create_folder(project_name)
             update_folder_members(Project.objects.get(name=project_name))
             grafana.create_dashboard(project_name)

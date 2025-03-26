@@ -12,7 +12,7 @@ class Command(BaseCommand):
         projects_names = set(Project.objects.values_list('name', flat=True))
         
         projects_not_in_influxdb = projects_names - influxdb_project_names
-        for project_name in projects_not_in_influxdb :
+        for project_name in projects_not_in_influxdb:
             influxdb.create_bucket(project_name)
             print(f'InfluxDB bucket "{project_name}" added')
 
