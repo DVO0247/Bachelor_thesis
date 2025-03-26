@@ -330,8 +330,8 @@ class Server:
                     threading.Thread(target=self.handle_new_connection, args=(c, addr), name=str(addr)).start()
                 except TimeoutError:
                     continue
-                finally:
-                    ccq.set_all_sensor_nodes_conn_state(False)
+
+        ccq.set_all_sensor_nodes_conn_state(False)
 
 def main():
     global log
