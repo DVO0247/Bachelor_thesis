@@ -49,7 +49,10 @@ class Project(models.Model):
     users = models.ManyToManyField(User, through='UserProject')
 
     def get_last_measurement(self):
-        return Measurement.objects.filter(project=self).last()
+        return self.get_test_measurement() or Measurement.objects.filter(project=self).last()
+    
+    def get_test_measurement(self):
+        return Measurement.objects.filter(project=self, id_in_project = -1).first()
 
     def is_running(self):
         last_measurement = self.get_last_measurement()
@@ -87,17 +90,28 @@ class Project(models.Model):
         
         measurement.sensor_nodes.set(self.sensor_nodes.all())
         measurement.save()
+        influxdb.delete_test_measurement(self.name)
+
+    def start_test_measurement(self)->None:
+        # Do nothing if the measurement is already exists
+        if not self.get_test_measurement():
+            measurement = Measurement.objects.create(project = self, id_in_project = -1)
+            measurement.sensor_nodes.set(self.sensor_nodes.all())
+            measurement.save()
+        influxdb.delete_test_measurement(self.name)
 
     def stop_measurement(self):
         last_measurement = self.get_last_measurement()
         if last_measurement:
-            last_measurement.end_time = timezone.now()
-            last_measurement.save()
-
+            if last_measurement.id_in_project == -1:
+                last_measurement.delete()
+            else:
+                last_measurement.end_time = timezone.now()
+                last_measurement.save()
 
 class Measurement(models.Model):
     project = models.ForeignKey(Project, related_name='projects', on_delete=models.CASCADE)
-    id_in_project = models.PositiveIntegerField()
+    id_in_project = models.IntegerField()
     sensor_nodes = models.ManyToManyField('SensorNode', related_name='sensor_nodes')
     start_time = models.DateTimeField(auto_now_add=True)
     end_time = models.DateTimeField(blank=True, null=True)

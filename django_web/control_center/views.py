@@ -266,7 +266,19 @@ def start_measurement(request, project_pk):
             return reload_active_projects_panel(request)
         else:
             return HttpResponseRedirect(request.META['HTTP_REFERER'])
-    
+        
+
+def start_test_measurement(request, project_pk):
+    if request.method == 'POST':
+        project = get_object_or_404(Project, pk=project_pk)
+        project.start_test_measurement()
+        from_panel = request.POST.get('from_panel', False)
+        if from_panel:
+            return reload_active_projects_panel(request)
+        else:
+            return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+ 
 def stop_measurement(request, project_pk):
     if request.method == 'POST':
         project = get_object_or_404(Project, pk=project_pk)

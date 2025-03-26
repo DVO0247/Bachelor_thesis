@@ -4,7 +4,11 @@
      hx-swap="outerHTML">
     <p>
         {% with last_measurement=project.get_last_measurement %}
+        {% if last_measurement.get_next_or_running_id != -1 %}
         <b>Measurement: {{ last_measurement.get_next_or_running_id }}</b>
+        {% else %}
+        <b>Measurement: TEST</b>
+        {% endif %}
         {% endwith %}
     </p>
     
@@ -12,6 +16,10 @@
         <form action="{% url 'start_measurement' project.pk %}" method="post" style="display:inline;">
             {% csrf_token %}
             <input class="btn btn-success btn-lg" type="submit" value="Start">
+        </form>
+        <form action="{% url 'test_measurement' project.pk %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <input class="btn btn-secondary btn-lg" type="submit" value="Test">
         </form>
     {% else %}
         <form action="{% url 'stop_measurement' project.pk %}" method="post" style="display:inline;">

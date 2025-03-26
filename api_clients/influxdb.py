@@ -10,6 +10,7 @@ from datetime import datetime, tzinfo, timezone, timedelta
 from pathlib import Path
 import tomllib
 import logging
+from datetime import datetime
 log = logging.getLogger(__name__)
 
 CONFIG_FILE_PATH = Path(__file__).parent.parent/'config.toml'
@@ -36,6 +37,7 @@ class Api:
     write = client.write_api(WriteOptions(flush_interval=100))
     bucket = client.buckets_api()
     query = client.query_api()
+    delete = client.delete_api()
 
 def get_auth_by_name(name: str) -> Authorization | None:
     """Find authorizations by name."""
@@ -103,6 +105,8 @@ def query_select(bucket_name: str, measurement_id, limit_n: int, page: int):
     result = Api.query.query(query, ORG_NAME)
     return result[0].records if result else []
 
+def delete_test_measurement(bucket_name: str):
+    Api.delete.delete(datetime.fromtimestamp(0),'2100-01-01T00:00:00Z','_measurement=-1', bucket_name, ORG_NAME)
 
 def query_count(bucket_name: str, measurement_id) -> int:
     query = f'''

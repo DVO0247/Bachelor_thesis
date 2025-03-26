@@ -31,6 +31,7 @@ urlpatterns = [
     path('project/<int:project_pk>/measurements/<int:measurement_id>/<int:sensor_pk>/explore/goto/', views.explore_data_goto, name='explore_data_goto'),
     path('project/<int:project_pk>/measurements/<int:measurement_id>/<int:sensor_pk>/export/csv/', views.export_csv, name='export_csv'),
     path('project/<int:project_pk>/start/', views.start_measurement, name='start_measurement'),
+    path('project/<int:project_pk>/test/', views.start_test_measurement, name='test_measurement'),
     path('project/<int:project_pk>/stop/', views.stop_measurement, name='stop_measurement'),
     path('reload_start_stop_panel/<int:project_pk>/', views.reload_start_stop_panel, name='reload_start_stop_panel'),
 
