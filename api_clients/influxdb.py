@@ -3,7 +3,7 @@ This module defines functions for interacting with InfluxDBv2 API.
 These functions are intended to be called from the Control Center, Receiver server and Gradana API client.
 """
 
-from influxdb_client import InfluxDBClient, Point, Bucket, Authorization, User, Organization
+from influxdb_client import InfluxDBClient, Point, Bucket, Authorization, User, Organization, Buckets
 from influxdb_client import AddResourceMemberRequestBody
 from typing import Iterable, TypeAlias, Literal
 from datetime import datetime, tzinfo, timezone, timedelta
@@ -62,6 +62,8 @@ def add_organization_member(org_id: str, user_id: str):
 def create_bucket(bucket_name: str) -> Bucket:
     return Api.bucket.create_bucket(org=ORG_NAME, bucket_name=bucket_name)
 
+def get_buckets() -> list[Bucket]:
+    return Api.bucket.find_buckets().buckets
 
 def rename_bucket(current_name: str, new_name: str) -> Bucket | None:
     bucket: Bucket | None = Api.bucket.find_bucket_by_name(current_name)

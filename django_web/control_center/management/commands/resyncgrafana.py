@@ -1,7 +1,6 @@
 from django.core.management.base import BaseCommand, CommandParser
 from control_center.models import Project, update_folder_members
 from api_clients import grafana
-import os
 
 class Command(BaseCommand):
     help = 'Resync Control center projects with Grafana folders'
