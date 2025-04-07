@@ -4,10 +4,14 @@
      hx-swap="outerHTML">
     <p>
         {% with last_measurement=project.get_last_measurement %}
-        {% if last_measurement.get_next_or_running_id != -1 %}
-        <b>Measurement: {{ last_measurement.get_next_or_running_id }}</b>
+        {% if last_measurement %}
+            {% if last_measurement.get_next_or_running_id != -1 %}
+            <b>Measurement: {{ last_measurement.get_next_or_running_id }}</b>
+            {% else %}
+            <b>Measurement: TEST</b>
+            {% endif %}
         {% else %}
-        <b>Measurement: TEST</b>
+        <b>Measurement: 0</b>
         {% endif %}
         {% endwith %}
     </p>

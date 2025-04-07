@@ -26,7 +26,11 @@
                     </td>
                     <td class="align-middle">
                         {% if last_measurement %}
-                        {{ last_measurement.get_next_or_running_id }}
+                            {% if last_measurement.get_next_or_running_id != -1 %}
+                            {{ last_measurement.get_next_or_running_id }}
+                            {% else %}
+                            TEST
+                            {% endif %}                        
                         {% else %}
                         0
                         {% endif %}

@@ -154,6 +154,6 @@ def export_csv(
         file.write('timestamp,value\n')
         for record in query_select_all(bucket_name, measurement_id, batch_size):
             file.write(f'{record.get_time().astimezone(_timezone).isoformat(' ', time_precision)[:-6]},{record.get_value()}\n')
-            # print(record.get_time())
+            #print(record.get_time())
 
-# TODO: Remove unsused things (?)
+# TODO: Remove unused things (?)

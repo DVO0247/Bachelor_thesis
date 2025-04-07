@@ -21,6 +21,8 @@ SENSOR_NODES_FOR_SENSOR_MANAGE: tuple[SensorNodeTypes] = (
     SensorNodeTypes.ESP32,
 )
 
+TEST_MEASUREMENT_ID = -1
+
 class User(AbstractUser):
     darkmode = models.BooleanField(default=True)
 
@@ -52,7 +54,7 @@ class Project(models.Model):
         return self.get_test_measurement() or Measurement.objects.filter(project=self).last()
     
     def get_test_measurement(self):
-        return Measurement.objects.filter(project=self, id_in_project = -1).first()
+        return Measurement.objects.filter(project=self, id_in_project = TEST_MEASUREMENT_ID).first()
 
     def is_running(self):
         last_measurement = self.get_last_measurement()
@@ -95,7 +97,7 @@ class Project(models.Model):
     def start_test_measurement(self)->None:
         # Do nothing if the measurement is already exists
         if not self.get_test_measurement():
-            measurement = Measurement.objects.create(project = self, id_in_project = -1)
+            measurement = Measurement.objects.create(project = self, id_in_project = TEST_MEASUREMENT_ID)
             measurement.sensor_nodes.set(self.sensor_nodes.all())
             measurement.save()
         influxdb.delete_test_measurement(self.name)
@@ -103,7 +105,7 @@ class Project(models.Model):
     def stop_measurement(self):
         last_measurement = self.get_last_measurement()
         if last_measurement:
-            if last_measurement.id_in_project == -1:
+            if last_measurement.id_in_project == TEST_MEASUREMENT_ID:
                 last_measurement.delete()
             else:
                 last_measurement.end_time = timezone.now()

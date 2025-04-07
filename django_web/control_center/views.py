@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.apps import apps
 from django.utils import timezone
 from django.urls import reverse_lazy
+from django.conf import settings
 
 from pathlib import Path
 
@@ -15,7 +16,8 @@ from .models import User, Project, SensorNode, Sensor, UserProject, Measurement,
 from .forms import SensorNodeForm, ProjectForm, LoginForm, SensorForm, UserProjectForm
 from api_clients import influxdb, grafana
 
-TEMP_DIR_PATH = Path.cwd()/'control_center'/'temp' 
+
+TEMP_DIR_PATH = Path(__file__).parent/'temp' 
 
 def index(request):
     return redirect('project_list')
