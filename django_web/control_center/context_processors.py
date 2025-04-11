@@ -1,5 +1,7 @@
 from .models import UserProject
 
+APP_NAME = 'Control Center'
+
 def user_projects(request):
     """
     Adds the list of projects for the currently logged in user to the context of all views.
@@ -11,3 +13,6 @@ def user_projects(request):
             'user_projects': projects,
         }
     return {'user_projects': []}
+
+def app_name(request):
+    return {'app_name': APP_NAME}

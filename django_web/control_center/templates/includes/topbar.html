@@ -2,8 +2,7 @@
 <div class="topbar d-flex align-items-center justify-content-between">
     <!-- Tlačítko pro vysunutí menu na menších obrazovkách -->
     <span class="menu-toggle" onclick="toggleSidebar()">&#9776;</span>
-    <h4 class="me-1">Control Center</h4>
-    <div style="border-left: 2px solid #ccc; height: 37px; margin: 0 20px;"></div>
+    <a href="{% url 'index' %}" class="text-reset text-decoration-none fs-4 fw-bold">{{ app_name }}</a>
 
     <!-- Tlačítka zarovnaná vlevo -->
 
