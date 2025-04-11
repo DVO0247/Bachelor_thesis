@@ -3,7 +3,7 @@
 {% block title %}{{ project.name }} Users{% endblock %}
 
 {% block content %}
-<h1>{{ project.name }} Users</h1>
+<h1><u>{{ project.name }}</u> users</h1>
 <form method="post" style="max-width: 600px; margin: 0;">
     {% csrf_token %}
     <input type="hidden" name="previous_url" value="{{ request.META.HTTP_REFERER }}">

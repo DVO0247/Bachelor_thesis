@@ -36,18 +36,24 @@
                 </div>
             </td>
             <td>
+                <div class="d-flex gap-1">
+                <form method="post">
+                {% csrf_token %}
                 {% if not sensor_node.is_running %}
-                <a class="btn btn-primary btn-sm" href="{% url 'sensor_node_edit' sensor_node.pk %}"
-                    role="button">Edit</a>
+
+                <button type="submit" formaction="{% url 'delete_object' 'SensorNode' sensor_node.pk %}" class="btn btn-danger btn-sm"
+                    onclick="return confirm('Do you really want to delete {{ sensor_node.name }}?');">Delete</button>
+                </form style="display:inline;">
+
                 {% if sensor_node.manage_sensors %}
                 <a class="btn btn-primary btn-sm" href="{% url 'sensors_edit' sensor_node.pk %}" role="button">Edit
-                    Sensors</a>
+                    sensors</a>
                 {% endif %}
 
                 {% else %}
                 <div class="tooltip-wrapper">
                     <span class="tooltip-text">Sensor Node is in running Project</span>
-                    <a class="btn btn-secondary btn-sm disabled" role="button">Edit</a>
+                    <a class="btn btn-secondary btn-sm disabled" role="button">Delete</a>
                 </div>
                 {% if sensor_node.manage_sensors %}
                 <div class="tooltip-wrapper">
@@ -56,6 +62,8 @@
                 </div>
                 {% endif %}
                 {% endif %}
+                </form>
+                </div>
             </td>
         </tr>
         {% endif %}

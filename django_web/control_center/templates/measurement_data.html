@@ -3,7 +3,7 @@
 {% block title %}{{ measurement.project.pk }} measurement {{ measurement.id_in_project }} {{ export }}{% endblock %}
 
 {% block content %}
-<h1>{{ measurement.project.name }} measurement {{ measurement.id_in_project }} {{ export }}</h1>
+<h1><u>{{ measurement.project.name }}</u> measurement: <u>{{ measurement.id_in_project }}</u> <u>{{ export }}</u></h1>
 <h3>{{ measurement.start_time|date:"M. j, Y, H:i" }} - {{ measurement.end_time|date:"M. j, Y, H:i" }}</h3>
 <br>
 <table class="table table-striped table-bordered table-generic">

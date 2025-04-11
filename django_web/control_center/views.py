@@ -366,7 +366,7 @@ def sensor_list(request, sensor_node_pk):
 def delete(request, model_name, pk):
     """Generic object delete function"""
     if request.method == 'POST':
-        Model = apps.get_model('control_center',model_name)
+        Model = apps.get_model('control_center', model_name)
 
         obj = get_object_or_404(Model, pk=pk)
         obj.delete()

@@ -1,16 +1,16 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ user_project.project.name }} details{% endblock %}
+{% block title %}{{ user_project.project.name }} dashboard{% endblock %}
 
 {% block content %}
 {% with project=user_project.project %}
-<h1>{{ user_project.project.name }} details</h1><br>
+<h1><u>{{ user_project.project.name }}</u> dashboard</h1><br>
 
 <div class="flex-container" style="display: flex;  justify-content: space-between; gap: 30px;">
     <!-- Tables Section -->
     <div class="tables-container" style="flex: 1; min-width: 500px;">
         <h2>
-            Sensor Nodes
+            Sensor nodes
             {% if user_project.is_editor %}
             <a class="btn btn-primary btn-sm" href="{% url 'project_sensor_node_list' project.pk %}"
             role="button">Edit</a>

@@ -3,7 +3,7 @@
 {% block title %}{{ sensor_node.name }} sensors{% endblock %}
 
 {% block content %}
-<h1>{{ sensor_node.name }} sensors</h1>
+<h1><u>{{ sensor_node.name }}</u> sensors</h1>
 <form method="post" style="max-width: 600px; margin: 0;">
     {% csrf_token %}
     <input type="hidden" name="previous_url" value="{{ request.META.HTTP_REFERER }}">
