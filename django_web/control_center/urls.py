@@ -9,7 +9,7 @@ urlpatterns = [
 
     #region Project
     path('project_list/', views.project_list, name='project_list'),
-    path('project/<int:project_pk>/details', views.project_details, name='project_details'),
+    path('project/<int:project_pk>/dashboard', views.project_dashboard, name='project_dashboard'),
     path('project/<int:pk>/edit/', views.project_edit, name='project_edit'),
     path('project/edit/', views.project_edit, name='project_edit'),
     path('project/<int:project_pk>/activate/', views.project_activate, name='project_activate'),

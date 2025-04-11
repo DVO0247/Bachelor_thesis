@@ -33,7 +33,7 @@ def project_list(request):
     context['projects'] = Project.objects.all()
     return render(request, 'project_list.html', context)
 
-def project_details(request, project_pk):
+def project_dashboard(request, project_pk):
     context = {}
     project = get_object_or_404(Project, pk=project_pk)
     context['sensor_nodes'] = SensorNode.objects.all()
@@ -42,7 +42,7 @@ def project_details(request, project_pk):
     context['this_user_projects'] = UserProject.objects.filter(project=project)
     grafana_folder = grafana.get_folder(project.name)
     context['grafana_endpoint'] = f'dashboards/f/{grafana_folder['uid']}' if grafana_folder else None
-    return render(request, 'project_details.html', context)
+    return render(request, 'project_dashboard.html', context)
 
 
 def project_edit(request, pk=None):

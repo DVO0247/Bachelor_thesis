@@ -20,7 +20,7 @@
             <td>{{ project.name }}</td>
             <td>
                 
-                <a class="btn btn-primary btn-sm" href="{% url 'project_details' project.pk %}"
+                <a class="btn btn-primary btn-sm" href="{% url 'project_dashboard' project.pk %}"
                     role="button">Dashboard</a>
                 {% if not user_project.is_activated %}
                 <form action="{% url 'project_activate' project.pk %}" method="post" style="display:inline;">
