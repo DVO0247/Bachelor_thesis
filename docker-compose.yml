@@ -12,7 +12,7 @@ services:
       - DOCKER_INFLUXDB_INIT_ORG=${INFLUXDB_ORG}
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUXDB_ADMIN_TOKEN}
     networks:
-      - external
+      - data_centre
     user: "0"
 
   grafana:
@@ -29,7 +29,7 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
       - GF_AUTH_ANONYMOUS_ORG_NAME=${GRAFANA_ORG_NAME}
     networks:
-      - external
+      - data_centre
     user: "0"
 
   control_center:
@@ -46,7 +46,7 @@ services:
     env_file:
       - .env
     networks:
-      - external
+      - data_centre
     command: >
       sh -c "wait-for-it.sh grafana:3000 --
              wait-for-it.sh influxdb:8086 --
@@ -69,14 +69,12 @@ services:
     env_file:
       - .env
     networks:
-      - external
+      - data_centre
     command: >
       sh -c "wait-for-it.sh control_center:80 -- python main.py"
 
 networks:
-  external:
-    driver: bridge
-  internal:
+  data_centre:
     driver: bridge
 
 volumes:
