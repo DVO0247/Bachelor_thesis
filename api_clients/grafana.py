@@ -24,9 +24,9 @@ NEW_DASHBOARD_TEMPLATE_PATH = Path(__file__).parent/'grafana_dashboard.json'
 
 
 GRAFANA_URL = os.getenv('GRAFANA_URL', 'http://grafana:3000')
-ADMIN_USERNAME = os.getenv('GF_SECURITY_ADMIN_USER', 'admin')
-ADMIN_PASSWORD = os.getenv('GF_SECURITY_ADMIN_PASSWORD', 'admin')
-ORG_NAME = os.getenv('GF_AUTH_ANONYMOUS_ORG_NAME', 'Main Org.')
+ADMIN_USERNAME = os.getenv('GRAFANA_ADMIN_USERNAME', 'admin')
+ADMIN_PASSWORD = os.getenv('GRAFANA_ADMIN_PASSWORD', 'admin')
+ORG_NAME = os.getenv('GRAFANA_ORG_NAME', 'Main Org.')
 INFLUXDB_SOURCE_NAME = os.getenv('INFLUXDB_SOURCE_NAME', 'influxdb')
 TOKEN = 'glsa_78Qymplocox2UDAjcfaLX7JtyuySepVi_063aae67'
 AUTH = HTTPBasicAuth(ADMIN_USERNAME, ADMIN_PASSWORD)

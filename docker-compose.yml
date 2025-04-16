@@ -8,6 +8,9 @@ services:
       - ./app_data/influxdb:/var/lib/influxdb
     env_file:
       - .env
+    enviroment:
+      - DOCKER_INFLUXDB_INIT_ORG=${INFLUXDB_ORG}
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUXDB_ADMIN_TOKEN}
     networks:
       - external
     user: "0"
@@ -21,6 +24,10 @@ services:
       - ./app_data/grafana:/var/lib/grafana
     env_file:
       - .env
+    enviroment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USERNAME}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GF_AUTH_ANONYMOUS_ORG_NAME=${GRAFANA_ORG_NAME}
     networks:
       - external
     user: "0"
