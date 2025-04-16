@@ -1,6 +1,7 @@
 from .models import UserProject
+import os
 
-APP_NAME = 'Control Center'
+APP_NAME = os.getenv('WEB_APP_NAME', 'Control Center')
 
 def user_projects(request):
     """
