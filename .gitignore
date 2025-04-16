@@ -41,4 +41,4 @@ tree.txt
 log.txt
 
 /app_data/*
-!/app_data/config.toml
+!/app_data/.gitkeep
