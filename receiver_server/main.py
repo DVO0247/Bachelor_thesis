@@ -9,7 +9,6 @@ from typing import TypeAlias
 from abc import ABC, abstractmethod
 from pathlib import Path
 import os
-import tomllib
 import logging
 import logging.config
 from rich.logging import RichHandler
@@ -20,14 +19,10 @@ import control_center_queries as ccq
 from api_clients import influxdb
 
 APP_DATA_PATH = Path(str(os.getenv('APP_DATA_PATH'))) if os.getenv('APP_DATA_PATH') else Path(__file__).parent.parent/'app_data'
-CONFIG_FILE_PATH = APP_DATA_PATH/'config.toml'
 
-with open(CONFIG_FILE_PATH, 'rb') as file:
-    config = tomllib.load(file)['receiver_server']
-
-HOST = config['host']
-PORT = config['port']
-DEBUG = config['debug']
+HOST = os.getenv('RECEIVER_HOST', '0.0.0.0')
+PORT = int(os.getenv('RECEIVER_PORT', 5123))
+DEBUG = False if os.getenv('DEBUG') == 'false' else True
 
 RECV_SIZE = 4096
 SENSOR_PARAMS_UPDATE_PERIOD = 1

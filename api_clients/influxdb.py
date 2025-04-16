@@ -15,14 +15,10 @@ from datetime import datetime
 log = logging.getLogger(__name__)
 
 APP_DATA_PATH = Path(str(os.getenv('APP_DATA_PATH'))) if os.getenv('APP_DATA_PATH') else Path(__file__).parent.parent/'app_data'
-CONFIG_FILE_PATH = APP_DATA_PATH/'config.toml'
 
-with open(CONFIG_FILE_PATH, 'rb') as file:
-    config = tomllib.load(file)['influxdb']
-
-URL = config['url']
-TOKEN = config['token']
-ORG_NAME = config['org_name']
+URL = os.getenv('INFLUXDB_URL','http://influxdb:8086')
+TOKEN = os.getenv('DOCKER_INFLUXDB_INIT_ADMIN_TOKEN', 'jYRq3Qgtk6YarmeE6CZmpdPM3Rk4PF1FjlvMbs-SyXc6ubCkEODlCrkiTVKopYDkrohbe9PRT8Qtgx1iNXcP5w==')
+ORG_NAME = os.getenv('DOCKER_INFLUXDB_INIT_ORG','main')
 
 client = InfluxDBClient(url=URL, token=TOKEN, org=ORG_NAME)
 if not client.ping():

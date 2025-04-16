@@ -6,30 +6,23 @@ services:
       - "8086:8086"
     volumes:
       - ./app_data/influxdb:/var/lib/influxdb
-    environment:
-      - DOCKER_INFLUXDB_INIT_MODE=setup
-      - DOCKER_INFLUXDB_INIT_USERNAME=admin
-      - DOCKER_INFLUXDB_INIT_PASSWORD=admin
-      - DOCKER_INFLUXDB_INIT_ORG=main
-      - DOCKER_INFLUXDB_INIT_BUCKET=init
-      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=jYRq3Qgtk6YarmeE6CZmpdPM3Rk4PF1FjlvMbs-SyXc6ubCkEODlCrkiTVKopYDkrohbe9PRT8Qtgx1iNXcP5w==
+    env_file:
+      - .env
     networks:
-      - external  # Will be isolated to a custom network
+      - external
     user: "0"
 
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
     ports:
-      - "3000:3000"  # Expose Grafana to the outside
+      - "3000:3000"
     volumes:
       - ./app_data/grafana:/var/lib/grafana
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_DASHBOARDS_MIN_REFRESH_INTERVAL=100ms
+    env_file:
+      - .env
     networks:
-      - external  # Will be accessible from outside
+      - external
     user: "0"
 
   control_center:
@@ -37,19 +30,16 @@ services:
       dockerfile: ./Dockerfile.django_web
     container_name: control_center
     ports:
-      - "80:80"  # Expose Django web to the outside
+      - "80:80"
     volumes:
       - ./app_data:/app_data
     depends_on:
       - influxdb
       - grafana
-    environment:
-      - APP_DATA_PATH=/app_data
-      - DJANGO_SUPERUSER_USERNAME=admin
-      - DJANGO_SUPERUSER_PASSWORD=admin
-      - DEBUG=true
+    env_file:
+      - .env
     networks:
-      - external  # Django will be accessible from outside
+      - external
     command: >
       sh -c "wait-for-it.sh grafana:3000 --
              wait-for-it.sh influxdb:8086 --
@@ -69,8 +59,8 @@ services:
     depends_on:
       - influxdb
       - control_center
-    environment:
-      - APP_DATA_PATH=/app_data
+    env_file:
+      - .env
     networks:
       - external
     command: >

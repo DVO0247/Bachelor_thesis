@@ -8,7 +8,6 @@ from requests.auth import HTTPBasicAuth
 from typing import Literal, TypeAlias
 from enum import Enum
 from pathlib import Path
-import tomllib
 import json
 import os
 import logging
@@ -21,17 +20,14 @@ else:
     import influxdb
 
 APP_DATA_PATH = Path(str(os.getenv('APP_DATA_PATH'))) if os.getenv('APP_DATA_PATH') else Path(__file__).parent.parent/'app_data'
-CONFIG_FILE_PATH = APP_DATA_PATH/'config.toml'
 NEW_DASHBOARD_TEMPLATE_PATH = Path(__file__).parent/'grafana_dashboard.json'
 
-with open(CONFIG_FILE_PATH, 'rb') as file:
-    config = tomllib.load(file)['grafana']
 
-GRAFANA_URL = config['url']
-ADMIN_USERNAME = config['username']
-ADMIN_PASSWORD = config['password']
-ORG_NAME = config['org_name']
-INFLUXDB_SOURCE_NAME = config['influxdb_source_name']
+GRAFANA_URL = os.getenv('GRAFANA_URL', 'http://grafana:3000')
+ADMIN_USERNAME = os.getenv('GF_SECURITY_ADMIN_USER', 'admin')
+ADMIN_PASSWORD = os.getenv('GF_SECURITY_ADMIN_PASSWORD', 'admin')
+ORG_NAME = os.getenv('GF_AUTH_ANONYMOUS_ORG_NAME', 'Main Org.')
+INFLUXDB_SOURCE_NAME = os.getenv('INFLUXDB_SOURCE_NAME', 'influxdb')
 TOKEN = 'glsa_78Qymplocox2UDAjcfaLX7JtyuySepVi_063aae67'
 AUTH = HTTPBasicAuth(ADMIN_USERNAME, ADMIN_PASSWORD)
 
