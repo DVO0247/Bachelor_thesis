@@ -39,3 +39,6 @@ my_notes.md
 tree.txt
 *.ipynb
 log.txt
+
+/app_data/*
+!/app_data/config.toml

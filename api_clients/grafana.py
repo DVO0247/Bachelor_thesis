@@ -10,6 +10,7 @@ from enum import Enum
 from pathlib import Path
 import tomllib
 import json
+import os
 import logging
 from functools import lru_cache
 log = logging.getLogger(__name__)
@@ -19,7 +20,8 @@ if __package__:
 else:
     import influxdb
 
-CONFIG_FILE_PATH = Path(__file__).parent.parent/'config.toml'
+APP_DATA_PATH = Path(str(os.getenv('APP_DATA_PATH'))) if os.getenv('APP_DATA_PATH') else Path(__file__).parent.parent/'app_data'
+CONFIG_FILE_PATH = APP_DATA_PATH/'config.toml'
 NEW_DASHBOARD_TEMPLATE_PATH = Path(__file__).parent/'grafana_dashboard.json'
 
 with open(CONFIG_FILE_PATH, 'rb') as file:

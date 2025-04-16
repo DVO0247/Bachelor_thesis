@@ -18,6 +18,8 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(BASE_DIR.parent))
 
+APP_DATA_PATH = Path(str(os.getenv('APP_DATA_PATH'))) if os.getenv('APP_DATA_PATH') else BASE_DIR.parent/'app_data'
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
@@ -25,7 +27,7 @@ sys.path.append(str(BASE_DIR.parent))
 SECRET_KEY = 'django-insecure-&u+m6zl52@kh#9#-rr^zm4lvqbk-owtbi-5nmov$r%_6a#_2gz'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False if os.getenv('DEBUG') == 'false' else True
 
 ALLOWED_HOSTS = ['*']
 
@@ -83,7 +85,7 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': APP_DATA_PATH/'control_center.db',
         'OPTIONS': {
             'init_command': 'PRAGMA journal_mode=wal;',
         }
@@ -156,21 +158,31 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
+        # Console logging for WARNING and above
         'console': {
             'class': 'rich.logging.RichHandler',
+            'level': 'WARNING', 
+        },
+        # File logging for ERROR level and above
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': APP_DATA_PATH/'control_center_log.txt',  # Use Path object for file path
+            'level': 'DEBUG',
         },
     },
     'root': {
-        'handlers': ['console'],
-        'level': 'INFO',
+        'handlers': ['console', 'file'],  # Log to both console and file
+        'level': os.getenv('DJANGO_LOG_LEVEL', 'WARNING'),  
     },
+
     'loggers': {
         'django': {
-            'handlers': ['console'],
-            'level': os.getenv('DJANGO_LOG_LEVEL', 'WARN'),
+            'handlers': ['console', 'file'],  # Log to both console and file for Django
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'WARNING'),  
             'propagate': False,
         },
     },
 }
+
 
 X_FRAME_OPTIONS = 'SAMEORIGIN'

@@ -9,11 +9,13 @@ from typing import Iterable, TypeAlias, Literal
 from datetime import datetime, tzinfo, timezone, timedelta
 from pathlib import Path
 import tomllib
+import os
 import logging
 from datetime import datetime
 log = logging.getLogger(__name__)
 
-CONFIG_FILE_PATH = Path(__file__).parent.parent/'config.toml'
+APP_DATA_PATH = Path(str(os.getenv('APP_DATA_PATH'))) if os.getenv('APP_DATA_PATH') else Path(__file__).parent.parent/'app_data'
+CONFIG_FILE_PATH = APP_DATA_PATH/'config.toml'
 
 with open(CONFIG_FILE_PATH, 'rb') as file:
     config = tomllib.load(file)['influxdb']

@@ -8,6 +8,7 @@ import threading
 from typing import TypeAlias
 from abc import ABC, abstractmethod
 from pathlib import Path
+import os
 import tomllib
 import logging
 import logging.config
@@ -18,7 +19,8 @@ import fbguard_protocol as fbg
 import control_center_queries as ccq
 from api_clients import influxdb
 
-CONFIG_FILE_PATH = Path(__file__).parent.parent/'config.toml'
+APP_DATA_PATH = Path(str(os.getenv('APP_DATA_PATH'))) if os.getenv('APP_DATA_PATH') else Path(__file__).parent.parent/'app_data'
+CONFIG_FILE_PATH = APP_DATA_PATH/'config.toml'
 
 with open(CONFIG_FILE_PATH, 'rb') as file:
     config = tomllib.load(file)['receiver_server']
@@ -336,7 +338,7 @@ class Server:
 def main():
     global log
     logging.config.dictConfig({'version': 1, 'disable_existing_loggers': True}) # TODO
-    LOG_FILE_PATH = Path(__file__).parent/'log.txt'
+    LOG_FILE_PATH = APP_DATA_PATH/'receiver_server_log.txt'
     log = logging.getLogger()
     log.setLevel(logging.DEBUG if DEBUG else logging.INFO)
 

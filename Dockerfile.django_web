@@ -1,0 +1,28 @@
+FROM python:3.13-slim
+
+# Set the working directory to the django_web folder
+WORKDIR /app/django_web
+
+# Install system dependencies if needed
+RUN apt-get update && apt-get install -y libpq-dev curl && rm -rf /var/lib/apt/lists/*
+
+RUN curl -o /usr/local/bin/wait-for-it.sh https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh
+RUN chmod +x /usr/local/bin/wait-for-it.sh
+
+# Copy and install dependencies
+COPY ./requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
+
+# Copy your Django project and the api_clients folder
+COPY ./django_web /app/django_web
+COPY ./api_clients /app/api_clients
+
+# Set the Django settings module environment variable
+ENV DJANGO_SETTINGS_MODULE=core.settings
+
+# Expose the port that Django will run on
+EXPOSE 80
+
+# Use Gunicorn to run the app; note that since the working directory is /app/django_web,
+# the module path is simply core.wsgi:application
+CMD ["sh", "-c", "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn django_app.wsgi:application --bind 0.0.0.0:80"]

@@ -1,0 +1,86 @@
+services:
+  influxdb:
+    image: influxdb:2.7
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    volumes:
+      - ./app_data/influxdb:/var/lib/influxdb
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=admin
+      - DOCKER_INFLUXDB_INIT_ORG=main
+      - DOCKER_INFLUXDB_INIT_BUCKET=init
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=jYRq3Qgtk6YarmeE6CZmpdPM3Rk4PF1FjlvMbs-SyXc6ubCkEODlCrkiTVKopYDkrohbe9PRT8Qtgx1iNXcP5w==
+    networks:
+      - external  # Will be isolated to a custom network
+    user: "0"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"  # Expose Grafana to the outside
+    volumes:
+      - ./app_data/grafana:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_DASHBOARDS_MIN_REFRESH_INTERVAL=100ms
+    networks:
+      - external  # Will be accessible from outside
+    user: "0"
+
+  control_center:
+    build:
+      dockerfile: ./Dockerfile.django_web
+    container_name: control_center
+    ports:
+      - "80:80"  # Expose Django web to the outside
+    volumes:
+      - ./app_data:/app_data
+    depends_on:
+      - influxdb
+      - grafana
+    environment:
+      - APP_DATA_PATH=/app_data
+      - DJANGO_SUPERUSER_USERNAME=admin
+      - DJANGO_SUPERUSER_PASSWORD=admin
+      - DEBUG=true
+    networks:
+      - external  # Django will be accessible from outside
+    command: >
+      sh -c "wait-for-it.sh grafana:3000 --
+             wait-for-it.sh influxdb:8086 --
+             python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             python manage.py createadmin &&
+             gunicorn core.wsgi:application --bind 0.0.0.0:80"
+
+  receiver_server:
+    build:
+      dockerfile: Dockerfile.receiver_server
+    container_name: receiver_server
+    ports:
+      - "5123:5123"
+    volumes:
+      - ./app_data:/app_data
+    depends_on:
+      - influxdb
+      - control_center
+    environment:
+      - APP_DATA_PATH=/app_data
+    networks:
+      - external
+    command: >
+      sh -c "wait-for-it.sh control_center:80 -- python main.py"
+
+networks:
+  external:
+    driver: bridge
+  internal:
+    driver: bridge
+
+volumes:
+  app_data:
