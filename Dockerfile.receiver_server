@@ -1,27 +1,26 @@
-# Use the same Python base image
-FROM python:3.13-slim
+FROM python:3.13-alpine
 
-# Set the working directory inside the container
+# Set the working directory
 WORKDIR /app/receiver_server
 
-# Install any system dependencies (if needed)
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# Install system dependencies required for many Python packages
+RUN apk add --no-cache curl bash
 
-RUN curl -o /usr/local/bin/wait-for-it.sh https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh
-RUN chmod +x /usr/local/bin/wait-for-it.sh
+# Download and set up wait-for-it script
+RUN curl -o /usr/local/bin/wait-for-it.sh https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh && \
+    chmod +x /usr/local/bin/wait-for-it.sh
 
-RUN apt purge -y curl
-
-# Copy the requirements file for the script
+# Copy and install Python dependencies
 COPY ./requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# Copy the script and other necessary files into the container
+# Copy your Python project files
 COPY ./receiver_server /app/receiver_server
 COPY ./django_web /app/django_web
 COPY ./api_clients /app/api_clients
 
+# Expose the port your app listens on
 EXPOSE 5123
 
-# Define the default command to run the script
+# Run the main script
 CMD ["python", "main.py"]
