@@ -14,6 +14,7 @@ services:
     networks:
       - data_centre
     user: "0"
+    restart: always
 
   grafana:
     image: grafana/grafana:latest
@@ -31,6 +32,7 @@ services:
     networks:
       - data_centre
     user: "0"
+    restart: always
 
   control_center:
     build:
@@ -54,6 +56,7 @@ services:
              python manage.py collectstatic --noinput &&
              python manage.py createadmin &&
              gunicorn core.wsgi:application --bind 0.0.0.0:80"
+    restart: always
 
   receiver_server:
     build:
@@ -72,6 +75,7 @@ services:
       - data_centre
     command: >
       sh -c "wait-for-it.sh control_center:80 -- python main.py"
+    restart: always
 
 networks:
   data_centre:
