@@ -4,7 +4,7 @@ FROM python:3.13-alpine
 WORKDIR /app/django_web
 
 # Install Alpine system dependencies
-RUN apk add --no-cache curl
+RUN apk add --no-cache curl bash
 
 # Add wait-for-it script
 RUN curl -o /usr/local/bin/wait-for-it.sh https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh && \
