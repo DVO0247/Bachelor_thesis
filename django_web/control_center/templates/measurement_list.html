@@ -16,7 +16,7 @@
     </thead>
     <tbody>
         {% for measurement in measurements %}
-        {% if measurement.id_in_project > 0 %}
+        {% if measurement.id_in_project >= 0 %}
 
         <tr>
             <th scope="row">
