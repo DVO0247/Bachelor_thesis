@@ -118,7 +118,7 @@ def create_user(name:str, password:str, role:Role = 'Viewer') -> int: # type: ig
 
     response = requests.post(url, auth=AUTH, json=user)
     if response.status_code == 412:
-        log.error(f"Grafana User with email '{user['email']}' or username '{user['name']}' already exists")
+        log.warning(f"Grafana User with email '{user['email']}' or username '{user['name']}' already exists")
         return -1
     elif is_response_ok(response, True):
         return response.json()['id']
