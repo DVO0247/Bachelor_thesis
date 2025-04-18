@@ -109,6 +109,7 @@ class Client(ABC):
         self.c = c
         self.addr = addr
         self._run = True
+        self.change_state_after_disconnect = True
         self.server.add_client(self)
         log.info(f'({addr[0]}:{addr[1]}) identified as {self.name}')
         self.server.stop_client_if_exists(self.name, self)
@@ -124,7 +125,7 @@ class Client(ABC):
         """Remove `Client` from `Server`"""
         self.stop()
         self.server.remove_client(self)
-        if hasattr(self, 'id'):
+        if self.change_state_after_disconnect and hasattr(self, 'id'):
             ccq.set_sensor_node_conn_state(self.id, False)
         log.info(f'{self} - disconnected')
 
@@ -295,6 +296,7 @@ class Server:
             for client in self._clients:
                 if client_name == client.name and client != ignore:
                     log.warning(f'{client} - client with this name is already connected')
+                    client.change_state_after_disconnect = False
                     client.stop()
 
     def add_client(self, client: Client):
