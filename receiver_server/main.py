@@ -34,6 +34,7 @@ import time
 import threading
 from typing import TypeAlias
 from abc import ABC, abstractmethod
+import signal
 
 import tcp_sensor_node_protocol as snp
 import fbguard_protocol as fbg
@@ -63,6 +64,13 @@ def thread_exception_handler(args):
     logging.error(f"Exception in thread {args.thread.name}: {args.exc_value}", exc_info=(args.exc_type, args.exc_value, args.exc_traceback))
 
 threading.excepthook = thread_exception_handler
+
+
+def handle_stop_signal(signum, frame):
+    """
+    This function is called when a stop signal is received (e.g., `docker stop`).
+    """
+    exit(0)
 
 class FreqCounter:
     def __init__(self, measure_period:float|int) -> None:
@@ -350,4 +358,6 @@ class Server:
         ccq.set_all_sensor_nodes_conn_state(False)
 
 if __name__ == '__main__':
+    signal.signal(signal.SIGTERM, handle_stop_signal)
+    signal.signal(signal.SIGINT, handle_stop_signal)
     Server(HOST, PORT).run()
