@@ -40,7 +40,7 @@ import threading
 from typing import TypeAlias
 from abc import ABC, abstractmethod
 
-import tcp_sensor_node_protocol as snp
+import sensor_node_protocol as snp
 import fbguard_protocol as fbg
 import control_center_queries as ccq
 from api_clients import influxdb
