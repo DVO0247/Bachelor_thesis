@@ -1,6 +1,7 @@
 """
 This module is used to handle TCP communication between the server and clients.
 """
+
 import logging
 from rich.logging import RichHandler
 from pathlib import Path
@@ -351,8 +352,5 @@ class Server:
 
         ccq.set_all_sensor_nodes_conn_state(False)
 
-def main():
-    Server(HOST, PORT).run()
-
 if __name__ == '__main__':
-    main()
+    Server(HOST, PORT).run()
