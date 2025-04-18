@@ -9,10 +9,10 @@ Cílem práce je implementace datového centra, které bude zajišťovat sběr d
 
 ## Instalace prerekvizit
 ### Docker
+Podle návodu zde:
 https://docs.docker.com/engine/install/debian/#install-using-the-repository
 
 ### NTP Server (Volitelné)
-Instalace:
 ```bash
 apt install -y ntp
 ```
