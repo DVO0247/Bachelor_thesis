@@ -1,9 +1,9 @@
-[influxdb]
+[influxdb_api]
 url = 'http://127.0.0.1:8086'
 token = 'jYRq3Qgtk6YarmeE6CZmpdPM3Rk4PF1FjlvMbs-SyXc6ubCkEODlCrkiTVKopYDkrohbe9PRT8Qtgx1iNXcP5w=='
 org_name = 'main'
 
-[grafana]
+[grafana_api]
 url = 'http://127.0.0.1:3000'
 username = 'admin'
 password = 'wsadwsad'

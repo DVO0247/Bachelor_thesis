@@ -23,7 +23,7 @@ CONFIG_FILE_PATH = Path(__file__).parent.parent/'config.toml'
 NEW_DASHBOARD_TEMPLATE_PATH = Path(__file__).parent/'grafana_dashboard.json'
 
 with open(CONFIG_FILE_PATH, 'rb') as file:
-    config = tomllib.load(file)['grafana']
+    config = tomllib.load(file)['grafana_api']
 
 GRAFANA_URL = config['url']
 ADMIN_USERNAME = config['username']

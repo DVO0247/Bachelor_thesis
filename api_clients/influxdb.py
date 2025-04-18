@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 CONFIG_FILE_PATH = Path(__file__).parent.parent/'config.toml'
 
 with open(CONFIG_FILE_PATH, 'rb') as file:
-    config = tomllib.load(file)['influxdb']
+    config = tomllib.load(file)['influxdb_api']
 
 URL = config['url']
 TOKEN = config['token']
