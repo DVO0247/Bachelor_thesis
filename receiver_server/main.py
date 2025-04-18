@@ -17,7 +17,6 @@ PORT = config['port']
 DEBUG = config['debug']
 
 if __name__ == '__main__':
-    #logging.config.dictConfig({'version': 1, 'disable_existing_loggers': True}) # TODO
     logging.getLogger("Rx").setLevel(logging.WARNING)
     LOG_FILE_PATH = Path(__file__).parent/'log.txt'
     log = logging.getLogger()
