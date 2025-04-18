@@ -4,6 +4,7 @@ This module provides connection to the control center database and query functio
 
 import os
 import django
+import django.conf
 from django.db.models import Max
 import sys
 from pathlib import Path
@@ -22,6 +23,7 @@ sys.path.append(str(django_root_path))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
 
 # Initialize the Django application, which loads the configuration from the file specified in DJANGO_SETTINGS_MODULE
+django.conf.settings.LOGGING = {}
 django.setup()
 
 # Import models from the Control Center

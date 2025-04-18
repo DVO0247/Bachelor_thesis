@@ -1,22 +1,10 @@
 """
 This module is used to handle TCP communication between the server and clients.
 """
-
-import socket
-import time
-import threading
-from typing import TypeAlias
-from abc import ABC, abstractmethod
+import logging
+from rich.logging import RichHandler
 from pathlib import Path
 import tomllib
-import logging
-import logging.config
-from rich.logging import RichHandler
-
-import tcp_sensor_node_protocol as snp
-import fbguard_protocol as fbg
-import control_center_queries as ccq
-from api_clients import influxdb
 
 CONFIG_FILE_PATH = Path(__file__).parent.parent/'config.toml'
 
@@ -26,6 +14,36 @@ with open(CONFIG_FILE_PATH, 'rb') as file:
 HOST = config['host']
 PORT = config['port']
 DEBUG = config['debug']
+
+if __name__ == '__main__':
+    #logging.config.dictConfig({'version': 1, 'disable_existing_loggers': True}) # TODO
+    logging.getLogger("Rx").setLevel(logging.WARNING)
+    LOG_FILE_PATH = Path(__file__).parent/'log.txt'
+    log = logging.getLogger()
+    log.setLevel(logging.DEBUG if DEBUG else logging.INFO)
+
+    file_handler = logging.FileHandler(LOG_FILE_PATH)
+    file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+    file_handler.setLevel(logging.INFO)
+
+    stream_handler = RichHandler(rich_tracebacks=True, show_time=True)
+    stream_handler.setLevel(logging.DEBUG if DEBUG else logging.INFO)
+
+    log.addHandler(file_handler)
+    log.addHandler(stream_handler)
+else:
+    log = logging.getLogger(__name__)
+
+import socket
+import time
+import threading
+from typing import TypeAlias
+from abc import ABC, abstractmethod
+
+import tcp_sensor_node_protocol as snp
+import fbguard_protocol as fbg
+import control_center_queries as ccq
+from api_clients import influxdb
 
 RECV_SIZE = 4096
 SENSOR_PARAMS_UPDATE_PERIOD = 1
@@ -334,21 +352,7 @@ class Server:
         ccq.set_all_sensor_nodes_conn_state(False)
 
 def main():
-    global log
-    logging.config.dictConfig({'version': 1, 'disable_existing_loggers': True}) # TODO
-    LOG_FILE_PATH = Path(__file__).parent/'log.txt'
-    log = logging.getLogger()
-    log.setLevel(logging.DEBUG if DEBUG else logging.INFO)
-
-    file_handler = logging.FileHandler(LOG_FILE_PATH)
-    file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
-    file_handler.setLevel(logging.INFO)
-    
-    log.addHandler(file_handler)
-
     Server(HOST, PORT).run()
 
 if __name__ == '__main__':
     main()
-else:
-    log = logging.getLogger(__name__)
