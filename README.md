@@ -18,6 +18,6 @@ apt install -y ntp
 ```
 Konfigurace pro ntp server se nachází v souboru `/etc/ntpsec/ntp.conf`.
 
-## Instalace
+## Spuštění
 1. Nastavení parametrů v souboru `.env`.
 2. zadání příkazu `docker compose up --build` pro sestavení všech Docker image a spuštění kontejnerů.
