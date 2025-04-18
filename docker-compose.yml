@@ -74,7 +74,7 @@ services:
     networks:
       - data_centre
     command: >
-      sh -c "wait-for-it.sh control_center:80 -- python main.py"
+      sh -c "wait-for-it.sh control_center:80 -- python -u main.py"
     restart: always
 
 networks:

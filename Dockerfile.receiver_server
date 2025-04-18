@@ -23,4 +23,4 @@ COPY ./api_clients /app/api_clients
 EXPOSE 5123
 
 # Run the main script
-CMD ["python", "main.py"]
+CMD ["python", "-u", "main.py"]
