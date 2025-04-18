@@ -9,7 +9,7 @@ from django.db.models import Max
 import sys
 from pathlib import Path
 from dataclasses import dataclass
-from tcp_sensor_node_protocol import SensorParams
+from sensor_node_protocol import SensorParams
 import logging
 log = logging.getLogger(__name__)
 
