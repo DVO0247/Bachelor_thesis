@@ -2,27 +2,46 @@
 This module is used to handle TCP communication between the server and clients.
 """
 
+import logging
+from rich.logging import RichHandler
+import os
+from pathlib import Path
+
+DEBUG = False if os.getenv('DEBUG') == 'false' else True
+APP_DATA_PATH = Path(str(os.getenv('APP_DATA_PATH'))) if os.getenv('APP_DATA_PATH') else Path(__file__).parent.parent/'app_data'
+
+if __name__ == '__main__':
+    LOG_FILE_PATH = APP_DATA_PATH/'receiver_server_log.txt'
+
+    logging.getLogger("Rx").setLevel(logging.WARNING)
+    log = logging.getLogger()
+    log.setLevel(logging.DEBUG if DEBUG else logging.INFO)
+
+    file_handler = logging.FileHandler(LOG_FILE_PATH)
+    file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+    file_handler.setLevel(logging.INFO)
+
+    stream_handler = RichHandler(rich_tracebacks=True, show_time=True)
+    stream_handler.setLevel(logging.DEBUG if DEBUG else logging.INFO)
+
+    log.addHandler(file_handler)
+    log.addHandler(stream_handler)
+else:
+    log = logging.getLogger(__name__)
+
 import socket
 import time
 import threading
 from typing import TypeAlias
 from abc import ABC, abstractmethod
-from pathlib import Path
-import os
-import logging
-import logging.config
-from rich.logging import RichHandler
 
 import tcp_sensor_node_protocol as snp
 import fbguard_protocol as fbg
 import control_center_queries as ccq
 from api_clients import influxdb
 
-APP_DATA_PATH = Path(str(os.getenv('APP_DATA_PATH'))) if os.getenv('APP_DATA_PATH') else Path(__file__).parent.parent/'app_data'
-
 HOST = os.getenv('RECEIVER_HOST', '0.0.0.0')
 PORT = int(os.getenv('RECEIVER_PORT', 5123))
-DEBUG = False if os.getenv('DEBUG') == 'false' else True
 
 RECV_SIZE = 4096
 SENSOR_PARAMS_UPDATE_PERIOD = 1
@@ -330,22 +349,5 @@ class Server:
 
         ccq.set_all_sensor_nodes_conn_state(False)
 
-def main():
-    global log
-    logging.config.dictConfig({'version': 1, 'disable_existing_loggers': True}) # TODO
-    LOG_FILE_PATH = APP_DATA_PATH/'receiver_server_log.txt'
-    log = logging.getLogger()
-    log.setLevel(logging.DEBUG if DEBUG else logging.INFO)
-
-    file_handler = logging.FileHandler(LOG_FILE_PATH)
-    file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
-    file_handler.setLevel(logging.INFO)
-    
-    log.addHandler(file_handler)
-
-    Server(HOST, PORT).run()
-
 if __name__ == '__main__':
-    main()
-else:
-    log = logging.getLogger(__name__)
+    Server(HOST, PORT).run()
