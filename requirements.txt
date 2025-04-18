@@ -3,5 +3,4 @@ influxdb-client==1.48.0
 requests==2.32.3
 whitenoise==6.8.2
 rich==13.9.4
-python-daemon==3.1.2; sys_platform != 'win32'
 gunicorn==23.0.0; sys_platform != 'win32'
