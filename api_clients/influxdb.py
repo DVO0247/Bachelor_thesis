@@ -84,10 +84,9 @@ def write(bucket_name: str, points: Iterable[Point]):
 
 def create_point(measurement_id, sensor_node_name: str, sensor_name: str, timestamp: int, value: float, write_precision: TimePrecision) -> Point:
     """Create InfluxDB `Point`"""
-    #print(measurement_id, sensor_node_name, sensor_name, timestamp, value, write_precision)
     return (
         Point(measurement_id)
-        .tag("Sensor Node", sensor_node_name)
+        .tag("sensor_node", sensor_node_name)
         .time(time=timestamp, write_precision=write_precision)
         .field(sensor_name, value)
     )
@@ -153,5 +152,3 @@ def export_csv(
         for record in query_select_all(bucket_name, measurement_id, batch_size):
             file.write(f'{record.get_time().astimezone(_timezone).isoformat(' ', time_precision)[:-6]},{record.get_value()}\n')
             #print(record.get_time())
-
-# TODO: Remove unused things (?)
