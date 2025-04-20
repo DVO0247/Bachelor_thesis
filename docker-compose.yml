@@ -80,6 +80,3 @@ services:
 networks:
   data_centre:
     driver: bridge
-
-volumes:
-  app_data:
