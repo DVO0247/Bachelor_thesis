@@ -5,7 +5,7 @@ services:
     ports:
       - "8086:8086"
     volumes:
-      - ./app_data/influxdb:/var/lib/influxdb
+      - ./app_data/influxdb2:/var/lib/influxdb2
     env_file:
       - .env
     environment:
