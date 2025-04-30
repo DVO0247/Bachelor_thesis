@@ -1,4 +1,4 @@
-# Datové centrum pro sběr a vizualizaci dat ze senzorů a jejich vizualizace
+# Datové centrum pro sběr a vizualizaci dat ze senzorů
 
 ## Zásady pro vypracování
 Cílem práce je implementace datového centra, které bude zajišťovat sběr dat ze senzorů pomocí protokolu TCP nebo UDP, jejich ukládání do databázové struktury a jejich vizualizaci v prostředí Grafana. Datové centrum bude implementováno v Pythonu pomocí frameworku Django. Součástí práce bude také realizace teplotního senzoru využívajícího zařízení ESP32 s odesíláním dat do datového centra.
