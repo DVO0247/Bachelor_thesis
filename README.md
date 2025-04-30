@@ -16,7 +16,7 @@ https://docs.docker.com/engine/install/debian/#install-using-the-repository
 ```bash
 apt install -y chrony
 ```
-Konfigurace pro ntp server se nachází v souboru `/etc/ntpsec/ntp.conf`.
+Konfigurace pro ntp server se nachází v souboru `/etc/chrony.conf`.
 
 ## Spuštění
 1. Nastavení parametrů v souboru `.env`.
