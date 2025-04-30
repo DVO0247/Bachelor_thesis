@@ -49,7 +49,7 @@ python django_web/manage.py createadmin
 
 ### Instalace NTP serveru (volitelné)
 ```bash
-apt install ntp
+apt install chrony
 ```
 
 ## Spuštění
