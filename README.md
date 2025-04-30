@@ -10,7 +10,7 @@ Cílem práce je implementace datového centra, které bude zajišťovat sběr d
 ## Prerekvizity
 - InfluxDB v2
 - Grafana
-- Python >= 3.12
+- Python ≥ 3.12
 
 ## Instalace
 
@@ -56,4 +56,4 @@ Konfigurace pro ntp server se nachází v souboru `/etc/chrony.conf`.
 ## Spuštění
 1. Nastavení parametrů v souboru `config.toml`.
 2. Spuštění Ovládacího centra: `python django_web/manage.py runserver`.
-3. Spuštění Serveru pro příjem dat: `python receiver_server/main.py`.
+3. Spuštění serveru pro příjem dat: `python receiver_server/main.py`.
