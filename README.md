@@ -14,7 +14,7 @@ https://docs.docker.com/engine/install/debian/#install-using-the-repository
 
 ### NTP Server (Volitelné)
 ```bash
-apt install -y ntp
+apt install -y chrony
 ```
 Konfigurace pro ntp server se nachází v souboru `/etc/ntpsec/ntp.conf`.
 
