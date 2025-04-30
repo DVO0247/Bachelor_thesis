@@ -5,8 +5,12 @@
 			"path": "sensor_node_tcp_ntp"
 		},
 		{
-			"name": "example",
-			"path": "example"
+			"name": "example DHT11",
+			"path": "example DHT11"
+		},
+		{
+			"name": "example MPU9250",
+			"path": "example MPU9250"
 		}
 	],
 	"settings": {
