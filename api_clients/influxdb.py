@@ -3,7 +3,7 @@ This module defines functions for interacting with InfluxDBv2 API.
 These functions are intended to be called from the Control Center, Receiver server and Gradana API client.
 """
 
-from influxdb_client import InfluxDBClient, Point, Bucket, Authorization, User, Organization, Buckets, WriteOptions
+from influxdb_client import InfluxDBClient, Point, Bucket, Authorization, User, Organization, Buckets, WriteOptions, Dialect
 from influxdb_client import AddResourceMemberRequestBody
 from typing import Iterable, TypeAlias, Literal
 from datetime import datetime, tzinfo, timezone, timedelta
@@ -11,6 +11,7 @@ from pathlib import Path
 import tomllib
 import logging
 from datetime import datetime
+import time
 log = logging.getLogger(__name__)
 
 CONFIG_FILE_PATH = Path(__file__).parent.parent/'config.toml'
@@ -132,13 +133,14 @@ def query_select_all(bucket_name: str, measurement_id, sensor_node_name: str, se
         |> filter(fn: (r) => r["_measurement"] == "{measurement_id}" and r["sensor_node"] == "{sensor_node_name}" and r["_field"] == "{sensor_name}")
         |> limit(n:{batch_size}, offset: {page*batch_size})
         '''
+
         result = Api.query.query(query, ORG_NAME)
+
         if result:
             yield from result[0].records
             page += 1
         else:
             return
-
 
 def export_csv(
     bucket_name: str,
@@ -146,13 +148,29 @@ def export_csv(
     sensor_node_name :str,
     sensor_name: str,
     out_path: Path|str,
-    _timezone: tzinfo,
-    time_precision: DateTimePrecisions = 'microseconds',
-    batch_size: int = 100_000
     ):
-    open(out_path, 'w').close()  # create or clear file
+    query = f'''
+        from(bucket: "{bucket_name}")
+        |> range(start: 0)
+        |> filter(fn: (r) => r["_measurement"] == "{measurement_id}" and r["sensor_node"] == "{sensor_node_name}" and r["_field"] == "{sensor_name}")
+        |> keep(columns: ["_time", "_value"])
+    '''
+
     with open(out_path, 'a') as file:
         file.write('timestamp,value\n')
-        for record in query_select_all(bucket_name, measurement_id, sensor_node_name, sensor_name, batch_size):
-            file.write(f'{record.get_time().astimezone(_timezone).isoformat(' ', time_precision)[:-6]},{record.get_value()}\n')
-            #print(record.get_time())
+        start = time.perf_counter()
+        rows = Api.query.query_csv(query,ORG_NAME, dialect=Dialect(annotations=[]))
+
+        # return if there are no rows
+        try:
+            header = next(rows)
+        except StopIteration:
+            return
+        
+        time_index = header.index('_time')
+        value_index = header.index('_value')
+        for row in rows:
+            # Time format from 'YYYY-MM-DDTHH:MM:SS.nnnnnnnnnZ' to 'YYYY-MM-DD HH:MM:SS.ssssss'
+            file.write(f'{row[time_index][:10]} {row[time_index][11:-1]},{row[value_index]}\n')
+        end = time.perf_counter()
+        print(end-start)
