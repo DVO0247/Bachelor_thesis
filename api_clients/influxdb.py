@@ -12,7 +12,6 @@ import tomllib
 import os
 import logging
 from datetime import datetime
-import time
 log = logging.getLogger(__name__)
 
 APP_DATA_PATH = Path(str(os.getenv('APP_DATA_PATH'))) if os.getenv('APP_DATA_PATH') else Path(__file__).parent.parent/'app_data'
@@ -156,7 +155,6 @@ def export_csv(
 
     with open(out_path, 'a') as file:
         file.write('timestamp,value\n')
-        start = time.perf_counter()
         rows = Api.query.query_csv(query,ORG_NAME, dialect=Dialect(annotations=[]))
 
         # return if there are no rows
@@ -170,5 +168,3 @@ def export_csv(
         for row in rows:
             # Time format from 'YYYY-MM-DDTHH:MM:SS.nnnnnnnnnZ' to 'YYYY-MM-DD HH:MM:SS.ssssss'
             file.write(f'{row[time_index][:10]} {row[time_index][11:-1]},{row[value_index]}\n')
-        end = time.perf_counter()
-        print(end-start)
