@@ -94,11 +94,11 @@ def create_point(measurement_id, sensor_node_name: str, sensor_name: str, timest
     )
 
 
-def query_select(bucket_name: str, measurement_id, limit_n: int, page: int):
+def query_select(bucket_name: str, measurement_id, sensor_node_name: str, sensor_name: str, limit_n: int, page: int):
     query = f'''
     from(bucket: "{bucket_name}")
     |> range(start: 0)
-    |> filter(fn: (r) => r["_measurement"] == "{measurement_id}")
+    |> filter(fn: (r) => r["_measurement"] == "{measurement_id}" and r["sensor_node"] == "{sensor_node_name}" and r["_field"] == "{sensor_name}")
     |> limit(n:{limit_n}, offset: {page*limit_n})
     '''
     result = Api.query.query(query, ORG_NAME)
@@ -107,18 +107,18 @@ def query_select(bucket_name: str, measurement_id, limit_n: int, page: int):
 def delete_test_measurement(bucket_name: str):
     Api.delete.delete(datetime.fromtimestamp(0),'2100-01-01T00:00:00Z','_measurement=-1', bucket_name, ORG_NAME)
 
-def query_count(bucket_name: str, measurement_id) -> int:
+def query_count(bucket_name: str, measurement_id, sensor_node_name: str, sensor_name: str,) -> int:
     query = f'''
     from(bucket: "{bucket_name}")
     |> range(start: 0)
-    |> filter(fn: (r) => r["_measurement"] == "{measurement_id}")
+    |> filter(fn: (r) => r["_measurement"] == "{measurement_id}" and r["sensor_node"] == "{sensor_node_name}" and r["_field"] == "{sensor_name}")
     |> count()
     '''
     result = Api.query.query(query, ORG_NAME)
     return result[0].records[0].get_value() if result else 0
 
 
-def query_select_all(bucket_name: str, measurement_id, batch_size: int = 100_000):
+def query_select_all(bucket_name: str, measurement_id, sensor_node_name: str, sensor_name: str, batch_size: int = 100_000):
     """Generator for safely selecting all data for a measurement.  
 
     This function retrieves data in batches, preventing excessive memory usage  
@@ -129,7 +129,7 @@ def query_select_all(bucket_name: str, measurement_id, batch_size: int = 100_000
         query = f'''
         from(bucket: "{bucket_name}")
         |> range(start: 0)
-        |> filter(fn: (r) => r["_measurement"] == "{measurement_id}")
+        |> filter(fn: (r) => r["_measurement"] == "{measurement_id}" and r["sensor_node"] == "{sensor_node_name}" and r["_field"] == "{sensor_name}")
         |> limit(n:{batch_size}, offset: {page*batch_size})
         '''
         result = Api.query.query(query, ORG_NAME)
@@ -143,6 +143,8 @@ def query_select_all(bucket_name: str, measurement_id, batch_size: int = 100_000
 def export_csv(
     bucket_name: str,
     measurement_id,
+    sensor_node_name :str,
+    sensor_name: str,
     out_path: Path|str,
     _timezone: tzinfo,
     time_precision: DateTimePrecisions = 'microseconds',
@@ -151,6 +153,6 @@ def export_csv(
     open(out_path, 'w').close()  # create or clear file
     with open(out_path, 'a') as file:
         file.write('timestamp,value\n')
-        for record in query_select_all(bucket_name, measurement_id, batch_size):
+        for record in query_select_all(bucket_name, measurement_id, sensor_node_name, sensor_name, batch_size):
             file.write(f'{record.get_time().astimezone(_timezone).isoformat(' ', time_precision)[:-6]},{record.get_value()}\n')
             #print(record.get_time())

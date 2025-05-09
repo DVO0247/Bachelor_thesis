@@ -222,9 +222,10 @@ def explore_data(request, project_pk, measurement_id, sensor_pk, page=1, limit_n
     project = get_object_or_404(Project, pk=project_pk)
     measurement = get_object_or_404(Measurement, project=project, id_in_project=measurement_id)
     sensor = get_object_or_404(Sensor, pk=sensor_pk)
-    record_count = influxdb.query_count(project.name, measurement.id_in_project)
+    sensor_node = sensor.sensor_node
+    record_count = influxdb.query_count(project.name, measurement.id_in_project, sensor_node.name, sensor.name) # type: ignore
     page_count = record_count//limit_n if record_count % limit_n == 0 else record_count//limit_n + 1
-    records = influxdb.query_select(project.name, measurement.id_in_project, limit_n, page-1)
+    records = influxdb.query_select(project.name, measurement.id_in_project, sensor_node.name, sensor.name, limit_n, page-1) # type: ignore
     current_timezone = timezone.get_current_timezone()
     context['records'] = (
         (
@@ -253,7 +254,8 @@ def export_csv(request, project_pk, measurement_id, sensor_pk):
     project = get_object_or_404(Project, pk=project_pk)
     measurement= get_object_or_404(Measurement, project=project, id_in_project=measurement_id)
     sensor = get_object_or_404(Sensor, pk=sensor_pk)
-    influxdb.export_csv(project.name, measurement.id_in_project, out_path, timezone.get_current_timezone())
+    sensor_node = sensor.sensor_node
+    influxdb.export_csv(project.name, measurement.id_in_project, sensor_node.name, sensor.name, out_path, timezone.get_current_timezone()) # type: ignore
     filename = f'{project.name}_{sensor.sensor_node.name}_{sensor.name}_{measurement.id_in_project}_{measurement.start_time.isoformat(timespec='milliseconds')[:-6]}.csv'
 
     return FileResponse(open(out_path, 'rb'), as_attachment=True, filename=filename)
