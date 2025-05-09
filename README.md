@@ -55,5 +55,5 @@ Konfigurace pro ntp server se nachází v souboru `/etc/chrony.conf`.
 
 ## Spuštění
 1. Nastavení parametrů v souboru `config.toml`.
-2. Spuštění Ovládacího centra: `python django_web/manage.py runserver`.
+2. Spuštění Ovládacího centra: `gunicorn core.wsgi:application`.
 3. Spuštění serveru pro příjem dat: `python receiver_server/main.py`.
