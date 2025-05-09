@@ -29,8 +29,11 @@
             <td>
                 <a class="btn btn-primary btn-sm" href="{% url 'explore_data' project.pk measurement.id_in_project sensor.pk %}"
                     role="button">Explore</a>
-                <a class="btn btn-primary btn-sm" href="{% url 'export_csv' project.pk measurement.id_in_project sensor.pk %}"
+                <div class="tooltip-wrapper">
+                    <span class="tooltip-text">It may take a while</span>
+                    <a class="btn btn-primary btn-sm" href="{% url 'export_csv' project.pk measurement.id_in_project sensor.pk %}"
                     role="button">Export to CSV</a>
+                </div>
             </td>
 
         </tr>

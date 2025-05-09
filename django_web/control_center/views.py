@@ -1,16 +1,15 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse, JsonResponse, HttpResponseRedirect, FileResponse
+from django.http import JsonResponse, HttpResponseRedirect, StreamingHttpResponse
 from django.core.exceptions import PermissionDenied
-from django.core.files.temp import NamedTemporaryFile
 from django.forms import modelformset_factory
 from django.contrib.auth.views import LoginView, PasswordChangeView
 from django.contrib import messages
 from django.apps import apps
 from django.utils import timezone
 from django.urls import reverse_lazy
-from django.conf import settings
 
 from pathlib import Path
+import os
 
 from .models import User, Project, SensorNode, Sensor, UserProject, Measurement, SensorNodeTypes
 from .forms import SensorNodeForm, ProjectForm, LoginForm, SensorForm, UserProjectForm
@@ -250,15 +249,40 @@ def explore_data_goto(request, project_pk, measurement_id, sensor_pk, count=50):
 
 def export_csv(request, project_pk, measurement_id, sensor_pk):
     TEMP_DIR_PATH.mkdir(exist_ok=True)
-    out_path = TEMP_DIR_PATH/'export.csv'
     project = get_object_or_404(Project, pk=project_pk)
     measurement= get_object_or_404(Measurement, project=project, id_in_project=measurement_id)
     sensor = get_object_or_404(Sensor, pk=sensor_pk)
     sensor_node = sensor.sensor_node
-    influxdb.export_csv(project.name, measurement.id_in_project, sensor_node.name, sensor.name, out_path, timezone.get_current_timezone()) # type: ignore
     filename = f'{project.name}_{sensor.sensor_node.name}_{sensor.name}_{measurement.id_in_project}_{measurement.start_time.isoformat(timespec='milliseconds')[:-6]}.csv'
 
-    return FileResponse(open(out_path, 'rb'), as_attachment=True, filename=filename)
+    i = 0
+    while True:
+        temp_file_path = TEMP_DIR_PATH/f'export_{i}.csv'
+        if not temp_file_path.exists():
+            break
+        else:
+            i+=1
+    
+    influxdb.export_csv(project.name, measurement.id_in_project, sensor_node.name, sensor.name, temp_file_path) # type: ignore
+
+    def file_iterator(path, chunk_size=8192):
+        with open(path, 'rb') as f:
+            while True:
+                chunk = f.read(chunk_size)
+                if not chunk:
+                    break
+                yield chunk
+
+        # Remove file after download
+        try:
+            os.remove(path)
+        except FileNotFoundError:
+            pass
+    
+    response = StreamingHttpResponse(file_iterator(temp_file_path), content_type='application/octet-stream')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    return response
 
 def start_measurement(request, project_pk):
     if request.method == 'POST':
