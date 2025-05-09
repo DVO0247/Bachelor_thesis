@@ -267,10 +267,7 @@ def export_csv(request, project_pk, measurement_id, sensor_pk):
 
     def file_iterator(path, chunk_size=8192):
         with open(path, 'rb') as f:
-            while True:
-                chunk = f.read(chunk_size)
-                if not chunk:
-                    break
+            while chunk := f.read(chunk_size):
                 yield chunk
 
         # Remove file after download
