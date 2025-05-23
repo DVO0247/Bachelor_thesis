@@ -28,7 +28,6 @@ ADMIN_USERNAME = os.getenv('GRAFANA_ADMIN_USERNAME', 'admin')
 ADMIN_PASSWORD = os.getenv('GRAFANA_ADMIN_PASSWORD', 'admin')
 ORG_NAME = os.getenv('GRAFANA_ORG_NAME', 'Main Org.')
 INFLUXDB_SOURCE_NAME = os.getenv('INFLUXDB_SOURCE_NAME', 'influxdb')
-TOKEN = 'glsa_78Qymplocox2UDAjcfaLX7JtyuySepVi_063aae67'
 AUTH = HTTPBasicAuth(ADMIN_USERNAME, ADMIN_PASSWORD)
 
 Role:TypeAlias = Literal['Viewer', 'Editor', 'Admin']
