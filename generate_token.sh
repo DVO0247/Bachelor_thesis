@@ -11,4 +11,4 @@ else
     echo "$KEY=$TOKEN" >> "$ENV_FILE"
 fi
 
-echo "New $KEY generated"
+echo "New $KEY generated in .env"
