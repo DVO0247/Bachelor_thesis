@@ -19,5 +19,6 @@ apt install -y chrony
 Konfigurace pro ntp server se nachází v souboru `/etc/chrony.conf`.
 
 ## Spuštění
-1. Nastavení parametrů v souboru `.env`.
-2. Zadání příkazu `docker compose up --build` pro sestavení všech Docker image a spuštění kontejnerů. Pro spuštění kontejnerů v odděleném režimu (tedy aby běžely na pozadí, a neblokovaly terminál), přidejte parametr `-d`.
+1. Vygenerování InfluxDB tokenu pomocí příkazu `bash generate_token.sh`
+2. Nastavení parametrů v souboru `.env`.
+3. Zadání příkazu `docker compose up --build` pro sestavení všech Docker image a spuštění kontejnerů. Pro spuštění kontejnerů v odděleném režimu (tedy aby běžely na pozadí, a neblokovaly terminál), přidejte parametr `-d`.
