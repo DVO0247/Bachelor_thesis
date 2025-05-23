@@ -16,7 +16,10 @@ log = logging.getLogger(__name__)
 APP_DATA_PATH = Path(str(os.getenv('APP_DATA_PATH'))) if os.getenv('APP_DATA_PATH') else Path(__file__).parent.parent/'app_data'
 
 URL = os.getenv('INFLUXDB_URL','http://influxdb:8086')
-TOKEN = os.getenv('INFLUXDB_ADMIN_TOKEN', '')
+TOKEN = os.getenv('INFLUXDB_ADMIN_TOKEN')
+if not TOKEN:
+    log.error('Env var INFLUXDB_ADMIN_TOKEN not found')
+    exit()
 ORG_NAME = os.getenv('INFLUXDB_ORG','main')
 
 client = InfluxDBClient(url=URL, token=TOKEN, org=ORG_NAME)
