@@ -17,7 +17,7 @@ class SensorNodeTypes(models.IntegerChoices):
     FBGUARD = 1, 'FBGuard'
 
 # A tuple defining the sensor node types intended for sensor management.
-SENSOR_NODES_FOR_SENSOR_MANAGE: tuple[SensorNodeTypes] = (
+SENSOR_NODES_FOR_SENSOR_MANAGE: tuple[SensorNodeTypes, ...] = (
     SensorNodeTypes.ESP32,
 )
 
