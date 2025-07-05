@@ -47,11 +47,14 @@ python django_web/manage.py collectstatic --noinput --clear
 python django_web/manage.py createadmin
 ```
 
-### Instalace NTP serveru (volitelné)
+### NTP Server (Volitelné)
 ```bash
-apt install chrony
+apt install -y chrony
 ```
-Konfigurace pro ntp server se nachází v souboru `/etc/chrony/chrony.conf`.
+Konfigurace pro ntp server se nachází v souboru `/etc/chrony/chrony.conf`. Pro povolení komunikace se všemi klienty stačí na konec souboru přidat řádek:
+```
+allow all
+```
 
 ## Spuštění
 1. Nastavení parametrů v souboru `config.toml`.
