@@ -51,7 +51,7 @@ python django_web/manage.py createadmin
 ```bash
 apt install chrony
 ```
-Konfigurace pro ntp server se nachází v souboru `/etc/chrony.conf`.
+Konfigurace pro ntp server se nachází v souboru `/etc/chrony/chrony.conf`.
 
 ## Spuštění
 1. Nastavení parametrů v souboru `config.toml`.
