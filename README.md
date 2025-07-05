@@ -16,7 +16,7 @@ https://docs.docker.com/engine/install/debian/#install-using-the-repository
 ```bash
 apt install -y chrony
 ```
-Konfigurace pro ntp server se nachází v souboru `/etc/chrony.conf`.
+Konfigurace pro ntp server se nachází v souboru `/etc/chrony/chrony.conf`.
 
 ## Spuštění
 1. Vygenerování InfluxDB tokenu pomocí příkazu `bash generate_token.sh`
